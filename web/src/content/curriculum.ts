@@ -1,8 +1,20 @@
 import { cssExam, cssLessons } from "./css";
+import { grid, position, selectorsStates, transitions } from "./css-extra";
 import { htmlExam, htmlLessons } from "./html";
+import { forms, tables, textElements } from "./html-extra";
 import { introLessons } from "./intro";
 import { jsExam, jsLessons } from "./js";
-import type { Stage } from "./types";
+import { asyncAwait, conditions, objects } from "./js-extra";
+import type { Lesson, Stage } from "./types";
+
+/** Builds a stage's lesson order from slugs (core lessons) and lesson objects (extras). */
+function order(core: Lesson[], items: (string | Lesson)[]): Lesson[] {
+  return items.map((item) => (typeof item === "string" ? core.find((l) => l.slug === item)! : item));
+}
+
+const html = order(htmlLessons, ["what-is-html", "page-skeleton", "first-page", textElements, "links-images", "lists", tables, forms, "semantic-layout"]);
+const css = order(cssLessons, ["what-is-css", selectorsStates, "colors-fonts", "box-model", "flexbox", grid, position, "responsive", transitions]);
+const js = order(jsLessons, ["what-is-js", "variables", conditions, "functions", "arrays-loops", objects, "dom-events", asyncAwait]);
 
 export const stages: Stage[] = [
   {
@@ -30,7 +42,7 @@ export const stages: Stage[] = [
     },
     standard: { ar: "HTML Living Standard", en: "HTML Living Standard" },
     status: "available",
-    lessons: htmlLessons,
+    lessons: html,
     exam: htmlExam,
   },
   {
@@ -45,7 +57,7 @@ export const stages: Stage[] = [
     },
     standard: { ar: "CSS حسب Baseline 2025", en: "CSS per Baseline 2025" },
     status: "available",
-    lessons: cssLessons,
+    lessons: css,
     exam: cssExam,
   },
   {
@@ -60,7 +72,7 @@ export const stages: Stage[] = [
     },
     standard: { ar: "ECMAScript 2025", en: "ECMAScript 2025" },
     status: "available",
-    lessons: jsLessons,
+    lessons: js,
     exam: jsExam,
     certificate: { ar: "أساسيات تطوير الويب", en: "Web Development Fundamentals" },
   },

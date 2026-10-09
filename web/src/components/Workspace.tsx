@@ -4,7 +4,7 @@ import type { EditorView } from "@uiw/react-codemirror";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import type { FileKind, Files } from "@/content/types";
-import type { Locale } from "@/i18n/config";
+import { dirOf, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
 import { play } from "@/lib/feedback";
 import { buildPreview } from "@/lib/runner";
@@ -126,7 +126,7 @@ export function Workspace({
   ];
 
   return (
-    <div className="fixed inset-0 z-40 flex flex-col bg-code-bg text-code-fg" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+    <div dir={dirOf(locale)} className="fixed inset-0 z-40 flex flex-col bg-code-bg text-code-fg" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
       {/* Top bar */}
       <div className="flex items-center gap-2 px-3 py-2">
         <Press onClick={onClose} aria-label={dict.close} className="grid size-10 place-items-center rounded-xl text-[#93a5a7] hover:bg-white/5">

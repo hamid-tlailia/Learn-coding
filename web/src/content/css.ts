@@ -300,6 +300,39 @@ export const cssExam: Exam = {
   passPercent: 80,
   questions: [
     {
+      id: "q-grid",
+      prompt: { ar: "ماذا تعني `grid-template-columns: repeat(3, 1fr)`؟", en: "What does `grid-template-columns: repeat(3, 1fr)` mean?" },
+      options: [
+        { ar: "ثلاثة أعمدة متساوية", en: "Three equal columns" },
+        { ar: "ثلاثة صفوف", en: "Three rows" },
+        { ar: "عمود واحد عرضه 3", en: "One column 3 wide" },
+        { ar: "تكرار العنصر 3 مرات", en: "Repeat the element 3 times" },
+      ],
+      answer: 0,
+    },
+    {
+      id: "q-hover",
+      prompt: { ar: "أي محدد يطبّق تنسيقًا عند مرور الفأرة على الزر؟", en: "Which selector styles a button when the pointer is over it?" },
+      options: [
+        { ar: "`.btn:hover`", en: "`.btn:hover`" },
+        { ar: "`.btn.hover`", en: "`.btn.hover`" },
+        { ar: "`.btn::mouse`", en: "`.btn::mouse`" },
+        { ar: "`#btn-hover`", en: "`#btn-hover`" },
+      ],
+      answer: 0,
+    },
+    {
+      id: "q-position",
+      prompt: { ar: "لتثبيت شارة في زاوية البطاقة، البطاقة تكون…", en: "To pin a badge in a card's corner, the card is…" },
+      options: [
+        { ar: "`position: relative` والشارة `absolute`", en: "`position: relative` and the badge `absolute`" },
+        { ar: "`position: absolute` والشارة `relative`", en: "`position: absolute` and the badge `relative`" },
+        { ar: "`display: grid` فقط", en: "Just `display: grid`" },
+        { ar: "`float: right`", en: "`float: right`" },
+      ],
+      answer: 0,
+    },
+    {
       id: "q1",
       prompt: { ar: "ما المحدد الذي يختار كل العناصر التي لها class=\"card\"؟", en: "Which selector picks every element with class=\"card\"?" },
       options: [

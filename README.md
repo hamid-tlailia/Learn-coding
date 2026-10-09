@@ -60,5 +60,5 @@ Each task has a `test` function that receives the parsed HTML document and the l
 
 Start here (how the web works, thinking like a programmer, tools) → HTML → CSS → JavaScript → Git →
 React.js (+ Next.js) → Backend → Mobile (React Native / Expo).
-Start, HTML, CSS and JavaScript are available; each lesson has an "old vs modern" card so learners
+Start (3 reading lessons), HTML (9), CSS (9) and JavaScript (8) are available, each coding stage with an exam; each lesson has an "old vs modern" card so learners
 pick up current practice (HTML Living Standard, CSS Baseline, ECMAScript 2025). Later stages are listed as coming soon.

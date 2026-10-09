@@ -16,14 +16,14 @@ const escapeScript = (code: string) => code.replace(/<\/script/gi, "<\\/script")
  * Builds the document shown in the sandboxed preview iframe.
  * A learner who writes a full page (<!DOCTYPE html>…) gets it as-is, with CSS and JS injected.
  */
-export function buildPreview(files: Files, opts: { token?: string; harness?: string } = {}): string {
+export function buildPreview(files: Files, opts: { token?: string; harness?: string; settle?: number } = {}): string {
   const html = files.html ?? "";
   const style = `<style>${files.css ?? ""}</style>`;
   const bridge = opts.token ? consoleBridge(opts.token) : "";
   const script =
     `<script>${escapeScript(files.js ?? "")}</script>` +
     (opts.harness ? `<script>${escapeScript(opts.harness)}</script>` : "") +
-    (opts.token ? `<script>setTimeout(function(){parent.postMessage({cm:${JSON.stringify(opts.token)},type:"done"},"*")},50)</script>` : "");
+    (opts.token ? `<script>setTimeout(function(){parent.postMessage({cm:${JSON.stringify(opts.token)},type:"done"},"*")},${opts.settle ?? 50})</script>` : "");
 
   if (/<html[\s>]/i.test(html)) {
     let doc = html;
@@ -66,7 +66,7 @@ function parseCss(css: string) {
 }
 
 /** Runs the learner's JavaScript in a hidden sandboxed iframe and collects what it prints. */
-export function collectLogs(files: Files, harness?: string): Promise<string[]> {
+export function collectLogs(files: Files, harness?: string, settle?: number): Promise<string[]> {
   return new Promise((resolve) => {
     const token = Math.random().toString(36).slice(2);
     const logs: string[] = [];
@@ -85,19 +85,19 @@ export function collectLogs(files: Files, harness?: string): Promise<string[]> {
       else logs.push(e.data.type === "error" ? `Error: ${e.data.text}` : e.data.text);
     };
     // Code that never finishes (an endless loop) still gets an answer.
-    const timer = window.setTimeout(finish, 1500);
+    const timer = window.setTimeout(finish, 1500 + (settle ?? 0));
     window.addEventListener("message", onMessage);
-    frame.srcdoc = buildPreview(files, { token, harness });
+    frame.srcdoc = buildPreview(files, { token, harness, settle });
     document.body.appendChild(frame);
   });
 }
 
 /** Runs every task check against the learner's code. Checks never see the live preview. */
-export async function runChecks(tasks: Task[], files: Files, harness?: string): Promise<Record<string, boolean>> {
+export async function runChecks(tasks: Task[], files: Files, harness?: string, settle?: number): Promise<Record<string, boolean>> {
   const source = files.html ?? "";
   const doc = new DOMParser().parseFromString(source, "text/html");
   const { rule, media } = parseCss(files.css ?? "");
-  const logs = files.js !== undefined ? await collectLogs(files, harness) : [];
+  const logs = files.js !== undefined ? await collectLogs(files, harness, settle) : [];
   const input: CheckInput = { files, doc, css: files.css ?? "", source, logs, rule, media };
   const results: Record<string, boolean> = {};
   for (const task of tasks) {

@@ -400,6 +400,28 @@ export const htmlExam: Exam = {
   passPercent: 80,
   questions: [
     {
+      id: "q-form",
+      prompt: { ar: "كيف تربط `<label>` بحقل الإدخال؟", en: "How do you link a `<label>` to its field?" },
+      options: [
+        { ar: "`for` في label يساوي `id` في الحقل", en: "The label's `for` equals the field's `id`" },
+        { ar: "تضع الحقل قبل label مباشرة", en: "Put the field right before the label" },
+        { ar: "`name` في label", en: "`name` on the label" },
+        { ar: "لا حاجة للربط", en: "No link is needed" },
+      ],
+      answer: 0,
+    },
+    {
+      id: "q-table",
+      prompt: { ar: "أي وسم لخلية عنوان في الجدول؟", en: "Which tag is a header cell in a table?" },
+      options: [
+        { ar: "`<td>`", en: "`<td>`" },
+        { ar: "`<th>`", en: "`<th>`" },
+        { ar: "`<tr>`", en: "`<tr>`" },
+        { ar: "`<head>`", en: "`<head>`" },
+      ],
+      answer: 1,
+    },
+    {
       id: "q0",
       prompt: { ar: "ما أول سطر في كل صفحة HTML حديثة؟", en: "What is the first line of every modern HTML page?" },
       options: [

@@ -268,6 +268,37 @@ export const jsExam: Exam = {
   passPercent: 80,
   questions: [
     {
+      id: "q-strict",
+      prompt: { ar: "ما نتيجة `\"5\" === 5`؟", en: "What is `\"5\" === 5`?" },
+      options: [
+        { ar: "`true`", en: "`true`" },
+        { ar: "`false`", en: "`false`" },
+        { ar: "خطأ في الكود", en: "An error" },
+      ],
+      answer: 1,
+    },
+    {
+      id: "q-object",
+      prompt: { ar: "كيف تقرأ اسم المستخدم؟", en: "How do you read the user's name?" },
+      code: 'const user = { name: "Sara", age: 21 };',
+      options: [
+        { ar: "`user.name`", en: "`user.name`" },
+        { ar: "`user(name)`", en: "`user(name)`" },
+        { ar: "`name.user`", en: "`name.user`" },
+      ],
+      answer: 0,
+    },
+    {
+      id: "q-await",
+      prompt: { ar: "أين يمكن استخدام `await`؟", en: "Where can you use `await`?" },
+      options: [
+        { ar: "داخل دالة `async`", en: "Inside an `async` function" },
+        { ar: "داخل أي حلقة `for`", en: "Inside any `for` loop" },
+        { ar: "داخل CSS", en: "Inside CSS" },
+      ],
+      answer: 0,
+    },
+    {
       id: "q1",
       prompt: { ar: "أي تعريف هو الأنسب لقيمة لن تتغير؟", en: "Which declaration fits a value that won't change?" },
       options: [

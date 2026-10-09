@@ -17,6 +17,11 @@ import { RichText } from "./RichText";
 import { Press, useMounted } from "./ui";
 import { Workspace } from "./Workspace";
 
+/** Where the learner stopped in a lesson: the card, or the editor. */
+function positionKey(key: string) {
+  return `cm-position-v1:${key}`;
+}
+
 function draftKey(key: string) {
   return `satr-draft-v1:${key}`;
 }
@@ -57,8 +62,6 @@ function ExampleOutput({ code, html, label }: { code: string; html?: string; lab
 export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; stageSlug: string; lessonSlug: string }) {
   const mounted = useMounted();
   const router = useRouter();
-  const dict = getDictionary(locale);
-  const d = dict.lesson;
   const stage = getStage(stageSlug)!;
   const index = stage.lessons.findIndex((l) => l.slug === lessonSlug);
   const lesson = stage.lessons[index];
@@ -68,6 +71,9 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
 
   // The explanation language can differ from the interface, so learners can peek at the other one.
   const [tl, setTl] = useState<Locale>(locale);
+  // Everything in the lesson, buttons included, follows the explanation language.
+  const dict = getDictionary(tl);
+  const d = dict.lesson;
   const [phase, setPhase] = useState<"learn" | "code" | "done">("learn");
   const [step, setStep] = useState(0);
   const [dir, setDir] = useState(1);
@@ -105,6 +111,27 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
     const id = window.setTimeout(() => setCountdown((c) => c - 1), 1000);
     return () => window.clearTimeout(id);
   }, [won, flowing, countdown, nextHref, router]);
+
+  useEffect(() => {
+    try {
+      const pos = JSON.parse(window.localStorage.getItem(positionKey(key)) ?? "null") as { step: number; phase: "learn" | "code" } | null;
+      if (pos) {
+        setStep(Math.min(pos.step, stepsOf(lesson).length - 1));
+        setPhase(pos.phase);
+      }
+    } catch {
+      // Start from the first card.
+    }
+  }, [key, lesson]);
+
+  useEffect(() => {
+    if (phase === "done") return;
+    try {
+      window.localStorage.setItem(positionKey(key), JSON.stringify({ step, phase }));
+    } catch {
+      // Remembering the position is a convenience.
+    }
+  }, [key, step, phase]);
 
   useEffect(() => {
     try {
@@ -195,7 +222,7 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
   async function check() {
     if (checking) return;
     setChecking(true);
-    const r = await runChecks(lesson.tasks, files, lesson.harness);
+    const r = await runChecks(lesson.tasks, files, lesson.harness, lesson.settle);
     setChecking(false);
     setResults(r);
     if (lesson.tasks.every((task) => r[task.id])) {
@@ -268,7 +295,7 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
         <Celebration
           emoji={won.levelUp ? "🚀" : "🎉"}
           title={dict.done.title}
-          subtitle={`${dict.done.lessonDone}: ${t(lesson.title, locale)}`}
+          subtitle={`${dict.done.lessonDone}: ${t(lesson.title, tl)}`}
           xp={won.xp}
           levelUp={won.levelUp ? dict.done.levelUp : undefined}
         >
@@ -293,7 +320,7 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
   // ------------------------------------------------------------ Done: editor closed, show the result
   if (phase === "done") {
     return (
-      <div className="fixed inset-0 z-40 flex flex-col overflow-y-auto bg-paper" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+      <div dir={tdir} lang={tl} className="fixed inset-0 z-40 flex flex-col overflow-y-auto bg-paper" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
         <div className="mx-auto flex w-full max-w-2xl flex-col gap-5 px-4 py-6">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold">{d.doneTitle}</h1>
@@ -324,8 +351,8 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
     return (
       <>
         <Workspace
-          locale={locale}
-          title={t(lesson.title, locale)}
+          locale={tl}
+          title={t(lesson.title, tl)}
           kinds={lesson.files}
           files={files}
           onChange={(kind: FileKind, v: string) => setFiles((f) => ({ ...f, [kind]: v }))}
@@ -336,13 +363,13 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
           side={
             <div dir={tdir} lang={tl} className="flex flex-col gap-4">
               <div className="flex items-center justify-between gap-2">
-                <h2 className="font-bold">{getDictionary(tl).lesson.task}</h2>
+                <h2 className="font-bold">{d.task}</h2>
                 {langSwitch}
               </div>
               {taskList}
               {lesson.example && (
                 <details className="rounded-2xl bg-surface-2 p-3">
-                  <summary className="cursor-pointer font-semibold">{getDictionary(tl).lesson.peek}</summary>
+                  <summary className="cursor-pointer font-semibold">{d.peek}</summary>
                   <pre className="mt-2 overflow-x-auto rounded-xl bg-code-bg p-3 font-mono text-xs text-code-fg">{lesson.example.code}</pre>
                 </details>
               )}
@@ -370,7 +397,7 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
                 }}
                 className="self-start text-sm font-semibold text-accent"
               >
-                {locale === "ar" ? "→" : "←"} {d.learn}
+                {tl === "ar" ? "→" : "←"} {d.learn}
               </button>
             </div>
           }
@@ -422,7 +449,7 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
   };
 
   return (
-    <div className="fixed inset-0 z-40 flex flex-col bg-paper" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+    <div dir={tdir} lang={tl} className="fixed inset-0 z-40 flex flex-col bg-paper" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
       <div className="mx-auto flex w-full max-w-2xl items-center gap-3 px-4 py-3">
         <Link href={back} aria-label={d.close} className="grid size-10 place-items-center rounded-xl text-muted hover:bg-surface-2">
           <CloseIcon className="size-6" />
@@ -485,13 +512,13 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
 
             {s.kind === "example" && lesson.example && (
               <>
-                <h2 className="text-2xl font-bold">{getDictionary(tl).lesson.example}</h2>
+                <h2 className="text-2xl font-bold">{d.example}</h2>
                 <pre className="overflow-x-auto rounded-2xl bg-code-bg p-4 font-mono text-sm text-code-fg">{lesson.example.code}</pre>
                 {lesson.example.lang === "js" ? (
-                  <ExampleOutput code={lesson.example.code} html={lesson.starter.html} label={getDictionary(tl).lesson.run} />
+                  <ExampleOutput code={lesson.example.code} html={lesson.starter.html} label={d.run} />
                 ) : (
                   <iframe
-                    title={getDictionary(tl).lesson.result}
+                    title={d.result}
                     sandbox=""
                     srcDoc={buildPreview(
                       lesson.example.lang === "css" ? { html: lesson.starter.html, css: lesson.example.code } : { html: lesson.example.code },
@@ -513,7 +540,7 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
                 >
                   ⚡
                 </motion.span>
-                <h2 className="text-2xl font-bold">{getDictionary(tl).lesson.tip}</h2>
+                <h2 className="text-2xl font-bold">{d.tip}</h2>
                 <p className="text-lg">
                   <RichText text={t(lesson.tip.text, tl)} />
                 </p>
@@ -526,15 +553,15 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
             {s.kind === "modern" && lesson.modern && (
               <div className="flex flex-col gap-4">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-2xl font-bold">{getDictionary(tl).lesson.modern}</h2>
+                  <h2 className="text-2xl font-bold">{d.modern}</h2>
                   {lesson.modern.since && <span className="rounded-full bg-ok/15 px-2.5 py-0.5 text-xs font-bold text-ok">{lesson.modern.since}</span>}
                 </div>
                 <div className="flex flex-col gap-1">
-                  <span className="text-sm font-bold text-coral">✗ {getDictionary(tl).lesson.oldWay}</span>
+                  <span className="text-sm font-bold text-coral">✗ {d.oldWay}</span>
                   <pre className="overflow-x-auto rounded-2xl border border-coral/40 bg-coral/10 p-3 font-mono text-sm line-through decoration-coral/50">{lesson.modern.old}</pre>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <span className="text-sm font-bold text-ok">✓ {getDictionary(tl).lesson.newWay}</span>
+                  <span className="text-sm font-bold text-ok">✓ {d.newWay}</span>
                   <pre className="overflow-x-auto rounded-2xl border border-ok/40 bg-ok/10 p-3 font-mono text-sm">{lesson.modern.now}</pre>
                 </div>
                 <p className="text-lg">
@@ -577,7 +604,7 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
                       );
                     })}
                   </div>
-                  {done && <p className="font-semibold text-ok">{getDictionary(tl).lesson.correct}</p>}
+                  {done && <p className="font-semibold text-ok">{d.correct}</p>}
                 </motion.div>
               );
             })()}
@@ -587,7 +614,7 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
                 <span className="text-5xl" aria-hidden="true">
                   🎯
                 </span>
-                <h2 className="text-2xl font-bold">{getDictionary(tl).lesson.task}</h2>
+                <h2 className="text-2xl font-bold">{d.task}</h2>
                 {taskList}
               </div>
             )}

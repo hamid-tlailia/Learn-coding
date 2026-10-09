@@ -64,6 +64,8 @@ export type Lesson = {
   quiz?: Question[];
   /** Extra JavaScript run after the learner's code during a check, to test functions and events. */
   harness?: string;
+  /** How long to keep listening for console output after the code runs (asynchronous lessons). */
+  settle?: number;
   xp: number;
 };
 

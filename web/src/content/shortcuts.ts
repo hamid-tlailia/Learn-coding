@@ -16,5 +16,6 @@ export const shortcuts: Shortcut[] = [
   { after: "html/lists", abbr: "li.item$*3", output: '<li class="item1"></li>\n<li class="item2"></li>\n<li class="item3"></li>', text: { ar: "$ يرقّم العناصر تلقائيًا", en: "$ numbers the items for you" } },
   { after: "html/semantic-layout", abbr: "header>nav^main", output: "<header>\n  <nav></nav>\n</header>\n<main></main>", text: { ar: "^ يصعد مستوى واحدًا", en: "^ climbs up one level" } },
   { after: "html/links-images", abbr: "img", output: '<img src="" alt="">', text: { ar: "صورة مع src و alt", en: "An image with src and alt" } },
-  { after: "html/semantic-layout", abbr: "input:email", output: '<input type="email" name="" id="">', text: { ar: "حقل بريد إلكتروني", en: "An email input" } },
+  { after: "html/forms", abbr: "input:email", output: '<input type="email" name="" id="">', text: { ar: "حقل بريد إلكتروني", en: "An email input" } },
+  { after: "html/tables", abbr: "table>tr*2>td*3", output: "<table>\n  <tr><td></td><td></td><td></td></tr>\n  <tr><td></td><td></td><td></td></tr>\n</table>", text: { ar: "جدول من صفين وثلاثة أعمدة", en: "A table with 2 rows and 3 columns" } },
 ];
