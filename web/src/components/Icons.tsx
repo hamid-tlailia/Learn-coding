@@ -102,3 +102,9 @@ export const ListIcon = ({ className }: P) => (
     <path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" />
   </svg>
 );
+
+export const TrashIcon = ({ className }: P) => (
+  <svg {...base} className={className}>
+    <path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5" />
+  </svg>
+);

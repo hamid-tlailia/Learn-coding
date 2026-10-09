@@ -59,7 +59,8 @@ export function AppShell({ locale, children }: { locale: Locale; children: React
       <Backdrop />
 
       {/* Side rail on wide screens */}
-      <nav
+      <motion.nav
+        layoutRoot
         aria-label="Main"
         className="fixed inset-y-0 start-0 z-30 hidden w-24 flex-col items-center gap-2 border-e border-line bg-surface/80 py-6 backdrop-blur-xl lg:flex"
       >
@@ -84,12 +85,13 @@ export function AppShell({ locale, children }: { locale: Locale; children: React
             <span className={active === key ? "text-grad" : ""}>{dict.tabs[key]}</span>
           </Link>
         ))}
-      </nav>
+      </motion.nav>
 
       <div className="relative z-10 pb-28 lg:ps-24 lg:pb-10">{children}</div>
 
       {/* Bottom tab bar on phones */}
-      <nav
+      <motion.nav
+        layoutRoot
         aria-label="Main"
         className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/85 px-2 pt-1.5 backdrop-blur-xl lg:hidden"
         style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 6px)" }}
@@ -113,7 +115,7 @@ export function AppShell({ locale, children }: { locale: Locale; children: React
             </li>
           ))}
         </ul>
-      </nav>
+      </motion.nav>
     </div>
   );
 }

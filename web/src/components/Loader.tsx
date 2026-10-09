@@ -32,20 +32,27 @@ export function Loader({ label }: { label: string }) {
           role="status"
           aria-label={label}
         >
-          <div className="flex flex-col items-center gap-6" dir="ltr">
-            <div className="relative">
-              <span className="loader-glow absolute inset-0 rounded-[1.8rem]" aria-hidden="true" />
-              <span className="btn-grad relative grid size-24 place-items-center rounded-[1.8rem] font-mono text-3xl font-bold">{"</>"}</span>
-            </div>
-            <span className="font-display text-2xl font-bold">
-              Code <span className="text-grad">Master</span>
-            </span>
-            <span className="h-1.5 w-40 overflow-hidden rounded-full bg-line">
-              <span className="loader-bar btn-grad block h-full w-1/3 rounded-full" />
-            </span>
-          </div>
+          <LoaderMark />
         </motion.div>
       )}
     </AnimatePresence>
+  );
+}
+
+/** The logo, name and progress bar; also used by the entry page so launch looks seamless. */
+export function LoaderMark() {
+  return (
+    <div className="flex flex-col items-center gap-6" dir="ltr">
+      <div className="relative">
+        <span className="loader-glow absolute inset-0 rounded-[1.8rem]" aria-hidden="true" />
+        <span className="btn-grad relative grid size-24 place-items-center rounded-[1.8rem] font-mono text-3xl font-bold">{"</>"}</span>
+      </div>
+      <span className="font-display text-2xl font-bold">
+        Code <span className="text-grad">Master</span>
+      </span>
+      <span className="h-1.5 w-40 overflow-hidden rounded-full bg-line">
+        <span className="loader-bar btn-grad block h-full w-1/3 rounded-full" />
+      </span>
+    </div>
   );
 }

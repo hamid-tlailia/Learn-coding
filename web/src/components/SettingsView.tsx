@@ -13,6 +13,7 @@ import { accents, avatars, studyHours, updateSettings, useSettings, type Accent,
 import { photoToDataUrl } from "@/lib/image";
 import { syncReminder } from "@/lib/reminder";
 import { Avatar } from "./Avatar";
+import { TrashIcon } from "./Icons";
 import { Card, PageHeader, Press, rise, Stagger, Toggle, useMounted } from "./ui";
 
 const SCROLL_KEY = "cm-settings-scroll";
@@ -50,7 +51,11 @@ function Segmented<T extends string | number>({
   onChange: (v: T) => void;
 }) {
   return (
-    <div className="flex rounded-2xl bg-surface-2 p-1" role="radiogroup">
+    <div
+      className="grid gap-1 rounded-2xl bg-surface-2 p-1"
+      style={{ gridTemplateColumns: `repeat(${options.length > 3 ? 2 : options.length}, minmax(0, 1fr))` }}
+      role="radiogroup"
+    >
       {options.map((o) => (
         <button
           key={String(o.value)}
@@ -61,7 +66,7 @@ function Segmented<T extends string | number>({
             play("select");
             onChange(o.value);
           }}
-          className={`relative flex-1 rounded-xl px-3 py-2 text-sm font-semibold ${value === o.value ? "text-on-accent" : "text-muted"}`}
+          className={`relative min-w-0 rounded-xl px-2 py-2 text-sm font-semibold ${value === o.value ? "text-on-accent" : "text-muted"}`}
         >
           {value === o.value && (
             <motion.span layoutId={`seg-${id}`} className="btn-grad absolute inset-0 rounded-xl" transition={{ type: "spring", stiffness: 500, damping: 38 }} />
@@ -108,6 +113,50 @@ export function SettingsView({ locale }: { locale: Locale }) {
       </motion.div>
 
       <Section title={st.profile}>
+        {/* Photo first: tap it to change, the small bin removes it */}
+        <div className="flex flex-col items-center gap-2 px-5 pt-6 pb-2">
+          <input
+            ref={photoInput}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={async (e) => {
+              const f = e.target.files?.[0];
+              if (f) updateSettings({ photo: await photoToDataUrl(f) });
+              e.target.value = "";
+            }}
+          />
+          <div className="relative">
+            <motion.button
+              type="button"
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                play("tap");
+                photoInput.current?.click();
+              }}
+              aria-label={o.pickPhoto}
+              className="group relative block overflow-hidden rounded-[2rem]"
+            >
+              <Avatar className="size-28 rounded-[2rem] text-6xl" />
+              <span className="absolute inset-0 grid place-items-center bg-black/45 text-3xl text-white opacity-0 transition-opacity group-hover:opacity-100 group-active:opacity-100">
+                📷
+              </span>
+            </motion.button>
+            <span className="btn-grad pointer-events-none absolute -bottom-1 -end-1 grid size-9 place-items-center rounded-full text-base shadow-card" aria-hidden="true">
+              📷
+            </span>
+            {s.photo && (
+              <Press
+                onClick={() => updateSettings({ photo: "" })}
+                aria-label={o.removePhoto}
+                title={o.removePhoto}
+                className="absolute -top-1 -start-1 grid size-9 place-items-center rounded-full bg-coral text-white shadow-card"
+              >
+                <TrashIcon className="size-4" />
+              </Press>
+            )}
+          </div>
+        </div>
         <Row label={st.name} htmlFor="name" stack>
           <input
             id="name"
@@ -118,59 +167,26 @@ export function SettingsView({ locale }: { locale: Locale }) {
             className="rounded-2xl border border-line bg-surface-2 px-4 py-3 outline-none focus:border-accent"
           />
         </Row>
-        <Row label={st.avatar} stack>
+        <Row label={o.orEmoji} stack>
           <div className="grid grid-cols-6 gap-2">
             {avatars.map((a) => (
               <motion.button
                 key={a}
                 type="button"
                 whileTap={{ scale: 0.85 }}
-                aria-pressed={s.avatar === a}
+                aria-pressed={!s.photo && s.avatar === a}
                 onClick={() => {
                   play("select");
-                  updateSettings({ avatar: a });
+                  updateSettings({ avatar: a, photo: "" });
                 }}
                 className={`grid aspect-square place-items-center rounded-2xl text-2xl ${
-                  s.avatar === a ? "bg-accent-soft ring-2 ring-accent" : "bg-surface-2"
+                  !s.photo && s.avatar === a ? "bg-accent-soft ring-2 ring-accent" : "bg-surface-2"
                 }`}
               >
                 {a}
               </motion.button>
             ))}
           </div>
-        </Row>
-        <Row label={o.photoTitle} stack>
-          <div className="flex items-center gap-4">
-            <Avatar className="size-16 rounded-2xl text-3xl" />
-            <input
-              ref={photoInput}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={async (e) => {
-                const f = e.target.files?.[0];
-                if (f) updateSettings({ photo: await photoToDataUrl(f) });
-              }}
-            />
-            <Press onClick={() => photoInput.current?.click()} className="btn-grad rounded-2xl px-4 py-2 text-sm font-semibold">
-              📷 {o.pickPhoto}
-            </Press>
-            {s.photo && (
-              <Press onClick={() => updateSettings({ photo: "" })} className="rounded-2xl bg-surface-2 px-4 py-2 text-sm font-semibold">
-                {o.removePhoto}
-              </Press>
-            )}
-          </div>
-        </Row>
-        <Row label={dict.cert.fullName} htmlFor="full-name" stack>
-          <input
-            id="full-name"
-            value={s.fullName}
-            maxLength={40}
-            placeholder={dict.cert.fullName}
-            onChange={(e) => updateSettings({ fullName: e.target.value })}
-            className="rounded-2xl border border-line bg-surface-2 px-4 py-3 outline-none focus:border-accent"
-          />
         </Row>
       </Section>
 
@@ -280,7 +296,7 @@ export function SettingsView({ locale }: { locale: Locale }) {
               updateSettings({ studyTime });
               syncReminder(s.reminder, studyHours[studyTime], { title: o.reminderTitle, body: o.reminderBody });
             }}
-            options={(["morning", "afternoon", "evening", "night"] as const).map((v) => ({ value: v, label: o.times[v].split(" ")[0] }))}
+            options={(["morning", "afternoon", "evening", "night"] as const).map((v) => ({ value: v, label: o.times[v] }))}
           />
         </Row>
         <Row label={o.reminder} htmlFor="reminder">

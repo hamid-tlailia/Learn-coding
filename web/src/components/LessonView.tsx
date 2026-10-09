@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
-import { getStage, lessonKey } from "@/content/curriculum";
+import { getStage, lessonKey, stages } from "@/content/curriculum";
 import type { FileKind, Files, Lesson } from "@/content/types";
 import { dirOf, t, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
@@ -84,7 +84,27 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
 
   const steps = useMemo(() => stepsOf(lesson), [lesson]);
   const back = `/${locale}/learn/`;
-  const nextHref = next ? `/${locale}/learn/${stage.slug}/${next.slug}/` : stage.exam ? `/${locale}/learn/${stage.slug}/exam/` : back;
+  // The Start stage is one continuous run: lesson after lesson, then straight into HTML.
+  const flowing = stage.slug === stages[0].slug;
+  const following = stages[stages.indexOf(stage) + 1];
+  const nextHref = next
+    ? `/${locale}/learn/${stage.slug}/${next.slug}/`
+    : stage.exam
+      ? `/${locale}/learn/${stage.slug}/exam/`
+      : flowing && following?.lessons[0]
+        ? `/${locale}/learn/${following.slug}/${following.lessons[0].slug}/`
+        : back;
+  const [countdown, setCountdown] = useState(3);
+
+  useEffect(() => {
+    if (!won || !flowing) return;
+    if (countdown <= 0) {
+      router.push(nextHref);
+      return;
+    }
+    const id = window.setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => window.clearTimeout(id);
+  }, [won, flowing, countdown, nextHref, router]);
 
   useEffect(() => {
     try {
@@ -257,11 +277,14 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
             onClick={() => play("whoosh")}
             className="rounded-2xl btn-grad py-3 font-display text-lg font-bold shadow-[0_4px_0_0_rgba(0,0,0,0.2)]"
           >
-            {next ? dict.done.continue : stage.exam ? dict.done.toExam : dict.done.back}
+            {next || (flowing && following) ? dict.done.continue : stage.exam ? dict.done.toExam : dict.done.back}
+            {flowing && ` (${countdown})`}
           </Link>
-          <button type="button" onClick={() => setWon(null)} className="py-2 font-semibold text-muted">
-            {dict.done.again}
-          </button>
+          {!flowing && (
+            <button type="button" onClick={() => setWon(null)} className="py-2 font-semibold text-muted">
+              {dict.done.again}
+            </button>
+          )}
         </Celebration>
       )}
     </AnimatePresence>

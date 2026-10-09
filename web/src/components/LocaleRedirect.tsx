@@ -1,9 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect } from "react";
 import { LOCALE_KEY } from "@/lib/keys";
+import { LoaderMark } from "./Loader";
 
+/** The app's entry page: shows the launch screen while it picks the saved language. */
 export function LocaleRedirect() {
   useEffect(() => {
     let locale = "ar";
@@ -16,8 +17,8 @@ export function LocaleRedirect() {
   }, []);
 
   return (
-    <p style={{ padding: 24, textAlign: "center" }}>
-      <Link href="/ar/">العربية</Link> · <Link href="/en/">English</Link>
-    </p>
+    <div className="fixed inset-0 grid place-items-center bg-paper">
+      <LoaderMark />
+    </div>
   );
 }

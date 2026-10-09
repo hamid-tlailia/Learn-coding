@@ -103,6 +103,8 @@
 html,
 body {
   height: 100%;
+  /* Nothing may widen the page sideways: on phones that zooms the viewport and drags fixed bars. */
+  overflow-x: clip;
 }
 
 body {
