@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
+import { LOCALE_KEY } from "@/lib/keys";
 
 export function LocaleRedirect() {
   useEffect(() => {
     let locale = "ar";
     try {
-      if (window.localStorage.getItem("satr-locale") === "en") locale = "en";
+      if (window.localStorage.getItem(LOCALE_KEY) === "en") locale = "en";
     } catch {
       // No storage: default to Arabic.
     }

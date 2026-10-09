@@ -45,6 +45,9 @@ export type Stage = {
   description: L;
   /** Short label shown on the stage badge, e.g. "HTML". */
   badge: string;
+  icon: "html" | "css" | "js" | "git" | "react" | "node" | "mobile";
+  /** Background of the stage's course card. */
+  gradient: string;
   status: "available" | "soon";
   lessons: Lesson[];
   exam?: Exam;

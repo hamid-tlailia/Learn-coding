@@ -1,39 +1,64 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 import { getStage, lessonKey } from "@/content/curriculum";
-import type { FileKind, Files } from "@/content/types";
+import type { FileKind, Files, Lesson } from "@/content/types";
 import { dirOf, t, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
-import { completeLesson, useProgress } from "@/lib/progress";
+import { celebrate, play } from "@/lib/feedback";
+import { completeLesson, levelOf, useProgress } from "@/lib/progress";
 import { buildPreview, runChecks } from "@/lib/runner";
-import { CodeEditor } from "./CodeEditor";
+import { Celebration } from "./Celebration";
+import { BulbIcon, CheckIcon, CloseIcon, UndoIcon } from "./Icons";
 import { RichText } from "./RichText";
-
-const fileNames: Record<FileKind, string> = { html: "index.html", css: "style.css", js: "script.js" };
+import { Press, useMounted } from "./ui";
+import { Workspace } from "./Workspace";
 
 function draftKey(key: string) {
   return `satr-draft-v1:${key}`;
 }
 
+type Step = { kind: "text" | "example" | "tip" | "task" };
+
+function stepsOf(lesson: Lesson): Step[] {
+  return [
+    ...lesson.body.map(() => ({ kind: "text" as const })),
+    ...(lesson.example ? [{ kind: "example" as const }] : []),
+    ...(lesson.tip ? [{ kind: "tip" as const }] : []),
+    { kind: "task" as const },
+  ];
+}
+
 export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; stageSlug: string; lessonSlug: string }) {
-  const dict = getDictionary(locale).lesson;
+  const mounted = useMounted();
+  const router = useRouter();
+  const dict = getDictionary(locale);
+  const d = dict.lesson;
   const stage = getStage(stageSlug)!;
   const index = stage.lessons.findIndex((l) => l.slug === lessonSlug);
   const lesson = stage.lessons[index];
   const next = stage.lessons[index + 1];
   const key = lessonKey(stage.slug, lesson.slug);
   const progress = useProgress();
-  const alreadyDone = progress.completed.includes(key);
 
-  // Explanation language can differ from the interface language, so learners can peek at the other one.
-  const [textLang, setTextLang] = useState<Locale>(locale);
+  // The explanation language can differ from the interface, so learners can peek at the other one.
+  const [tl, setTl] = useState<Locale>(locale);
+  const [phase, setPhase] = useState<"learn" | "code">("learn");
+  const [step, setStep] = useState(0);
+  const [dir, setDir] = useState(1);
   const [files, setFiles] = useState<Files>(lesson.starter);
-  const [active, setActive] = useState<FileKind>(lesson.files[0]);
   const [results, setResults] = useState<Record<string, boolean> | null>(null);
   const [hintsShown, setHintsShown] = useState(0);
-  const [preview, setPreview] = useState(() => buildPreview(lesson.starter));
+  const [shake, setShake] = useState(0);
+  const [won, setWon] = useState<{ xp: number; levelUp: boolean } | null>(null);
+  const [forcePane, setForcePane] = useState<{ pane: "side"; at: number }>();
+
+  const steps = useMemo(() => stepsOf(lesson), [lesson]);
+  const back = `/${locale}/learn/`;
+  const nextHref = next ? `/${locale}/learn/${stage.slug}/${next.slug}/` : stage.exam ? `/${locale}/learn/${stage.slug}/exam/` : back;
 
   useEffect(() => {
     try {
@@ -44,190 +69,331 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
     }
   }, [key]);
 
-  // Live preview, debounced so the iframe doesn't reload on every keystroke.
   useEffect(() => {
     const id = window.setTimeout(() => {
-      setPreview(buildPreview(files));
       try {
         window.localStorage.setItem(draftKey(key), JSON.stringify(files));
       } catch {
         // Drafts are a convenience; ignore storage failures.
       }
-    }, 300);
+    }, 500);
     return () => window.clearTimeout(id);
   }, [files, key]);
 
-  const allPassed = useMemo(() => !!results && lesson.tasks.every((task) => results[task.id]), [results, lesson.tasks]);
+  if (!mounted) return <div className="min-h-dvh bg-paper" />;
+
+  function go(delta: number) {
+    const target = step + delta;
+    if (target < 0) return;
+    if (target >= steps.length) {
+      play("whoosh");
+      setPhase("code");
+      return;
+    }
+    play("whoosh");
+    setDir(delta);
+    setStep(target);
+  }
 
   function check() {
     const r = runChecks(lesson.tasks, files);
     setResults(r);
-    if (lesson.tasks.every((task) => r[task.id])) completeLesson(key, lesson.xp);
+    if (lesson.tasks.every((task) => r[task.id])) {
+      const before = levelOf(progress.xp).level;
+      const first = completeLesson(key, lesson.xp);
+      const xp = first ? lesson.xp : 0;
+      const levelUp = first && levelOf(progress.xp + xp).level > before;
+      play(levelUp ? "levelUp" : "complete");
+      celebrate(levelUp);
+      setWon({ xp, levelUp });
+    } else {
+      play("wrong");
+      setShake((n) => n + 1);
+      setForcePane({ pane: "side", at: Date.now() });
+    }
   }
 
-  function setFile(kind: FileKind, value: string) {
-    setFiles((f) => ({ ...f, [kind]: value }));
-  }
-
-  const tl = textLang;
-  const fwd = locale === "ar" ? "←" : "→";
-  const backArrow = locale === "ar" ? "→" : "←";
+  const passedCount = results ? lesson.tasks.filter((task) => results[task.id]).length : 0;
   const tdir = dirOf(tl);
 
-  return (
-    <div className="mx-auto max-w-[1400px] px-4 py-4">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-3 text-sm">
-        <div className="flex items-center gap-3 text-muted">
-          <Link href={`/${locale}/learn`} className="hover:text-ink">
-            {backArrow} {dict.back}
-          </Link>
-          <span>
-            {stage.badge} · {index + 1} {dict.of} {stage.lessons.length}
-          </span>
-          <div className="h-2 w-32 overflow-hidden rounded-full bg-line" aria-hidden="true">
-            <div className="h-full rounded-full bg-teal" style={{ width: `${((index + (alreadyDone ? 1 : 0)) / stage.lessons.length) * 100}%` }} />
-          </div>
-        </div>
-        <div className="inline-flex overflow-hidden rounded-full border border-line" role="group" aria-label="Explanation language">
-          {(["ar", "en"] as const).map((l) => (
-            <button
-              key={l}
-              type="button"
-              onClick={() => setTextLang(l)}
-              aria-pressed={tl === l}
-              className={`px-3 py-1 ${tl === l ? "bg-teal text-white" : "text-muted hover:text-ink"}`}
+  const langSwitch = (
+    <div className="inline-flex overflow-hidden rounded-full border border-line bg-surface text-xs" role="group" aria-label="Explanation language">
+      {(["ar", "en"] as const).map((l) => (
+        <button
+          key={l}
+          type="button"
+          onClick={() => {
+            play("tap");
+            setTl(l);
+          }}
+          aria-pressed={tl === l}
+          className={`px-3 py-1.5 font-semibold ${tl === l ? "btn-grad" : "text-muted"}`}
+        >
+          {l === "ar" ? "عربي" : "EN"}
+        </button>
+      ))}
+    </div>
+  );
+
+  const taskList = (
+    <ul className="flex flex-col gap-2">
+      {lesson.tasks.map((task, i) => {
+        const state = results ? (results[task.id] ? "ok" : "fail") : "todo";
+        return (
+          <motion.li
+            key={task.id}
+            className={`flex items-start gap-3 rounded-2xl p-3 text-[0.95rem] ${
+              state === "ok" ? "bg-ok/12" : state === "fail" ? "bg-coral/10" : "bg-surface-2"
+            }`}
+            animate={state === "fail" ? { x: [0, -6, 6, -4, 4, 0] } : { x: 0 }}
+            transition={{ duration: 0.4, delay: i * 0.05 }}
+          >
+            <motion.span
+              key={state}
+              initial={{ scale: 0.4 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 500, damping: 15, delay: i * 0.08 }}
+              className={`mt-0.5 grid size-6 flex-none place-items-center rounded-full text-xs font-bold text-white ${
+                state === "ok" ? "bg-ok" : state === "fail" ? "bg-coral" : "border-2 border-line"
+              }`}
             >
-              {l === "ar" ? "شرح عربي" : "English"}
-            </button>
+              {state === "ok" ? <CheckIcon className="size-3.5" /> : state === "fail" ? "!" : ""}
+            </motion.span>
+            <span>
+              <RichText text={t(task.label, tl)} />
+            </span>
+          </motion.li>
+        );
+      })}
+    </ul>
+  );
+
+  // ------------------------------------------------------------ Code phase
+  if (phase === "code") {
+    return (
+      <>
+        <Workspace
+          locale={locale}
+          title={t(lesson.title, locale)}
+          kinds={lesson.files}
+          files={files}
+          onChange={(kind: FileKind, v: string) => setFiles((f) => ({ ...f, [kind]: v }))}
+          onClose={() => router.push(back)}
+          sideLabel={d.tasks}
+          sideBadge={results ? `${passedCount}/${lesson.tasks.length}` : undefined}
+          forcePane={forcePane}
+          side={
+            <div dir={tdir} lang={tl} className="flex flex-col gap-4">
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="font-bold">{getDictionary(tl).lesson.task}</h2>
+                {langSwitch}
+              </div>
+              {taskList}
+              {results && passedCount < lesson.tasks.length && <p className="text-sm font-semibold text-coral">{d.almost}</p>}
+              <AnimatePresence>
+                {hintsShown > 0 && (
+                  <motion.ol
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    className="flex list-inside list-decimal flex-col gap-1 overflow-hidden rounded-2xl bg-saffron-soft p-4 text-[0.95rem]"
+                  >
+                    {lesson.hints.slice(0, hintsShown).map((h, i) => (
+                      <li key={i}>
+                        <RichText text={t(h, tl)} />
+                      </li>
+                    ))}
+                  </motion.ol>
+                )}
+              </AnimatePresence>
+              <button
+                type="button"
+                onClick={() => {
+                  play("whoosh");
+                  setPhase("learn");
+                }}
+                className="self-start text-sm font-semibold text-accent"
+              >
+                {locale === "ar" ? "→" : "←"} {d.learn}
+              </button>
+            </div>
+          }
+          actions={
+            <>
+              <Press
+                onClick={() => setFiles(lesson.starter)}
+                aria-label={d.reset}
+                className="grid size-12 place-items-center rounded-2xl bg-white/[0.08] text-code-fg"
+              >
+                <UndoIcon className="size-5" />
+              </Press>
+              <Press
+                onClick={() => {
+                  if (hintsShown < lesson.hints.length) setHintsShown((n) => n + 1);
+                  else setFiles(lesson.solution);
+                  setForcePane({ pane: "side", at: Date.now() });
+                }}
+                className="flex h-12 items-center gap-2 rounded-2xl bg-white/[0.08] px-4 text-sm font-semibold text-code-fg"
+              >
+                <BulbIcon className="size-5 text-saffron" />
+                {hintsShown < lesson.hints.length ? `${d.hint} ${hintsShown + 1}/${lesson.hints.length}` : d.solution}
+              </Press>
+              <motion.div className="flex-1" key={shake} animate={shake ? { x: [0, -10, 10, -6, 6, 0] } : undefined} transition={{ duration: 0.4 }}>
+                <Press
+                  silent
+                  onClick={check}
+                  className="h-12 w-full rounded-2xl btn-grad font-display text-lg font-bold shadow-[0_4px_0_0_rgba(0,0,0,0.25)] active:translate-y-0.5 active:shadow-none"
+                >
+                  {d.check}
+                </Press>
+              </motion.div>
+            </>
+          }
+        />
+        <AnimatePresence>
+          {won && (
+            <Celebration
+              emoji={won.levelUp ? "🚀" : "🎉"}
+              title={dict.done.title}
+              subtitle={`${dict.done.lessonDone}: ${t(lesson.title, locale)}`}
+              xp={won.xp}
+              levelUp={won.levelUp ? dict.done.levelUp : undefined}
+            >
+              <Link
+                href={nextHref}
+                onClick={() => play("whoosh")}
+                className="rounded-2xl btn-grad py-3 font-display text-lg font-bold shadow-[0_4px_0_0_rgba(0,0,0,0.2)]"
+              >
+                {next ? dict.done.continue : stage.exam ? dict.done.toExam : dict.done.back}
+              </Link>
+              <button type="button" onClick={() => setWon(null)} className="py-2 font-semibold text-muted">
+                {dict.done.again}
+              </button>
+            </Celebration>
+          )}
+        </AnimatePresence>
+      </>
+    );
+  }
+
+  // ------------------------------------------------------------ Learn phase: one idea per card
+  const s = steps[step];
+  // Text steps come first, so the step number is also the paragraph number.
+  const textIndex = step;
+  const variants = {
+    enter: (dx: number) => ({ x: dx * (tdir === "rtl" ? -60 : 60), opacity: 0, scale: 0.97 }),
+    center: { x: 0, opacity: 1, scale: 1 },
+    exit: (dx: number) => ({ x: dx * (tdir === "rtl" ? 60 : -60), opacity: 0, scale: 0.97 }),
+  };
+
+  return (
+    <div className="fixed inset-0 z-40 flex flex-col bg-paper" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+      <div className="mx-auto flex w-full max-w-2xl items-center gap-3 px-4 py-3">
+        <Link href={back} aria-label={d.close} className="grid size-10 place-items-center rounded-xl text-muted hover:bg-surface-2">
+          <CloseIcon className="size-6" />
+        </Link>
+        <div className="flex flex-1 gap-1.5" aria-hidden="true">
+          {steps.map((_, i) => (
+            <div key={i} className="h-2.5 flex-1 overflow-hidden rounded-full bg-line">
+              <motion.div className="btn-grad h-full rounded-full" initial={false} animate={{ width: i <= step ? "100%" : "0%" }} transition={{ duration: 0.35 }} />
+            </div>
           ))}
         </div>
+        {langSwitch}
       </div>
 
-      <div className="grid overflow-hidden rounded-2xl border border-line bg-surface shadow-[0_18px_50px_-30px_rgba(15,27,30,.45)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)]">
-        {/* Explanation */}
-        <article dir={tdir} lang={tl} className="flex min-w-0 flex-col gap-5 border-line p-6 max-lg:border-b lg:border-e lg:max-h-[calc(100vh-150px)] lg:overflow-y-auto">
-          <h1 className="text-2xl font-bold">{t(lesson.title, tl)}</h1>
+      <div className="relative mx-auto flex w-full max-w-2xl flex-1 items-center overflow-hidden px-4">
+        <AnimatePresence mode="popLayout" custom={dir} initial={false}>
+          <motion.article
+            key={step}
+            custom={dir}
+            variants={variants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.25}
+            onDragEnd={(_, info) => {
+              const forward = tdir === "rtl" ? info.offset.x > 80 : info.offset.x < -80;
+              const backward = tdir === "rtl" ? info.offset.x < -80 : info.offset.x > 80;
+              if (forward) go(1);
+              else if (backward) go(-1);
+            }}
+            dir={tdir}
+            lang={tl}
+            className="flex max-h-full w-full cursor-grab flex-col gap-5 overflow-y-auto glass rounded-[2rem] p-7 shadow-card active:cursor-grabbing"
+          >
+            <span className="text-sm font-semibold text-accent">
+              {stage.badge} · {t(lesson.title, tl)}
+            </span>
 
-          {lesson.body.map((p, i) => (
-            <p key={i} className="max-w-[62ch]">
-              <RichText text={t(p, tl)} />
-            </p>
-          ))}
-
-          {lesson.example && (
-            <figure className="flex flex-col gap-2">
-              <pre className="overflow-x-auto rounded-xl bg-code-bg p-4 font-mono text-sm text-code-fg">{lesson.example.code}</pre>
-              <figcaption className="text-sm text-muted">{t(lesson.example.note, tl)}</figcaption>
-            </figure>
-          )}
-
-          {lesson.tip && (
-            <aside className="flex flex-col gap-2 rounded-xl bg-saffron-soft p-4">
-              <b className="font-display">⚡ {getDictionary(tl).lesson.tip}</b>
-              <p className="text-[0.95rem]">
-                <RichText text={t(lesson.tip.text, tl)} />
+            {s.kind === "text" && (
+              <p className="font-display text-xl leading-loose sm:text-2xl">
+                <RichText text={t(lesson.body[textIndex], tl)} />
               </p>
-              {lesson.tip.code && <code className="self-start rounded-md bg-surface px-2 py-1 font-mono text-sm">{lesson.tip.code}</code>}
-            </aside>
-          )}
+            )}
 
-          <section className="flex flex-col gap-2 rounded-xl border border-dashed border-teal p-4">
-            <b className="font-display">{getDictionary(tl).lesson.task}</b>
-            <ul className="flex flex-col gap-2">
-              {lesson.tasks.map((task) => {
-                const state = results ? (results[task.id] ? "ok" : "fail") : "todo";
-                return (
-                  <li key={task.id} className="flex items-start gap-2 text-[0.95rem]">
-                    <span
-                      aria-hidden="true"
-                      className={`mt-1 grid size-4 flex-none place-items-center rounded-full text-[10px] text-white ${
-                        state === "ok" ? "bg-ok" : state === "fail" ? "bg-coral" : "border-2 border-line"
-                      }`}
-                    >
-                      {state === "ok" ? "✓" : state === "fail" ? "!" : ""}
-                    </span>
-                    <span>
-                      <RichText text={t(task.label, tl)} />
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
+            {s.kind === "example" && lesson.example && (
+              <>
+                <h2 className="text-2xl font-bold">{getDictionary(tl).lesson.example}</h2>
+                <pre className="overflow-x-auto rounded-2xl bg-code-bg p-4 font-mono text-sm text-code-fg">{lesson.example.code}</pre>
+                <iframe
+                  title={getDictionary(tl).lesson.result}
+                  sandbox=""
+                  srcDoc={buildPreview({ html: lesson.example.code })}
+                  className="h-40 w-full rounded-2xl border border-line bg-white"
+                />
+                <p className="text-muted">{t(lesson.example.note, tl)}</p>
+              </>
+            )}
 
-          {hintsShown > 0 && (
-            <ol className="flex list-inside list-decimal flex-col gap-1 rounded-xl bg-teal-soft p-4 text-[0.95rem]">
-              {lesson.hints.slice(0, hintsShown).map((h, i) => (
-                <li key={i}>
-                  <RichText text={t(h, tl)} />
-                </li>
-              ))}
-            </ol>
-          )}
+            {s.kind === "tip" && lesson.tip && (
+              <div className="flex flex-col gap-4">
+                <motion.span
+                  className="text-5xl"
+                  animate={{ rotate: [0, -12, 12, 0] }}
+                  transition={{ duration: 0.8, delay: 0.2 }}
+                  aria-hidden="true"
+                >
+                  ⚡
+                </motion.span>
+                <h2 className="text-2xl font-bold">{getDictionary(tl).lesson.tip}</h2>
+                <p className="text-lg">
+                  <RichText text={t(lesson.tip.text, tl)} />
+                </p>
+                {lesson.tip.code && (
+                  <code className="self-start rounded-xl bg-saffron-soft px-3 py-2 font-mono text-base font-semibold">{lesson.tip.code}</code>
+                )}
+              </div>
+            )}
 
-          {results && (
-            <div role="status" className={`rounded-xl p-4 font-display font-semibold ${allPassed ? "bg-ok/15" : "bg-coral/10"}`}>
-              {allPassed ? `${dict.allPassed} +${lesson.xp} XP` : dict.somePassed}
-            </div>
-          )}
+            {s.kind === "task" && (
+              <div className="flex flex-col gap-4">
+                <span className="text-5xl" aria-hidden="true">
+                  🎯
+                </span>
+                <h2 className="text-2xl font-bold">{getDictionary(tl).lesson.task}</h2>
+                {taskList}
+              </div>
+            )}
+          </motion.article>
+        </AnimatePresence>
+      </div>
 
-          {(allPassed || alreadyDone) && (
-            <div className="flex">
-              {next ? (
-                <Link href={`/${locale}/learn/${stage.slug}/${next.slug}`} className="rounded-xl bg-teal px-5 py-2.5 font-display font-semibold text-white">
-                  {dict.next} {fwd}
-                </Link>
-              ) : stage.exam ? (
-                <Link href={`/${locale}/learn/${stage.slug}/exam`} className="rounded-xl bg-saffron px-5 py-2.5 font-display font-semibold text-ink">
-                  {dict.toExam}
-                </Link>
-              ) : null}
-            </div>
-          )}
-        </article>
-
-        {/* Workspace */}
-        <div className="flex min-w-0 flex-col">
-          <div className="flex gap-1 bg-code-bg px-3 pt-2" dir="ltr">
-            {lesson.files.map((kind) => (
-              <button
-                key={kind}
-                type="button"
-                onClick={() => setActive(kind)}
-                className={`rounded-t-lg px-3 py-1.5 font-mono text-xs ${active === kind ? "bg-[#1d3236] text-code-fg" : "text-[#93a5a7]"}`}
-              >
-                {fileNames[kind]}
-              </button>
-            ))}
-          </div>
-          <div className="h-[320px] bg-code-bg lg:h-[42vh]">
-            <CodeEditor kind={active} value={files[active] ?? ""} onChange={(v) => setFile(active, v)} label={fileNames[active]} />
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-2 border-y border-line px-4 py-2.5">
-            <span className="text-xs text-muted">{dict.liveNote}</span>
-            <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={() => setFiles(lesson.starter)} className="rounded-lg border border-line px-3 py-1.5 text-sm">
-                {dict.reset}
-              </button>
-              {hintsShown < lesson.hints.length ? (
-                <button type="button" onClick={() => setHintsShown((n) => n + 1)} className="rounded-lg border border-line px-3 py-1.5 text-sm">
-                  {dict.hint} ({hintsShown + 1}/{lesson.hints.length})
-                </button>
-              ) : (
-                <button type="button" onClick={() => setFiles(lesson.solution)} className="rounded-lg border border-line px-3 py-1.5 text-sm">
-                  {dict.solution}
-                </button>
-              )}
-              <button type="button" onClick={check} className="rounded-lg bg-teal px-5 py-1.5 font-display text-sm font-semibold text-white">
-                {dict.check} ▸
-              </button>
-            </div>
-          </div>
-          <div className="flex min-h-[260px] flex-1 flex-col">
-            <span className="px-4 pt-2 text-xs text-muted">{dict.result}</span>
-            <iframe title={dict.result} sandbox="allow-scripts" srcDoc={preview} className="min-h-[240px] w-full flex-1 bg-white" />
-          </div>
-        </div>
+      <div className="mx-auto flex w-full max-w-2xl gap-3 px-4 pt-3" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)" }}>
+        {step > 0 && (
+          <Press onClick={() => go(-1)} silent className="h-14 rounded-2xl border border-line bg-surface px-6 font-display font-semibold">
+            {d.prev}
+          </Press>
+        )}
+        <Press
+          silent
+          onClick={() => go(1)}
+          className="h-14 flex-1 rounded-2xl btn-grad font-display text-lg font-bold shadow-[0_4px_0_0_rgba(0,0,0,0.2)] active:translate-y-0.5 active:shadow-none"
+        >
+          {s.kind === "task" ? d.startPractice : d.next}
+        </Press>
       </div>
     </div>
   );

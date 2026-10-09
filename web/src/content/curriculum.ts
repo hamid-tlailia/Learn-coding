@@ -4,6 +4,8 @@ import type { Stage } from "./types";
 export const stages: Stage[] = [
   {
     slug: "html",
+    icon: "html",
+    gradient: "linear-gradient(135deg,#f97316,#e11d48)",
     badge: "HTML",
     title: { ar: "HTML: هيكل الصفحة", en: "HTML: page structure" },
     description: {
@@ -16,6 +18,8 @@ export const stages: Stage[] = [
   },
   {
     slug: "css",
+    icon: "css",
+    gradient: "linear-gradient(135deg,#0ea5e9,#6366f1)",
     badge: "CSS",
     title: { ar: "CSS: التصميم والتنسيق", en: "CSS: styling and layout" },
     description: {
@@ -27,6 +31,8 @@ export const stages: Stage[] = [
   },
   {
     slug: "javascript",
+    icon: "js",
+    gradient: "linear-gradient(135deg,#eab308,#f97316)",
     badge: "JS",
     title: { ar: "JavaScript: التفاعل", en: "JavaScript: interactivity" },
     description: {
@@ -38,6 +44,8 @@ export const stages: Stage[] = [
   },
   {
     slug: "git",
+    icon: "git",
+    gradient: "linear-gradient(135deg,#ef4444,#a855f7)",
     badge: "Git",
     title: { ar: "Git و GitHub", en: "Git and GitHub" },
     description: {
@@ -49,6 +57,8 @@ export const stages: Stage[] = [
   },
   {
     slug: "react",
+    icon: "react",
+    gradient: "linear-gradient(135deg,#06b6d4,#3b82f6)",
     badge: "React",
     title: { ar: "React.js: بناء الواجهات", en: "React.js: building interfaces" },
     description: {
@@ -61,6 +71,8 @@ export const stages: Stage[] = [
   },
   {
     slug: "backend",
+    icon: "node",
+    gradient: "linear-gradient(135deg,#10b981,#0e7490)",
     badge: "API",
     title: { ar: "Backend: الخادم وقواعد البيانات", en: "Backend: servers and databases" },
     description: {
@@ -73,6 +85,8 @@ export const stages: Stage[] = [
   },
   {
     slug: "mobile",
+    icon: "mobile",
+    gradient: "linear-gradient(135deg,#8b5cf6,#d946ef)",
     badge: "App",
     title: { ar: "تطبيقات الموبايل", en: "Mobile apps" },
     description: {

@@ -1,57 +1,108 @@
 @import "tailwindcss";
 
-/* Satr brand tokens. See design/brand-identity.html for the full identity. */
+/* Satr brand tokens. See design/brand-identity.html for the full identity.
+   <html data-theme="light|dark" data-accent="zellige|saffron|ocean|rose|violet"> is set before paint. */
 :root {
-  --paper: #f6f8f8;
+  --paper: #f3f6f6;
   --surface: #ffffff;
+  --surface-2: #eef3f3;
   --ink: #0f1b1e;
   --muted: #5b6b6e;
   --line: #dce4e4;
-  --teal: #0e8c7f;
-  --teal-soft: #ddf1ee;
+  --accent-base: #0e8c7f;
+  --accent: var(--accent-base);
+  --accent-soft: color-mix(in srgb, var(--accent-base) 13%, var(--surface));
+  --on-accent: #ffffff;
   --saffron: #f2a322;
   --saffron-soft: #fdf0d8;
   --coral: #e5484d;
   --ok: #2e9e5b;
   --code-bg: #16272b;
   --code-fg: #e6eeee;
+  --shadow: 0 10px 30px -18px rgba(15, 27, 30, 0.35);
+  --glass: color-mix(in srgb, var(--surface) 82%, transparent);
+  --glass-line: rgba(15, 27, 30, 0.06);
+  /* Primary buttons and highlights: a gradient of the accent, or the neon gradient. */
+  --grad: linear-gradient(135deg, var(--accent-base), color-mix(in srgb, var(--accent-base) 70%, #ffffff));
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --paper: #0b1416;
-    --surface: #122023;
-    --ink: #e6eeee;
-    --muted: #93a5a7;
-    --line: #22363a;
-    --teal: #2bb5a5;
-    --teal-soft: #123a36;
+  :root:not([data-theme]) {
+    --paper: #0a0f24;
+    --surface: #131a3a;
+    --surface-2: #1b2450;
+    --ink: #e9ecff;
+    --muted: #9aa3cc;
+    --line: #27305e;
+    --accent: color-mix(in srgb, var(--accent-base) 70%, white);
+    --accent-soft: color-mix(in srgb, var(--accent-base) 26%, var(--surface));
     --saffron: #f5b544;
-    --saffron-soft: #3a2d12;
+    --saffron-soft: #3a2f1a;
     --coral: #f06a6e;
-    --ok: #4cc27d;
-    --code-bg: #0e1b1e;
+    --ok: #34d399;
+    --code-bg: #0c1230;
+    --shadow: 0 14px 40px -20px rgba(0, 0, 20, 0.9);
+    --glass: color-mix(in srgb, var(--surface) 72%, transparent);
+    --glass-line: rgba(255, 255, 255, 0.08);
     color-scheme: dark;
   }
 }
 
+:root[data-theme="dark"] {
+  --paper: #0a0f24;
+  --surface: #131a3a;
+  --surface-2: #1b2450;
+  --ink: #e9ecff;
+  --muted: #9aa3cc;
+  --line: #27305e;
+  --accent: color-mix(in srgb, var(--accent-base) 70%, white);
+  --accent-soft: color-mix(in srgb, var(--accent-base) 26%, var(--surface));
+  --saffron: #f5b544;
+  --saffron-soft: #3a2f1a;
+  --coral: #f06a6e;
+  --ok: #34d399;
+  --code-bg: #0c1230;
+  --shadow: 0 14px 40px -20px rgba(0, 0, 20, 0.9);
+  --glass: color-mix(in srgb, var(--surface) 72%, transparent);
+  --glass-line: rgba(255, 255, 255, 0.08);
+  color-scheme: dark;
+}
+
+:root[data-accent="neon"] {
+  --accent-base: #7c5cff;
+  --grad: linear-gradient(110deg, #22d3ee 0%, #8b5cf6 55%, #e040fb 100%);
+}
+:root[data-accent="saffron"] { --accent-base: #e08a00; }
+:root[data-accent="ocean"] { --accent-base: #1f6fd1; }
+:root[data-accent="rose"] { --accent-base: #d6336c; }
+:root[data-accent="violet"] { --accent-base: #7048e8; }
+
 @theme inline {
   --color-paper: var(--paper);
   --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-line: var(--line);
-  --color-teal: var(--teal);
-  --color-teal-soft: var(--teal-soft);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
   --color-saffron: var(--saffron);
   --color-saffron-soft: var(--saffron-soft);
   --color-coral: var(--coral);
   --color-ok: var(--ok);
   --color-code-bg: var(--code-bg);
   --color-code-fg: var(--code-fg);
+  --shadow-card: var(--shadow);
+  --color-glass: var(--glass);
   --font-display: var(--font-readex), var(--font-plex-arabic), system-ui, sans-serif;
   --font-sans: var(--font-plex-arabic), var(--font-readex), system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, Menlo, monospace;
+}
+
+html,
+body {
+  height: 100%;
 }
 
 body {
@@ -59,6 +110,8 @@ body {
   color: var(--ink);
   font-family: var(--font-sans);
   line-height: 1.7;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
 }
 
 h1,
@@ -69,12 +122,31 @@ h3 {
   line-height: 1.3;
 }
 
+button,
+a {
+  touch-action: manipulation;
+}
+
 /* Code is always left-to-right, even inside Arabic text. */
 code,
 pre,
 .cm-editor {
   direction: ltr;
   unicode-bidi: isolate;
+  font-variant-ligatures: none;
+}
+
+.cm-editor .cm-scroller {
+  font-family: var(--font-mono);
+}
+
+.cm-editor,
+.cm-editor .cm-gutters {
+  background-color: var(--code-bg) !important;
+}
+
+.cm-editor.cm-focused {
+  outline: none !important;
 }
 
 :focus-visible {
@@ -92,24 +164,126 @@ pre,
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .cursor-blink {
-    animation: none;
+/* Gradient buttons with a soft glow, glass cards -------------------------------- */
+.btn-grad {
+  background-image: var(--grad);
+  color: #ffffff;
+  box-shadow: 0 10px 28px -10px color-mix(in srgb, var(--accent-base) 80%, transparent);
+}
+
+.glass {
+  background: var(--glass);
+  border: 1px solid var(--glass-line);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+
+.glow-ring {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 55%, transparent), 0 0 26px -6px var(--accent);
+}
+
+.text-grad {
+  background-image: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Motivational backdrops ---------------------------------------------------- */
+.backdrop-aurora .blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(70px);
+  opacity: 0.35;
+  animation: drift 22s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(8vw, -6vh, 0) scale(1.15);
+  }
+  100% {
+    transform: translate3d(-6vw, 8vh, 0) scale(0.95);
   }
 }
 
-/* Show code exactly as typed: no ligatures turning `<!--` or `=>` into arrows. */
-code,
-pre,
-.cm-editor {
-  font-variant-ligatures: none;
+.backdrop-cosmic .shape {
+  position: absolute;
+  opacity: 0.55;
+  animation: float 9s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 10px currentColor);
 }
 
-.cm-editor .cm-scroller {
+@keyframes float {
+  to {
+    transform: translateY(-26px) rotate(25deg);
+  }
+}
+
+.backdrop-code .glyph {
+  position: absolute;
+  bottom: -10vh;
   font-family: var(--font-mono);
+  color: var(--accent);
+  opacity: 0.12;
+  animation: rise linear infinite;
+  direction: ltr;
 }
 
-.cm-editor,
-.cm-editor .cm-gutters {
-  background-color: var(--code-bg) !important;
+@keyframes rise {
+  to {
+    transform: translateY(-120vh) rotate(12deg);
+  }
+}
+
+.backdrop-waves svg {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  width: 200%;
+  animation: slide 18s linear infinite;
+}
+
+@keyframes slide {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.shine {
+  background-image: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.35) 45%, transparent 60%);
+  background-size: 250% 100%;
+  animation: shine 3.2s ease-in-out infinite;
+}
+
+@keyframes shine {
+  0% {
+    background-position: 120% 0;
+  }
+  60%,
+  100% {
+    background-position: -120% 0;
+  }
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor-blink,
+  .backdrop-aurora .blob,
+  .backdrop-code .glyph,
+  .backdrop-cosmic .shape,
+  .backdrop-waves svg,
+  .shine {
+    animation: none;
+  }
 }

@@ -11,6 +11,10 @@ A bilingual (Arabic / English) platform for learning to code, from web to mobile
 
 ## The web app
 
+App shell with five tabs (Home, Path, Practice, Profile, Settings), a dark neon theme by default with light mode,
+six accent colors and animated backgrounds, synthesized sound effects and haptics, page transitions, a full-screen
+code editor with quick-tags for phones, fill-in-the-blank challenges, a timed stage exam and celebration screens.
+
 - Arabic (RTL) and English interfaces under `/ar` and `/en`, plus a per-lesson switch for the explanation language.
 - Lesson screen: explanation, worked example, a "fastest way" tip, tasks, hints, a CodeMirror editor with Emmet
   (type `ul>li*3` then Tab) and a live sandboxed preview.
