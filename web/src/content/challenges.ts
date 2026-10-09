@@ -10,7 +10,7 @@ export const challenges: Challenge[] = [
   {
     id: "heading",
     prompt: { ar: "أكمل العنوان الرئيسي", en: "Complete the main heading" },
-    code: "<_>Hello, Satr</_>",
+    code: "<_>Hello, Code Master</_>",
     answers: ["h1", "h1"],
     chips: ["h1", "p", "h1", "a"],
   },

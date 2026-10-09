@@ -1,8 +1,8 @@
 import type { Locale } from "./config";
 
 const ar = {
-  brand: "سطر",
-  tagline: "سطرًا بعد سطر، تصبح مبرمجًا.",
+  brand: "Code Master",
+  tagline: "أتقن البرمجة سطرًا بعد سطر.",
   description:
     "تعلّم البرمجة بالعربية والإنجليزية: دروس قصيرة، محرر داخل كل درس، نتيجة فورية، تمارين واختبارات، من الويب إلى الموبايل.",
   tabs: { home: "الرئيسية", learn: "المسار", practice: "تدرّب", profile: "حسابي", settings: "الإعدادات" },
@@ -28,7 +28,7 @@ const ar = {
     courses: "دوراتك",
     seeAll: "عرض الكل",
   },
-  week: ["ح", "ن", "ث", "ر", "خ", "ج", "س"],
+  week: ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"],
   quotes: [
     "كل خبير كان يومًا مبتدئًا.",
     "الخطأ في الكود ليس فشلًا، بل درس جديد.",
@@ -48,12 +48,16 @@ const ar = {
     examPassed: "تم الاجتياز",
     start: "ابدأ",
     stage: "المرحلة",
+    updated: "محدّث:",
+    minutes: "5 دقائق",
   },
   practice: {
     title: "تدرّب",
     playground: "ساحة التجربة",
     playgroundText: "محرر كامل بثلاثة ملفات HTML و CSS و JS. اكتب أي شيء وشاهد النتيجة فورًا.",
     open: "افتح المحرر",
+    locked: "يُفتح المحرر الحر بعد أول درس تكتب فيه كودًا. ابدأ بدروس HTML.",
+    toPath: "إلى المسار",
     shortcuts: "اختصارات Emmet",
     shortcutsText: "اكتب الاختصار في المحرر ثم اضغط Tab.",
     review: "راجع دروسك",
@@ -82,7 +86,7 @@ const ar = {
     best: "أطول سلسلة",
     edit: "تعديل الملف",
     certificates: "الشهادات",
-    certificatesText: "شهادات سطر قابلة للتحقق برابط عام، ويمكنك إضافتها إلى LinkedIn بنقرة.",
+    certificatesText: "شهادات Code Master قابلة للتحقق برابط عام، ويمكنك إضافتها إلى LinkedIn بنقرة.",
     certificateOf: "شهادة إتمام",
     locked: "أكمل المرحلة لفتحها",
   },
@@ -145,6 +149,12 @@ const ar = {
     almost: "اقتربت! راجع المهام المعلّمة.",
     noMoreHints: "لا مزيد من التلميحات. يمكنك عرض الحل.",
     of: "من",
+    run: "شغّل",
+    modern: "القديم والحديث",
+    oldWay: "الطريقة القديمة",
+    newWay: "الطريقة الحديثة",
+    correct: "إجابة صحيحة! 👏",
+    finish: "إنهاء الدرس",
   },
   done: {
     title: "أحسنت!",
@@ -174,8 +184,8 @@ const ar = {
 export type Dictionary = typeof ar;
 
 const en: Dictionary = {
-  brand: "Satr",
-  tagline: "Line by line, you become a developer.",
+  brand: "Code Master",
+  tagline: "Master code, line by line.",
   description:
     "Learn to code in Arabic and English: short lessons, an editor in every lesson, instant results, exercises and exams, from web to mobile.",
   tabs: { home: "Home", learn: "Path", practice: "Practice", profile: "Profile", settings: "Settings" },
@@ -201,7 +211,7 @@ const en: Dictionary = {
     courses: "Your courses",
     seeAll: "See all",
   },
-  week: ["S", "M", "T", "W", "T", "F", "S"],
+  week: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
   quotes: [
     "Every expert was once a beginner.",
     "A bug is not a failure, it is a new lesson.",
@@ -221,12 +231,16 @@ const en: Dictionary = {
     examPassed: "Passed",
     start: "Start",
     stage: "Stage",
+    updated: "Up to date:",
+    minutes: "5 min",
   },
   practice: {
     title: "Practice",
     playground: "Playground",
     playgroundText: "A full editor with HTML, CSS and JS files. Write anything and see the result instantly.",
     open: "Open the editor",
+    locked: "The free editor unlocks after your first coding lesson. Start with the HTML lessons.",
+    toPath: "Go to the path",
     shortcuts: "Emmet shortcuts",
     shortcutsText: "Type the abbreviation in the editor, then press Tab.",
     review: "Review your lessons",
@@ -255,7 +269,7 @@ const en: Dictionary = {
     best: "Streak",
     edit: "Edit profile",
     certificates: "Certificates",
-    certificatesText: "Satr certificates are verifiable through a public link, and you can add them to LinkedIn in one click.",
+    certificatesText: "Code Master certificates are verifiable through a public link, and you can add them to LinkedIn in one click.",
     certificateOf: "Certificate of completion",
     locked: "Finish the stage to unlock",
   },
@@ -318,6 +332,12 @@ const en: Dictionary = {
     almost: "Almost! Look at the marked tasks.",
     noMoreHints: "No more hints. You can show the solution.",
     of: "of",
+    run: "Run",
+    modern: "Old vs modern",
+    oldWay: "The old way",
+    newWay: "The modern way",
+    correct: "Correct! 👏",
+    finish: "Finish the lesson",
   },
   done: {
     title: "Well done!",

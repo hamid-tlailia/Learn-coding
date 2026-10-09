@@ -10,7 +10,7 @@ import { dirOf, t, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
 import { celebrate, play } from "@/lib/feedback";
 import { completeLesson, levelOf, useProgress } from "@/lib/progress";
-import { buildPreview, runChecks } from "@/lib/runner";
+import { buildPreview, collectLogs, runChecks } from "@/lib/runner";
 import { Celebration } from "./Celebration";
 import { BulbIcon, CheckIcon, CloseIcon, UndoIcon } from "./Icons";
 import { RichText } from "./RichText";
@@ -21,15 +21,37 @@ function draftKey(key: string) {
   return `satr-draft-v1:${key}`;
 }
 
-type Step = { kind: "text" | "example" | "tip" | "task" };
+type Step = { kind: "text" | "example" | "tip" | "modern" | "quiz" | "task"; q?: number };
 
+/** One idea per card: paragraphs, example, shortcut, old-vs-modern, then the quiz or the task. */
 function stepsOf(lesson: Lesson): Step[] {
   return [
     ...lesson.body.map(() => ({ kind: "text" as const })),
     ...(lesson.example ? [{ kind: "example" as const }] : []),
     ...(lesson.tip ? [{ kind: "tip" as const }] : []),
-    { kind: "task" as const },
+    ...(lesson.modern ? [{ kind: "modern" as const }] : []),
+    ...(lesson.quiz ? lesson.quiz.map((_, q) => ({ kind: "quiz" as const, q })) : [{ kind: "task" as const }]),
   ];
+}
+
+/** Runs a JavaScript example on demand and shows what it prints. */
+function ExampleOutput({ code, html, label }: { code: string; html?: string; label: string }) {
+  const [logs, setLogs] = useState<string[] | null>(null);
+  return (
+    <div className="flex flex-col gap-2">
+      <Press
+        onClick={async () => setLogs(await collectLogs({ js: code, html: html ?? "" }))}
+        className="self-start rounded-xl bg-ok px-4 py-2 font-display font-semibold text-white"
+      >
+        ▶ {label}
+      </Press>
+      {logs && (
+        <pre className="max-h-40 overflow-auto rounded-2xl bg-black/80 p-3 font-mono text-sm text-[#a7f3d0]">
+          {logs.length ? logs.map((l) => `> ${l}`).join("\n") : "> (no output)"}
+        </pre>
+      )}
+    </div>
+  );
 }
 
 export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; stageSlug: string; lessonSlug: string }) {
@@ -55,6 +77,10 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
   const [shake, setShake] = useState(0);
   const [won, setWon] = useState<{ xp: number; levelUp: boolean } | null>(null);
   const [forcePane, setForcePane] = useState<{ pane: "side"; at: number }>();
+  const [checking, setChecking] = useState(false);
+  // Quiz: wrong options tried per question, and which questions are solved.
+  const [tried, setTried] = useState<Record<string, number[]>>({});
+  const [solved, setSolved] = useState<Record<string, boolean>>({});
 
   const steps = useMemo(() => stepsOf(lesson), [lesson]);
   const back = `/${locale}/learn/`;
@@ -82,10 +108,30 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
 
   if (!mounted) return <div className="min-h-dvh bg-paper" />;
 
+  function win() {
+    const before = levelOf(progress.xp).level;
+    const first = completeLesson(key, lesson.xp);
+    const xp = first ? lesson.xp : 0;
+    const levelUp = first && levelOf(progress.xp + xp).level > before;
+    play(levelUp ? "levelUp" : "complete");
+    celebrate(levelUp);
+    setWon({ xp, levelUp });
+  }
+
   function go(delta: number) {
     const target = step + delta;
     if (target < 0) return;
+    const cur = steps[step];
+    if (delta > 0 && cur.kind === "quiz" && !solved[lesson.quiz![cur.q!].id]) {
+      play("wrong");
+      setShake((n) => n + 1);
+      return;
+    }
     if (target >= steps.length) {
+      if (lesson.quiz) {
+        win();
+        return;
+      }
       play("whoosh");
       setPhase("code");
       return;
@@ -95,17 +141,26 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
     setStep(target);
   }
 
-  function check() {
-    const r = runChecks(lesson.tasks, files);
+  function answer(qi: number, oi: number) {
+    const q = lesson.quiz![qi];
+    if (solved[q.id]) return;
+    if (oi === q.answer) {
+      play("correct");
+      setSolved((s) => ({ ...s, [q.id]: true }));
+    } else {
+      play("wrong");
+      setTried((t) => ({ ...t, [q.id]: [...(t[q.id] ?? []), oi] }));
+    }
+  }
+
+  async function check() {
+    if (checking) return;
+    setChecking(true);
+    const r = await runChecks(lesson.tasks, files, lesson.harness);
+    setChecking(false);
     setResults(r);
     if (lesson.tasks.every((task) => r[task.id])) {
-      const before = levelOf(progress.xp).level;
-      const first = completeLesson(key, lesson.xp);
-      const xp = first ? lesson.xp : 0;
-      const levelUp = first && levelOf(progress.xp + xp).level > before;
-      play(levelUp ? "levelUp" : "complete");
-      celebrate(levelUp);
-      setWon({ xp, levelUp });
+      win();
     } else {
       play("wrong");
       setShake((n) => n + 1);
@@ -166,6 +221,31 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
         );
       })}
     </ul>
+  );
+
+  const celebration = (
+    <AnimatePresence>
+      {won && (
+        <Celebration
+          emoji={won.levelUp ? "🚀" : "🎉"}
+          title={dict.done.title}
+          subtitle={`${dict.done.lessonDone}: ${t(lesson.title, locale)}`}
+          xp={won.xp}
+          levelUp={won.levelUp ? dict.done.levelUp : undefined}
+        >
+          <Link
+            href={nextHref}
+            onClick={() => play("whoosh")}
+            className="rounded-2xl btn-grad py-3 font-display text-lg font-bold shadow-[0_4px_0_0_rgba(0,0,0,0.2)]"
+          >
+            {next ? dict.done.continue : stage.exam ? dict.done.toExam : dict.done.back}
+          </Link>
+          <button type="button" onClick={() => setWon(null)} className="py-2 font-semibold text-muted">
+            {dict.done.again}
+          </button>
+        </Celebration>
+      )}
+    </AnimatePresence>
   );
 
   // ------------------------------------------------------------ Code phase
@@ -243,34 +323,13 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
                   onClick={check}
                   className="h-12 w-full rounded-2xl btn-grad font-display text-lg font-bold shadow-[0_4px_0_0_rgba(0,0,0,0.25)] active:translate-y-0.5 active:shadow-none"
                 >
-                  {d.check}
+                  {checking ? "…" : d.check}
                 </Press>
               </motion.div>
             </>
           }
         />
-        <AnimatePresence>
-          {won && (
-            <Celebration
-              emoji={won.levelUp ? "🚀" : "🎉"}
-              title={dict.done.title}
-              subtitle={`${dict.done.lessonDone}: ${t(lesson.title, locale)}`}
-              xp={won.xp}
-              levelUp={won.levelUp ? dict.done.levelUp : undefined}
-            >
-              <Link
-                href={nextHref}
-                onClick={() => play("whoosh")}
-                className="rounded-2xl btn-grad py-3 font-display text-lg font-bold shadow-[0_4px_0_0_rgba(0,0,0,0.2)]"
-              >
-                {next ? dict.done.continue : stage.exam ? dict.done.toExam : dict.done.back}
-              </Link>
-              <button type="button" onClick={() => setWon(null)} className="py-2 font-semibold text-muted">
-                {dict.done.again}
-              </button>
-            </Celebration>
-          )}
-        </AnimatePresence>
+        {celebration}
       </>
     );
   }
@@ -329,21 +388,40 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
             </span>
 
             {s.kind === "text" && (
-              <p className="font-display text-xl leading-loose sm:text-2xl">
-                <RichText text={t(lesson.body[textIndex], tl)} />
-              </p>
+              <div className="flex flex-col gap-4">
+                {lesson.body[textIndex].icon && (
+                  <motion.span
+                    className="grid size-20 place-items-center rounded-3xl bg-accent-soft text-5xl"
+                    initial={{ scale: 0.5, rotate: -15 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 14 }}
+                    aria-hidden="true"
+                  >
+                    {lesson.body[textIndex].icon}
+                  </motion.span>
+                )}
+                <p className="font-display text-xl leading-loose sm:text-2xl">
+                  <RichText text={t(lesson.body[textIndex], tl)} />
+                </p>
+              </div>
             )}
 
             {s.kind === "example" && lesson.example && (
               <>
                 <h2 className="text-2xl font-bold">{getDictionary(tl).lesson.example}</h2>
                 <pre className="overflow-x-auto rounded-2xl bg-code-bg p-4 font-mono text-sm text-code-fg">{lesson.example.code}</pre>
-                <iframe
-                  title={getDictionary(tl).lesson.result}
-                  sandbox=""
-                  srcDoc={buildPreview({ html: lesson.example.code })}
-                  className="h-40 w-full rounded-2xl border border-line bg-white"
-                />
+                {lesson.example.lang === "js" ? (
+                  <ExampleOutput code={lesson.example.code} html={lesson.starter.html} label={getDictionary(tl).lesson.run} />
+                ) : (
+                  <iframe
+                    title={getDictionary(tl).lesson.result}
+                    sandbox=""
+                    srcDoc={buildPreview(
+                      lesson.example.lang === "css" ? { html: lesson.starter.html, css: lesson.example.code } : { html: lesson.example.code },
+                    )}
+                    className="h-40 w-full rounded-2xl border border-line bg-white"
+                  />
+                )}
                 <p className="text-muted">{t(lesson.example.note, tl)}</p>
               </>
             )}
@@ -367,6 +445,65 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
                 )}
               </div>
             )}
+
+            {s.kind === "modern" && lesson.modern && (
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl font-bold">{getDictionary(tl).lesson.modern}</h2>
+                  {lesson.modern.since && <span className="rounded-full bg-ok/15 px-2.5 py-0.5 text-xs font-bold text-ok">{lesson.modern.since}</span>}
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-bold text-coral">✗ {getDictionary(tl).lesson.oldWay}</span>
+                  <pre className="overflow-x-auto rounded-2xl border border-coral/40 bg-coral/10 p-3 font-mono text-sm line-through decoration-coral/50">{lesson.modern.old}</pre>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-bold text-ok">✓ {getDictionary(tl).lesson.newWay}</span>
+                  <pre className="overflow-x-auto rounded-2xl border border-ok/40 bg-ok/10 p-3 font-mono text-sm">{lesson.modern.now}</pre>
+                </div>
+                <p className="text-lg">
+                  <RichText text={t(lesson.modern.text, tl)} />
+                </p>
+              </div>
+            )}
+
+            {s.kind === "quiz" && lesson.quiz && (() => {
+              const q = lesson.quiz[s.q!];
+              const done = solved[q.id];
+              return (
+                <motion.div className="flex flex-col gap-4" key={shake} animate={shake ? { x: [0, -8, 8, -4, 4, 0] } : undefined}>
+                  <span className="text-sm font-bold text-saffron">
+                    ❓ {s.q! + 1}/{lesson.quiz.length}
+                  </span>
+                  <h2 className="text-2xl font-bold leading-relaxed">
+                    <RichText text={t(q.prompt, tl)} />
+                  </h2>
+                  <div className="flex flex-col gap-2.5">
+                    {q.options.map((opt, oi) => {
+                      const wrong = tried[q.id]?.includes(oi);
+                      const right = done && oi === q.answer;
+                      return (
+                        <motion.button
+                          key={oi}
+                          type="button"
+                          whileTap={{ scale: 0.97 }}
+                          animate={wrong ? { x: [0, -6, 6, 0] } : undefined}
+                          disabled={wrong || done}
+                          onPointerDown={(e) => e.stopPropagation()}
+                          onClick={() => answer(s.q!, oi)}
+                          className={`rounded-2xl border-2 p-4 text-start text-lg ${
+                            right ? "border-ok bg-ok/15" : wrong ? "border-coral/60 bg-coral/10 opacity-60" : "border-line bg-surface hover:border-accent"
+                          }`}
+                        >
+                          {right ? "✓ " : wrong ? "✗ " : ""}
+                          <RichText text={t(opt, tl)} />
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                  {done && <p className="font-semibold text-ok">{getDictionary(tl).lesson.correct}</p>}
+                </motion.div>
+              );
+            })()}
 
             {s.kind === "task" && (
               <div className="flex flex-col gap-4">
@@ -392,9 +529,10 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
           onClick={() => go(1)}
           className="h-14 flex-1 rounded-2xl btn-grad font-display text-lg font-bold shadow-[0_4px_0_0_rgba(0,0,0,0.2)] active:translate-y-0.5 active:shadow-none"
         >
-          {s.kind === "task" ? d.startPractice : d.next}
+          {s.kind === "task" ? d.startPractice : step === steps.length - 1 && lesson.quiz ? d.finish : d.next}
         </Press>
       </div>
+      {celebration}
     </div>
   );
 }

@@ -1,25 +1,27 @@
 "use client";
 
 import { useEffect } from "react";
-import { Capacitor } from "@capacitor/core";
+import { Capacitor, registerPlugin } from "@capacitor/core";
 import { App } from "@capacitor/app";
-import { StatusBar, Style } from "@capacitor/status-bar";
+
+/** Native side: android/app/src/main/java/com/satr/learn/ThemePlugin.java */
+const CmTheme = registerPlugin<{ set(options: { dark: boolean; color: string }): Promise<void> }>("CmTheme");
 
 /**
- * Android app behaviour: the status bar follows the app theme, and the back button
+ * Android app behaviour: the system bars follow the app theme, and the back button
  * walks back through screens before closing the app.
  */
 export function NativeBridge() {
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
     const root = document.documentElement;
-    const syncStatusBar = () => {
+    const syncBars = () => {
       const dark = root.dataset.theme === "dark";
-      StatusBar.setStyle({ style: dark ? Style.Dark : Style.Light }).catch(() => {});
-      StatusBar.setBackgroundColor({ color: dark ? "#0a1214" : "#f3f6f6" }).catch(() => {});
+      const color = getComputedStyle(root).getPropertyValue("--paper").trim() || (dark ? "#0a0f24" : "#f3f6f6");
+      CmTheme.set({ dark, color }).catch(() => {});
     };
-    syncStatusBar();
-    const observer = new MutationObserver(syncStatusBar);
+    syncBars();
+    const observer = new MutationObserver(syncBars);
     observer.observe(root, { attributes: true, attributeFilter: ["data-theme"] });
 
     const listener = App.addListener("backButton", ({ canGoBack }) => {

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { locales, t, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
 import { play } from "@/lib/feedback";
@@ -11,6 +11,8 @@ import { LOCALE_KEY } from "@/lib/keys";
 import { resetProgress } from "@/lib/progress";
 import { accents, avatars, updateSettings, useSettings, type Accent, type Backdrop, type ThemeMode } from "@/lib/settings";
 import { Card, PageHeader, Press, rise, Stagger, Toggle, useMounted } from "./ui";
+
+const SCROLL_KEY = "cm-settings-scroll";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -76,6 +78,20 @@ export function SettingsView({ locale }: { locale: Locale }) {
   const pathname = usePathname();
   const [confirming, setConfirming] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+
+  // After switching language, come back to the same spot instead of the top of the page.
+  useEffect(() => {
+    if (!mounted) return;
+    try {
+      const y = window.sessionStorage.getItem(SCROLL_KEY);
+      if (y !== null) {
+        window.sessionStorage.removeItem(SCROLL_KEY);
+        requestAnimationFrame(() => window.scrollTo({ top: Number(y), behavior: "instant" as ScrollBehavior }));
+      }
+    } catch {
+      // Nothing to restore.
+    }
+  }, [mounted]);
   if (!mounted) return <div className="min-h-dvh" />;
 
   const rest = pathname.split("/").slice(2).join("/");
@@ -245,8 +261,14 @@ export function SettingsView({ locale }: { locale: Locale }) {
               <Link
                 key={l}
                 href={`/${l}/${rest}`}
+                scroll={false}
                 onClick={() => {
                   play("select");
+                  try {
+                    window.sessionStorage.setItem(SCROLL_KEY, String(window.scrollY));
+                  } catch {
+                    // Keeping the scroll position is a convenience.
+                  }
                   try {
                     window.localStorage.setItem(LOCALE_KEY, l);
                   } catch {

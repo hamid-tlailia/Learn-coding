@@ -78,14 +78,31 @@ export function Workspace({
   const { editorFontSize } = useSettings();
   const [active, setActive] = useState<FileKind>(kinds[0]);
   const [pane, setPane] = useState<Pane>("code");
-  const [preview, setPreview] = useState(() => buildPreview(files));
+  // The preview reports console output through postMessage, tagged with this token.
+  const [token] = useState(() => Math.random().toString(36).slice(2));
+  const [preview, setPreview] = useState(() => buildPreview(files, { token }));
+  const [logs, setLogs] = useState<{ type: string; text: string }[]>([]);
+  const frame = useRef<HTMLIFrameElement | null>(null);
+  const showConsole = kinds.includes("js");
   const [full, setFull] = useState(false);
   const view = useRef<EditorView | null>(null);
 
   useEffect(() => {
-    const id = window.setTimeout(() => setPreview(buildPreview(files)), 350);
+    const id = window.setTimeout(() => {
+      setLogs([]);
+      setPreview(buildPreview(files, { token }));
+    }, 350);
     return () => window.clearTimeout(id);
-  }, [files]);
+  }, [files, token]);
+
+  useEffect(() => {
+    const onMessage = (e: MessageEvent) => {
+      if (e.source !== frame.current?.contentWindow || e.data?.cm !== token || e.data.type === "done") return;
+      setLogs((l) => [...l.slice(-49), { type: e.data.type, text: e.data.text }]);
+    };
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, [token]);
 
   useEffect(() => {
     if (forcePane) setPane(forcePane.pane);
@@ -237,7 +254,24 @@ export function Workspace({
             <span className="size-3 rounded-full bg-[#2e9e5b]" />
             <span className="ms-2 font-mono text-xs text-[#5b6b6e]">{dict.result}</span>
           </div>
-          <iframe title={dict.result} sandbox="allow-scripts" srcDoc={preview} className="w-full flex-1 bg-white" />
+          <iframe ref={frame} title={dict.result} sandbox="allow-scripts" srcDoc={preview} className="w-full flex-1 bg-white" />
+          {showConsole && (
+            <div className="flex max-h-[40%] min-h-28 flex-col border-t border-white/10 bg-[#070b1c]" dir="ltr">
+              <span className="px-3 pt-2 font-mono text-[11px] uppercase tracking-wider text-[#6c7bb0]">Console</span>
+              <pre className="flex-1 overflow-auto px-3 py-2 font-mono text-[13px] leading-relaxed">
+                {logs.length === 0 ? (
+                  <span className="text-[#4c5a8a]">{"// console.log() output appears here"}</span>
+                ) : (
+                  logs.map((l, i) => (
+                    <div key={i} className={l.type === "error" ? "text-[#f87171]" : l.type === "warn" ? "text-[#fbbf24]" : "text-[#a7f3d0]"}>
+                      {"> "}
+                      {l.text}
+                    </div>
+                  ))
+                )}
+              </pre>
+            </div>
+          )}
         </section>
       </div>
 

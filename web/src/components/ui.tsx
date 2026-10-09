@@ -44,15 +44,17 @@ export const rise = {
   show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 260, damping: 26 } },
 };
 
+/** Streak and XP in one compact chip, so headers stay calm. */
 export function StatPills({ labels }: { labels: { xp: string; streak: string } }) {
   const progress = useProgress();
   return (
-    <div className="flex items-center gap-2 text-sm font-semibold tabular-nums">
-      <span className="flex items-center gap-1 rounded-full bg-saffron-soft px-3 py-1">
-        <span aria-hidden="true">🔥</span> {liveStreak(progress)}
+    <div className="glass flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-bold tabular-nums">
+      <span className="flex items-center gap-1 text-saffron" title={labels.streak}>
+        🔥 {liveStreak(progress)}
       </span>
-      <span className="flex items-center gap-1 rounded-full bg-accent-soft px-3 py-1">
-        <span aria-hidden="true">⚡</span> {progress.xp} {labels.xp}
+      <span className="h-4 w-px bg-line" aria-hidden="true" />
+      <span className="flex items-center gap-1" title={labels.xp}>
+        ⚡ {progress.xp}
       </span>
     </div>
   );

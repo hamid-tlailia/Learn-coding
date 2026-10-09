@@ -57,22 +57,24 @@ export function AppShell({ locale, children }: { locale: Locale; children: React
         className="fixed inset-y-0 start-0 z-30 hidden w-24 flex-col items-center gap-2 border-e border-line bg-surface/80 py-6 backdrop-blur-xl lg:flex"
       >
         <Link href={`/${locale}/`} className="mb-6 text-ink">
-          <Logo locale={locale} />
+          <Logo withName={false} />
         </Link>
         {tabs.map(({ key, href, Icon }) => (
           <Link
             key={key}
             href={`/${locale}${href}/`}
             onClick={() => play("tap")}
-            className={`relative flex w-20 flex-col items-center gap-1 rounded-2xl py-2.5 text-xs font-semibold transition-colors ${
+            className={`flex w-20 flex-col items-center gap-1 py-1.5 text-xs font-bold transition-colors ${
               active === key ? "text-accent" : "text-muted hover:text-ink"
             }`}
           >
-            {active === key && (
-              <motion.span layoutId="rail-active" className="absolute inset-0 rounded-2xl bg-accent-soft" transition={{ type: "spring", stiffness: 500, damping: 38 }} />
-            )}
-            <Icon className="relative size-6" />
-            <span className="relative">{dict.tabs[key]}</span>
+            <span className="relative grid h-10 w-14 place-items-center">
+              {active === key && (
+                <motion.span layoutId="rail-active" className="btn-grad absolute inset-0 rounded-2xl" transition={{ type: "spring", stiffness: 500, damping: 38 }} />
+              )}
+              <Icon className={`relative size-6 ${active === key ? "text-white" : ""}`} />
+            </span>
+            <span className={active === key ? "text-grad" : ""}>{dict.tabs[key]}</span>
           </Link>
         ))}
       </nav>
@@ -91,17 +93,15 @@ export function AppShell({ locale, children }: { locale: Locale; children: React
               <Link
                 href={`/${locale}${href}/`}
                 onClick={() => play("tap")}
-                className={`relative flex flex-col items-center gap-0.5 rounded-2xl py-1.5 text-[11px] font-semibold ${
-                  active === key ? "text-accent" : "text-muted"
-                }`}
+                className={`flex flex-col items-center gap-1 py-1 text-[11px] font-bold ${active === key ? "text-accent" : "text-muted"}`}
               >
-                {active === key && (
-                  <motion.span layoutId="tab-active" className="absolute inset-x-2 inset-y-0 rounded-2xl bg-accent-soft" transition={{ type: "spring", stiffness: 500, damping: 38 }} />
-                )}
-                <motion.span whileTap={{ scale: 0.85 }} className="relative">
-                  <Icon className="size-6" />
+                <motion.span whileTap={{ scale: 0.85 }} className="relative grid h-8 w-14 place-items-center">
+                  {active === key && (
+                    <motion.span layoutId="tab-active" className="btn-grad absolute inset-0 rounded-full" transition={{ type: "spring", stiffness: 500, damping: 38 }} />
+                  )}
+                  <Icon className={`relative size-[22px] ${active === key ? "text-white" : ""}`} />
                 </motion.span>
-                <span className="relative">{dict.tabs[key]}</span>
+                <span className={active === key ? "text-grad" : ""}>{dict.tabs[key]}</span>
               </Link>
             </li>
           ))}

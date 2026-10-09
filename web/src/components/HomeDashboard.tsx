@@ -6,7 +6,7 @@ import { lessonKey, stages } from "@/content/curriculum";
 import { shortcuts } from "@/content/shortcuts";
 import { t, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
-import { dayKey, levelOf, liveStreak, nextLesson, useProgress } from "@/lib/progress";
+import { canUseEditor, dayKey, levelOf, liveStreak, nextLesson, useProgress } from "@/lib/progress";
 import { useSettings } from "@/lib/settings";
 import { PlayIcon } from "./Icons";
 import { TechIcon } from "./TechIcon";
@@ -22,7 +22,7 @@ function GoalRing({ value, goal }: { value: number; goal: number }) {
   const c = 2 * Math.PI * r;
   const pct = Math.min(1, value / goal);
   return (
-    <svg viewBox="0 0 100 100" className="size-20 -rotate-90 sm:size-28" aria-hidden="true">
+    <svg viewBox="0 0 100 100" className="size-24 -rotate-90" aria-hidden="true">
       <circle cx="50" cy="50" r={r} fill="none" stroke="var(--line)" strokeWidth="10" />
       <motion.circle
         cx="50"
@@ -55,7 +55,10 @@ export function HomeDashboard({ locale }: { locale: Locale }) {
   const greeting = hour < 12 ? h.morning : hour < 18 ? h.afternoon : h.evening;
   const seed = dayOfYear();
   const quote = dict.quotes[seed % dict.quotes.length];
-  const tip = shortcuts[seed % shortcuts.length];
+  // Only shortcuts for things already learned; nothing for someone who hasn't started.
+  const learned = shortcuts.filter((x) => progress.completed.includes(x.after));
+  const tip = learned.length ? learned[seed % learned.length] : null;
+  const editorOpen = canUseEditor(progress);
   const fwd = locale === "ar" ? "←" : "→";
 
   // The last 7 days, oldest first, ending today.
@@ -79,7 +82,7 @@ export function HomeDashboard({ locale }: { locale: Locale }) {
           </motion.span>
           <div>
             <p className="text-sm text-muted">{greeting}</p>
-            <h1 className="text-2xl font-bold">{settings.name || h.coder} 👋</h1>
+            <h1 className="text-2xl font-bold">{settings.name || h.coder}</h1>
           </div>
         </div>
         <StatPills labels={dict.stats} />
@@ -150,21 +153,19 @@ export function HomeDashboard({ locale }: { locale: Locale }) {
               >
                 <Link
                   href={`/${locale}/learn/`}
-                  className="relative flex h-44 w-40 flex-col justify-between overflow-hidden rounded-3xl p-4 text-white shadow-card"
+                  className="relative flex h-48 w-40 flex-col items-center justify-center gap-2 overflow-hidden rounded-3xl p-4 text-center text-white shadow-card"
                   style={{ background: stage.gradient }}
                 >
                   <span className="absolute -end-5 -top-5 size-20 rounded-full bg-white/15" aria-hidden="true" />
-                  <span className="relative grid size-14 place-items-center rounded-2xl bg-white/20 backdrop-blur">
-                    <TechIcon tech={stage.icon} className="size-9" />
+                  <span className="relative grid size-20 place-items-center rounded-3xl bg-white/20 backdrop-blur">
+                    <TechIcon tech={stage.icon} className="size-14" />
                   </span>
-                  <span className="relative flex flex-col gap-1.5">
-                    <span className="font-display font-bold leading-tight">{stage.badge}</span>
-                    <span className="h-1.5 overflow-hidden rounded-full bg-white/30">
-                      <span className="block h-full rounded-full bg-white" style={{ width: `${pct}%` }} />
-                    </span>
-                    <span className="text-[11px] font-semibold opacity-90">
-                      {stage.status === "soon" ? dict.learn.soon : `${pct}%`}
-                    </span>
+                  <span className="relative font-display text-lg font-bold leading-tight">{stage.badge}</span>
+                  <span className="relative h-1.5 w-full overflow-hidden rounded-full bg-white/30">
+                    <span className="block h-full rounded-full bg-white" style={{ width: `${pct}%` }} />
+                  </span>
+                  <span className="relative text-[11px] font-semibold opacity-90">
+                    {stage.status === "soon" ? dict.learn.soon : `${pct}%`}
                   </span>
                 </Link>
               </motion.div>
@@ -176,39 +177,45 @@ export function HomeDashboard({ locale }: { locale: Locale }) {
       <div className="grid gap-5 md:grid-cols-2">
         {/* Daily goal + week */}
         <motion.div variants={rise}>
-          <Card className="flex h-full items-center gap-4">
-            <div className="relative grid place-items-center">
-              <GoalRing value={today} goal={settings.dailyGoal} />
-              <span className="absolute text-center font-display text-lg font-bold tabular-nums leading-tight">
-                {today}
-                <span className="block text-xs font-normal text-muted">/ {settings.dailyGoal}</span>
-              </span>
-            </div>
-            <div className="flex min-w-0 flex-1 flex-col gap-3">
-              <div>
-                <h2 className="font-bold">{today >= settings.dailyGoal ? h.goalDone : h.dailyGoal}</h2>
+          <Card className="flex h-full flex-col gap-4">
+            <div className="flex items-center gap-4">
+              <div className="relative grid place-items-center">
+                <GoalRing value={today} goal={settings.dailyGoal} />
+                <span className="absolute text-center font-display text-lg font-bold tabular-nums leading-tight">
+                  {today}
+                  <span className="block text-xs font-normal text-muted">/ {settings.dailyGoal}</span>
+                </span>
+              </div>
+              <div className="flex min-w-0 flex-col">
+                <h2 className="text-lg font-bold">{today >= settings.dailyGoal ? h.goalDone : h.dailyGoal}</h2>
                 <p className="text-sm text-muted">
                   🔥 {streak} {h.streak}
                 </p>
               </div>
-              <ol className="flex justify-between gap-0.5">
-                {week.map((d, i) => (
-                  <li key={i} className="flex flex-col items-center gap-1 text-[11px] text-muted">
-                    <motion.span
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ delay: 0.3 + i * 0.05, type: "spring", stiffness: 400, damping: 18 }}
-                      className={`grid size-6 place-items-center rounded-full text-[10px] sm:size-7 ${
-                        d.xp > 0 ? "bg-saffron text-ink" : "bg-surface-2"
-                      } ${d.today ? "ring-2 ring-accent ring-offset-2 ring-offset-surface" : ""}`}
-                    >
-                      {d.xp > 0 ? "🔥" : ""}
-                    </motion.span>
-                    {d.label}
-                  </li>
-                ))}
-              </ol>
             </div>
+            {/* The last seven days, full names, today highlighted */}
+            <ol className="grid grid-cols-7 gap-1">
+              {week.map((d, i) => (
+                <li
+                  key={i}
+                  className={`flex flex-col items-center gap-1.5 rounded-2xl py-2 ${d.today ? "bg-accent-soft" : ""}`}
+                >
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.3 + i * 0.05, type: "spring", stiffness: 400, damping: 18 }}
+                    className={`grid size-8 place-items-center rounded-full text-sm ${
+                      d.xp > 0 ? "bg-saffron text-ink" : "bg-surface-2"
+                    } ${d.today ? "ring-2 ring-accent" : ""}`}
+                  >
+                    {d.xp > 0 ? "🔥" : ""}
+                  </motion.span>
+                  <span className={`text-[10px] font-semibold leading-none sm:text-xs ${d.today ? "text-accent" : "text-muted"}`}>
+                    {d.label}
+                  </span>
+                </li>
+              ))}
+            </ol>
           </Card>
         </motion.div>
 
@@ -252,7 +259,8 @@ export function HomeDashboard({ locale }: { locale: Locale }) {
           </Card>
         </motion.div>
 
-        {/* Shortcut of the day */}
+        {/* Shortcut of the day, from what the learner already knows */}
+        {tip && (
         <motion.div variants={rise}>
           <Card className="flex h-full flex-col gap-3">
             <span className="text-sm font-semibold text-muted">⚡ {h.tip}</span>
@@ -262,11 +270,14 @@ export function HomeDashboard({ locale }: { locale: Locale }) {
             </div>
             <pre className="overflow-x-auto rounded-xl bg-code-bg p-3 font-mono text-xs text-code-fg">{tip.output}</pre>
             <p className="text-sm text-muted">{t(tip.text, locale)}</p>
-            <Link href={`/${locale}/playground/`} className="self-start text-sm font-semibold text-accent">
-              {dict.practice.open} {fwd}
-            </Link>
+            {editorOpen && (
+              <Link href={`/${locale}/playground/`} className="self-start text-sm font-semibold text-accent">
+                {dict.practice.open} {fwd}
+              </Link>
+            )}
           </Card>
         </motion.div>
+        )}
       </div>
     </Stagger>
   );

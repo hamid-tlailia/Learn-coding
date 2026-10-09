@@ -189,68 +189,34 @@ pre,
   color: transparent;
 }
 
-/* Motivational backdrops ---------------------------------------------------- */
+/* Motivational backdrops: still, fixed behind the content ------------------- */
 .backdrop-aurora .blob {
   position: absolute;
   border-radius: 9999px;
   filter: blur(70px);
   opacity: 0.35;
-  animation: drift 22s ease-in-out infinite alternate;
-}
-
-@keyframes drift {
-  0% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  50% {
-    transform: translate3d(8vw, -6vh, 0) scale(1.15);
-  }
-  100% {
-    transform: translate3d(-6vw, 8vh, 0) scale(0.95);
-  }
 }
 
 .backdrop-cosmic .shape {
   position: absolute;
   opacity: 0.55;
-  animation: float 9s ease-in-out infinite alternate;
   filter: drop-shadow(0 0 10px currentColor);
-}
-
-@keyframes float {
-  to {
-    transform: translateY(-26px) rotate(25deg);
-  }
 }
 
 .backdrop-code .glyph {
   position: absolute;
-  bottom: -10vh;
   font-family: var(--font-mono);
   color: var(--accent);
-  opacity: 0.12;
-  animation: rise linear infinite;
+  opacity: 0.1;
   direction: ltr;
 }
 
-@keyframes rise {
-  to {
-    transform: translateY(-120vh) rotate(12deg);
-  }
-}
-
-.backdrop-waves svg {
+.backdrop-waves svg,
+.backdrop-cosmic svg.wave {
   position: absolute;
   inset-inline: 0;
   bottom: 0;
-  width: 200%;
-  animation: slide 18s linear infinite;
-}
-
-@keyframes slide {
-  to {
-    transform: translateX(-50%);
-  }
+  width: 100%;
 }
 
 .shine {

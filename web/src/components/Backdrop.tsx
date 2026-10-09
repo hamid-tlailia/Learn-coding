@@ -15,7 +15,7 @@ const shapes = [
 
 const glyphs = ["</>", "{ }", "( )", "=>", "<h1>", "div", "css", "fn()", "[ ]", "&&", "<p>", "const", "#id", ".class", "if", "return"];
 
-/** Slow, ambient motion behind the tab pages. Never behind lessons, where focus matters. */
+/** A still, fixed backdrop behind the tab pages; it stays put while the content scrolls. */
 export function Backdrop() {
   const { backdrop } = useSettings();
   if (backdrop === "none") return null;
@@ -24,11 +24,11 @@ export function Backdrop() {
     <div aria-hidden="true" className={`pointer-events-none fixed inset-0 z-0 overflow-hidden backdrop-${backdrop}`}>
       {backdrop === "cosmic" && (
         <>
-          <span className="blob" style={{ position: "absolute", width: "70vmax", height: "70vmax", top: "-30vmax", insetInlineEnd: "-25vmax", background: "#4f46e5", filter: "blur(90px)", opacity: 0.28, borderRadius: 9999 }} />
-          <span className="blob" style={{ position: "absolute", width: "60vmax", height: "60vmax", bottom: "-30vmax", insetInlineStart: "-20vmax", background: "#a21caf", filter: "blur(90px)", opacity: 0.22, borderRadius: 9999 }} />
-          <Wave height="30vh" color="#3b5bdb" d="M0,160 C240,100 480,100 720,160 C960,220 1200,220 1440,160 L1440,320 L0,320Z" duration="30s" />
+          <span style={{ position: "absolute", width: "70vmax", height: "70vmax", top: "-30vmax", insetInlineEnd: "-25vmax", background: "#4f46e5", filter: "blur(90px)", opacity: 0.28, borderRadius: 9999 }} />
+          <span style={{ position: "absolute", width: "60vmax", height: "60vmax", bottom: "-30vmax", insetInlineStart: "-20vmax", background: "#a21caf", filter: "blur(90px)", opacity: 0.22, borderRadius: 9999 }} />
+          <Wave height="30vh" color="#3b5bdb" d="M0,160 C240,100 480,100 720,160 C960,220 1200,220 1440,160 L1440,320 L0,320Z" />
           {shapes.map((sh, i) => (
-            <span key={i} className="shape" style={{ top: sh.top, left: sh.left, color: sh.color, animationDelay: `-${i * 1.3}s`, animationDuration: `${7 + (i % 4) * 2}s` }}>
+            <span key={i} className="shape" style={{ top: sh.top, left: sh.left, color: sh.color }}>
               <svg width={sh.size} height={sh.size} viewBox="0 0 24 24" fill="currentColor">
                 {sh.kind === "hex" && <path d="M12 2 21 7v10l-9 5-9-5V7z" />}
                 {sh.kind === "tri" && <path d="M6 3v18l15-9z" />}
@@ -41,8 +41,8 @@ export function Backdrop() {
       {backdrop === "aurora" && (
         <>
           <span className="blob" style={{ width: "55vmax", height: "55vmax", top: "-20vmax", insetInlineStart: "-15vmax", background: "var(--accent)" }} />
-          <span className="blob" style={{ width: "45vmax", height: "45vmax", bottom: "-18vmax", insetInlineEnd: "-12vmax", background: "var(--saffron)", animationDelay: "-8s" }} />
-          <span className="blob" style={{ width: "30vmax", height: "30vmax", top: "35%", insetInlineEnd: "25%", background: "var(--accent)", opacity: 0.18, animationDelay: "-14s" }} />
+          <span className="blob" style={{ width: "45vmax", height: "45vmax", bottom: "-18vmax", insetInlineEnd: "-12vmax", background: "var(--saffron)" }} />
+          <span className="blob" style={{ width: "30vmax", height: "30vmax", top: "35%", insetInlineEnd: "25%", background: "var(--accent)", opacity: 0.18 }} />
         </>
       )}
       {backdrop === "code" &&
@@ -51,10 +51,10 @@ export function Backdrop() {
             key={i}
             className="glyph"
             style={{
-              left: `${(i * 37) % 96}%`,
+              left: `${(i * 37) % 92}%`,
+              top: `${(i * 53) % 94}%`,
               fontSize: `${14 + ((i * 7) % 18)}px`,
-              animationDuration: `${18 + ((i * 5) % 14)}s`,
-              animationDelay: `-${(i * 3.3) % 20}s`,
+              transform: `rotate(${((i * 29) % 40) - 20}deg)`,
             }}
           >
             {g}
@@ -63,19 +63,17 @@ export function Backdrop() {
       {backdrop === "waves" && (
         <>
           <Wave height="36vh" color="var(--accent)" d="M0,160 C240,100 480,100 720,160 C960,220 1200,220 1440,160 L1440,320 L0,320Z" />
-          <Wave height="26vh" color="var(--saffron)" d="M0,230 C240,270 480,270 720,230 C960,190 1200,190 1440,230 L1440,320 L0,320Z" duration="26s" />
+          <Wave height="26vh" color="var(--saffron)" d="M0,230 C240,270 480,270 720,230 C960,190 1200,190 1440,230 L1440,320 L0,320Z" />
         </>
       )}
     </div>
   );
 }
 
-/** Two copies of a periodic wave side by side, slid by half its width for a seamless loop. */
-function Wave({ d, color, height, duration }: { d: string; color: string; height: string; duration?: string }) {
+function Wave({ d, color, height }: { d: string; color: string; height: string }) {
   return (
-    <svg viewBox="0 0 2880 320" preserveAspectRatio="none" style={{ height, opacity: 0.13, animationDuration: duration }}>
+    <svg className="wave" viewBox="0 0 1440 320" preserveAspectRatio="none" style={{ height, opacity: 0.13 }}>
       <path fill={color} d={d} />
-      <path fill={color} d={d} transform="translate(1440 0)" />
     </svg>
   );
 }

@@ -4,6 +4,136 @@ const text = (el: Element | null) => (el?.textContent ?? "").trim();
 
 export const htmlLessons: Lesson[] = [
   {
+    slug: "what-is-html",
+    title: { ar: "ما هي HTML؟", en: "What is HTML?" },
+    body: [
+      {
+        icon: "🧱",
+        ar: "**HTML** اختصار لـ HyperText Markup Language. ليست لغة برمجة بالمعنى الكامل، بل **لغة ترميز**: تصف للمتصفح ما هو كل جزء في الصفحة: عنوان، فقرة، صورة، رابط.",
+        en: "**HTML** stands for HyperText Markup Language. It isn't a full programming language but a **markup language**: it tells the browser what each part of the page is: a heading, a paragraph, an image, a link.",
+      },
+      {
+        icon: "🏷️",
+        ar: "نكتب HTML بـ **وسوم** (tags) بين علامتي `< >`. أغلب الوسوم لها بداية ونهاية: `<p>` تفتح الفقرة و `</p>` تغلقها، والمحتوى بينهما. الكل معًا يسمى **عنصرًا** (element).",
+        en: "We write HTML with **tags** between `< >`. Most tags have an opening and a closing part: `<p>` opens a paragraph and `</p>` closes it, with the content in between. Together they form an **element**.",
+      },
+      {
+        icon: "🧭",
+        ar: "الفرق بين اللغات الثلاث: HTML تقول «هذا عنوان»، و CSS تقول «العنوان أزرق وكبير»، و JavaScript تقول «عند الضغط على الزر غيّر العنوان». كل واحدة في ملف خاص: `index.html` و `style.css` و `script.js`.",
+        en: "The three languages differ: HTML says \"this is a heading\", CSS says \"the heading is big and blue\", and JavaScript says \"when the button is tapped, change the heading\". Each lives in its own file: `index.html`, `style.css`, `script.js`.",
+      },
+      {
+        icon: "🔤",
+        ar: "اكتب الوسوم بحروف صغيرة دائمًا: `<p>` وليس `<P>`. المتصفح يقبل الاثنين، لكن الحروف الصغيرة هي المعيار المتفق عليه.",
+        en: "Always write tags in lowercase: `<p>`, not `<P>`. Browsers accept both, but lowercase is the agreed standard.",
+      },
+    ],
+    example: {
+      code: "<p>I am a paragraph.</p>",
+      note: { ar: "عنصر كامل: وسم فتح، محتوى، وسم إغلاق.", en: "A complete element: opening tag, content, closing tag." },
+    },
+    files: ["html"],
+    starter: { html: "" },
+    solution: { html: "<p>Hello, HTML!</p>\n" },
+    tasks: [
+      {
+        id: "p",
+        label: { ar: "اكتب فقرة `<p>` فيها الجملة Hello, HTML!", en: "Write a `<p>` paragraph that says Hello, HTML!" },
+        test: ({ doc }) => /hello,?\s*html/i.test(text(doc.querySelector("p"))),
+      },
+      {
+        id: "closed",
+        label: { ar: "أغلق الوسم بـ `</p>`", en: "Close the tag with `</p>`" },
+        test: ({ source }) => /<\/p>/i.test(source),
+      },
+    ],
+    hints: [{ ar: "اكتب: `<p>Hello, HTML!</p>`", en: "Type: `<p>Hello, HTML!</p>`" }],
+    xp: 15,
+  },
+  {
+    slug: "page-skeleton",
+    title: { ar: "هيكل الصفحة: من الصفحة الفارغة", en: "Page skeleton: starting from a blank page" },
+    body: [
+      {
+        icon: "📄",
+        ar: "كل ملف HTML يبدأ بنفس الهيكل. أول سطر دائمًا هو `<!DOCTYPE html>`: يخبر المتصفح أن الصفحة مكتوبة بـ HTML الحديثة.",
+        en: "Every HTML file starts with the same skeleton. The first line is always `<!DOCTYPE html>`: it tells the browser the page uses modern HTML.",
+      },
+      {
+        icon: "🌳",
+        ar: "بعده العنصر `<html lang=\"ar\">` الذي يحتوي الصفحة كلها. الخاصية `lang` تحدد لغة المحتوى، وتساعد قارئات الشاشة ومحركات البحث.",
+        en: "Next comes `<html lang=\"en\">`, which holds the whole page. The `lang` attribute names the content's language and helps screen readers and search engines.",
+      },
+      {
+        icon: "🧠",
+        ar: "داخله جزآن: `<head>` لمعلومات لا تظهر في الصفحة، مثل الترميز `<meta charset=\"UTF-8\">` (ليظهر العربي صحيحًا) واسم الصفحة `<title>` الذي يظهر في تبويب المتصفح.",
+        en: "Inside are two parts: `<head>` for information that isn't shown, like the encoding `<meta charset=\"UTF-8\">` (so every language displays correctly) and the page name `<title>`, shown on the browser tab.",
+      },
+      {
+        icon: "👀",
+        ar: "و `<body>` لكل ما يراه الزائر: العناوين والفقرات والصور. وأضف `<meta name=\"viewport\" ...>` لتظهر الصفحة صحيحة على الهاتف.",
+        en: "And `<body>` for everything visitors see: headings, paragraphs, images. Add `<meta name=\"viewport\" ...>` so the page fits phone screens.",
+      },
+    ],
+    example: {
+      code: '<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>My first page</title>\n</head>\n<body>\n  <h1>Hello!</h1>\n</body>\n</html>',
+      note: { ar: "هذا الهيكل تكتبه في بداية كل صفحة.", en: "You write this skeleton at the start of every page." },
+    },
+    tip: {
+      text: {
+        ar: "لا تكتب الهيكل بيدك: في صفحة فارغة اكتب `!` ثم اضغط Tab، وسيكتب Emmet الهيكل كاملًا.",
+        en: "Don't type the skeleton by hand: in an empty file type `!` and press Tab, and Emmet writes the whole skeleton.",
+      },
+      code: "!  →  <!DOCTYPE html>…",
+    },
+    modern: {
+      old: '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">',
+      now: "<!DOCTYPE html>",
+      text: {
+        ar: "في HTML القديمة كان سطر DOCTYPE طويلًا ومعقدًا. منذ HTML5 أصبح قصيرًا وموحّدًا، وهو المعيار الحالي (HTML Living Standard).",
+        en: "Old HTML needed a long, complicated DOCTYPE. Since HTML5 it's short and the same everywhere, and it's today's standard (HTML Living Standard).",
+      },
+      since: "HTML5",
+    },
+    files: ["html"],
+    starter: { html: "" },
+    solution: {
+      html: '<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>My first page</title>\n</head>\n<body>\n  <h1>Hello!</h1>\n</body>\n</html>\n',
+    },
+    tasks: [
+      {
+        id: "doctype",
+        label: { ar: "ابدأ بـ `<!DOCTYPE html>`", en: "Start with `<!DOCTYPE html>`" },
+        test: ({ source }) => /^\s*<!doctype html>/i.test(source),
+      },
+      {
+        id: "lang",
+        label: { ar: "أضف `<html>` مع خاصية `lang`", en: "Add `<html>` with a `lang` attribute" },
+        test: ({ source }) => /<html[^>]*\blang=["'][a-z-]+["']/i.test(source),
+      },
+      {
+        id: "charset",
+        label: { ar: "أضف `<meta charset=\"UTF-8\">`", en: "Add `<meta charset=\"UTF-8\">`" },
+        test: ({ doc }) => (doc.querySelector("meta[charset]")?.getAttribute("charset") ?? "").toLowerCase() === "utf-8",
+      },
+      {
+        id: "title",
+        label: { ar: "اكتب اسمًا للصفحة في `<title>`", en: "Name the page in `<title>`" },
+        test: ({ doc }) => text(doc.querySelector("head title")).length > 0,
+      },
+      {
+        id: "body",
+        label: { ar: "ضع عنوانًا `<h1>` داخل `<body>`", en: "Put an `<h1>` inside `<body>`" },
+        test: ({ source, doc }) => /<body/i.test(source) && text(doc.querySelector("body h1")).length > 0,
+      },
+    ],
+    hints: [
+      { ar: "اكتب `!` ثم اضغط Tab (أو زر Tab فوق لوحة المفاتيح).", en: "Type `!` then press Tab (or the Tab key above the keyboard)." },
+      { ar: "بعد Emmet، غيّر نص `<title>` وأضف `<h1>` داخل `<body>`.", en: "After Emmet, change the `<title>` text and add an `<h1>` inside `<body>`." },
+    ],
+    xp: 25,
+  },
+  {
     slug: "first-page",
     title: { ar: "صفحتك الأولى: العناوين والفقرات", en: "Your first page: headings and paragraphs" },
     body: [
@@ -31,9 +161,17 @@ export const htmlLessons: Lesson[] = [
       },
       code: "h1  →  <h1></h1>",
     },
+    modern: {
+      old: "<b>Important</b>",
+      now: "<strong>Important</strong>",
+      text: {
+        ar: "`<b>` يجعل النص عريضًا فقط. `<strong>` يقول إن النص **مهم**، فتفهمه قارئات الشاشة ومحركات البحث. الشكل تتحكم فيه CSS.",
+        en: "`<b>` only makes text bold. `<strong>` says the text is **important**, which screen readers and search engines understand. CSS controls the look.",
+      },
+    },
     files: ["html"],
     starter: { html: "<!-- اكتب الكود هنا / Write your code here -->\n" },
-    solution: { html: "<h1>Hello, I'm Hamid</h1>\n<p>I'm learning to code with Satr.</p>\n" },
+    solution: { html: "<h1>Hello, I'm Hamid</h1>\n<p>I'm learning to code with Code Master.</p>\n" },
     tasks: [
       {
         id: "h1",
@@ -84,6 +222,15 @@ export const htmlLessons: Lesson[] = [
         en: "Type `a:link` then Tab for a ready link, or `img` then Tab for an image with `src` and `alt`.",
       },
       code: 'img  →  <img src="" alt="">',
+    },
+    modern: {
+      old: '<img src="cat.jpg" border="0" width="300">',
+      now: '<img src="cat.jpg" alt="A cat" loading="lazy">',
+      text: {
+        ar: "الخصائص الشكلية مثل `border` أصبحت قديمة: الشكل مكانه CSS. و `loading=\"lazy\"` يؤجل تحميل الصور البعيدة فتصبح الصفحة أسرع.",
+        en: "Styling attributes like `border` are outdated: looks belong in CSS. And `loading=\"lazy\"` delays offscreen images so the page loads faster.",
+      },
+      since: "Baseline 2023",
     },
     files: ["html"],
     starter: { html: "<h1>My favourite site</h1>\n\n" },
@@ -197,6 +344,15 @@ export const htmlLessons: Lesson[] = [
       },
       code: "header>nav^main+footer",
     },
+    modern: {
+      old: '<div id="header">…</div>\n<div id="footer">…</div>',
+      now: "<header>…</header>\n<footer>…</footer>",
+      text: {
+        ar: "قبل HTML5 كانت كل الأجزاء `<div>` بأسماء مختلفة. الوسوم الدلالية الحديثة توضح دور كل جزء دون أسماء إضافية.",
+        en: "Before HTML5 every part was a `<div>` with a different name. Modern semantic tags state each part's role without extra names.",
+      },
+      since: "HTML5",
+    },
     files: ["html"],
     starter: { html: "<!-- My portfolio page -->\n" },
     solution: {
@@ -243,6 +399,28 @@ export const htmlLessons: Lesson[] = [
 export const htmlExam: Exam = {
   passPercent: 80,
   questions: [
+    {
+      id: "q0",
+      prompt: { ar: "ما أول سطر في كل صفحة HTML حديثة؟", en: "What is the first line of every modern HTML page?" },
+      options: [
+        { ar: "`<html>`", en: "`<html>`" },
+        { ar: "`<!DOCTYPE html>`", en: "`<!DOCTYPE html>`" },
+        { ar: "`<head>`", en: "`<head>`" },
+        { ar: "`<title>`", en: "`<title>`" },
+      ],
+      answer: 1,
+    },
+    {
+      id: "q00",
+      prompt: { ar: "أين يُكتب اسم الصفحة الذي يظهر في تبويب المتصفح؟", en: "Where does the page name shown on the browser tab go?" },
+      options: [
+        { ar: "`<h1>` داخل `<body>`", en: "`<h1>` inside `<body>`" },
+        { ar: "`<title>` داخل `<head>`", en: "`<title>` inside `<head>`" },
+        { ar: "في اسم الملف فقط", en: "Only in the file name" },
+        { ar: "`<meta charset>`", en: "`<meta charset>`" },
+      ],
+      answer: 1,
+    },
     {
       id: "q1",
       prompt: { ar: "أي وسم يُستخدم لأهم عنوان في الصفحة؟", en: "Which tag is used for the most important heading on the page?" },

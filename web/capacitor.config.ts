@@ -2,9 +2,9 @@ import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
   appId: "com.satr.learn",
-  appName: "سطر",
+  appName: "Code Master",
   webDir: "out",
-  backgroundColor: "#f6f8f8",
+  backgroundColor: "#0a0f24",
   android: {
     // The lesson preview loads images and pages over https only.
     allowMixedContent: false,

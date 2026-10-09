@@ -13,6 +13,7 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        registerPlugin(ThemePlugin.class);
         super.onCreate(savedInstanceState);
         bridge.setWebViewClient(new StaticExportClient(this));
     }

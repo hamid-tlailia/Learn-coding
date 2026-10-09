@@ -121,7 +121,7 @@ export function ProfileView({ locale }: { locale: Locale }) {
                 <div className="relative flex h-full flex-col items-center gap-2 overflow-hidden rounded-[22px] bg-surface p-5 text-center">
                   <span className="absolute inset-3 rounded-2xl border border-line" aria-hidden="true" />
                   <span className="relative font-display text-sm font-bold">
-                    <span className="text-grad">سطر · Satr</span>
+                    <span className="text-grad">Code Master</span>
                   </span>
                   <span className="relative text-xs text-muted">{pr.certificateOf}</span>
                   <span className="relative font-display text-lg font-bold">{t(s.certificate!, locale)}</span>

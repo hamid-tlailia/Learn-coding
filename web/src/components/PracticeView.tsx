@@ -7,8 +7,8 @@ import { shortcuts } from "@/content/shortcuts";
 import { t, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
 import { play } from "@/lib/feedback";
-import { useProgress } from "@/lib/progress";
-import { CheckIcon, CodeIcon } from "./Icons";
+import { canUseEditor, useProgress } from "@/lib/progress";
+import { CheckIcon, CodeIcon, LockIcon } from "./Icons";
 import { Card, PageHeader, rise, Stagger, useMounted } from "./ui";
 
 export function PracticeView({ locale }: { locale: Locale }) {
@@ -29,6 +29,20 @@ export function PracticeView({ locale }: { locale: Locale }) {
       </motion.div>
 
       <motion.div variants={rise}>
+        {!canUseEditor(progress) ? (
+          <div className="glass flex items-center gap-5 rounded-3xl p-6 shadow-card">
+            <span className="grid size-16 flex-none place-items-center rounded-2xl bg-surface-2 text-muted">
+              <LockIcon className="size-8" />
+            </span>
+            <div className="flex flex-col gap-1">
+              <h2 className="text-xl font-bold">{p.playground}</h2>
+              <p className="text-sm text-muted">{p.locked}</p>
+              <Link href={`/${locale}/learn/`} className="mt-1 font-semibold text-accent">
+                {p.toPath} {locale === "ar" ? "←" : "→"}
+              </Link>
+            </div>
+          </div>
+        ) : (
         <Link
           href={`/${locale}/playground/`}
           onClick={() => play("whoosh")}
@@ -48,6 +62,7 @@ export function PracticeView({ locale }: { locale: Locale }) {
             <span className="mt-1 font-semibold text-saffron">{p.open} {locale === "ar" ? "←" : "→"}</span>
           </div>
         </Link>
+        )}
       </motion.div>
 
       <motion.div variants={rise}>
@@ -81,15 +96,19 @@ export function PracticeView({ locale }: { locale: Locale }) {
           <p className="text-sm text-muted">{p.shortcutsText}</p>
         </div>
         <div className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2">
-          {shortcuts.map((s) => (
-            <Card key={s.abbr} className="flex w-64 flex-none snap-start flex-col gap-2 p-4" whileHover={{ y: -4 }}>
-              <code className="self-start rounded-lg bg-accent-soft px-2.5 py-1 font-mono font-bold text-accent" dir="ltr">
+          {[...shortcuts].sort((a, b) => Number(progress.completed.includes(b.after)) - Number(progress.completed.includes(a.after))).map((s) => {
+            const open = progress.completed.includes(s.after);
+            return (
+            <Card key={s.abbr} className={`flex w-64 flex-none snap-start flex-col gap-2 p-4 ${open ? "" : "opacity-45"}`} whileHover={open ? { y: -4 } : undefined}>
+              <code className="flex items-center gap-2 self-start rounded-lg bg-accent-soft px-2.5 py-1 font-mono font-bold text-accent" dir="ltr">
                 {s.abbr}
+                {!open && <LockIcon className="size-3.5" />}
               </code>
               <pre className="max-h-28 overflow-auto rounded-xl bg-code-bg p-3 font-mono text-xs text-code-fg">{s.output}</pre>
               <p className="text-sm text-muted">{t(s.text, locale)}</p>
             </Card>
-          ))}
+            );
+          })}
         </div>
       </motion.section>
 

@@ -1,8 +1,17 @@
 /** Simplified technology marks for stage badges and course cards. */
-export type Tech = "html" | "css" | "js" | "git" | "react" | "node" | "mobile";
+export type Tech = "start" | "html" | "css" | "js" | "git" | "react" | "node" | "mobile";
 
 export function TechIcon({ tech, className = "size-10" }: { tech: Tech; className?: string }) {
   switch (tech) {
+    case "start":
+      return (
+        <svg viewBox="0 0 32 32" className={className} aria-hidden="true" direction="ltr">
+          <path d="M16 3c5 3 8 8 8 14l-3 4h-10l-3-4c0-6 3-11 8-14z" fill="#fff" />
+          <circle cx="16" cy="13" r="3" fill="#8b5cf6" />
+          <path d="M11 21l-4 5 6-2zM21 21l4 5-6-2z" fill="#22d3ee" />
+          <path d="M14 24h4l-2 5z" fill="#f5b544" />
+        </svg>
+      );
     case "html":
     case "css":
       return (

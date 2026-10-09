@@ -1,4 +1,4 @@
-# سطر · Satr
+# Code Master
 
 منصة لتعليم البرمجة بالعربية والإنجليزية، من الويب إلى الموبايل.
 A bilingual (Arabic / English) platform for learning to code, from web to mobile.
@@ -58,5 +58,7 @@ Each task has a `test` function that receives the parsed HTML document and the l
 
 ## Path
 
-HTML → CSS → JavaScript → Git → React.js (+ Next.js) → Backend → Mobile (React Native / Expo).
-HTML is available now; the other stages are listed as coming soon.
+Start here (how the web works, thinking like a programmer, tools) → HTML → CSS → JavaScript → Git →
+React.js (+ Next.js) → Backend → Mobile (React Native / Expo).
+Start, HTML, CSS and JavaScript are available; each lesson has an "old vs modern" card so learners
+pick up current practice (HTML Living Standard, CSS Baseline, ECMAScript 2025). Later stages are listed as coming soon.

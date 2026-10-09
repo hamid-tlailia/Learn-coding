@@ -86,6 +86,11 @@ export function levelOf(xp: number) {
   return { level, into: rest, need };
 }
 
+/** The free editor opens after the first lesson where the learner writes code. */
+export function canUseEditor(p: Progress) {
+  return stages.some((s) => s.lessons.some((l) => l.files.length > 0 && p.completed.includes(lessonKey(s.slug, l.slug))));
+}
+
 /** A stage opens once every earlier stage that has an exam has been passed. */
 export function isStageUnlocked(slug: string, progress: Progress): boolean {
   for (const stage of stages) {

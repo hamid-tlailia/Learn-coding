@@ -1,7 +1,23 @@
+import { cssExam, cssLessons } from "./css";
 import { htmlExam, htmlLessons } from "./html";
+import { introLessons } from "./intro";
+import { jsExam, jsLessons } from "./js";
 import type { Stage } from "./types";
 
 export const stages: Stage[] = [
+  {
+    slug: "start",
+    icon: "start",
+    gradient: "linear-gradient(135deg,#22d3ee,#8b5cf6)",
+    badge: "Start",
+    title: { ar: "البداية: قبل أن تكتب الكود", en: "Start here: before you code" },
+    description: {
+      ar: "كيف يعمل الويب، كيف تفكر كمبرمج، وتجهيز المحرر على حاسوبك.",
+      en: "How the web works, thinking like a programmer, and setting up an editor on your computer.",
+    },
+    status: "available",
+    lessons: introLessons,
+  },
   {
     slug: "html",
     icon: "html",
@@ -12,6 +28,7 @@ export const stages: Stage[] = [
       ar: "الوسوم، الروابط، الصور، القوائم والهيكل الدلالي.",
       en: "Tags, links, images, lists and semantic structure.",
     },
+    standard: { ar: "HTML Living Standard", en: "HTML Living Standard" },
     status: "available",
     lessons: htmlLessons,
     exam: htmlExam,
@@ -26,8 +43,10 @@ export const stages: Stage[] = [
       ar: "الألوان والخطوط، Flexbox و Grid، والتصميم المتجاوب مع الهاتف.",
       en: "Colors and fonts, Flexbox and Grid, and responsive design.",
     },
-    status: "soon",
-    lessons: [],
+    standard: { ar: "CSS حسب Baseline 2025", en: "CSS per Baseline 2025" },
+    status: "available",
+    lessons: cssLessons,
+    exam: cssExam,
   },
   {
     slug: "javascript",
@@ -39,8 +58,10 @@ export const stages: Stage[] = [
       ar: "المتغيرات، الدوال، المصفوفات، DOM والأحداث، و fetch.",
       en: "Variables, functions, arrays, the DOM and events, and fetch.",
     },
-    status: "soon",
-    lessons: [],
+    standard: { ar: "ECMAScript 2025", en: "ECMAScript 2025" },
+    status: "available",
+    lessons: jsLessons,
+    exam: jsExam,
   },
   {
     slug: "git",

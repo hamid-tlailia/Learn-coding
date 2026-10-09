@@ -93,6 +93,11 @@ export function PathMap({ locale }: { locale: Locale }) {
                   <h2 className="text-lg font-bold">{t(stage.title, locale)}</h2>
                   <p className="text-sm opacity-90">{t(stage.description, locale)}</p>
                   {stage.certificate && <span className="mt-1 text-sm font-semibold">🎓 {t(stage.certificate, locale)}</span>}
+                  {stage.standard && (
+                    <span className="mt-1.5 self-start rounded-full bg-black/20 px-2.5 py-0.5 text-[11px] font-semibold">
+                      ✓ {d.updated} {t(stage.standard, locale)}
+                    </span>
+                  )}
                 </div>
                 {(stage.status === "soon" || !unlocked) && <LockIcon className="size-6 flex-none opacity-80" />}
               </div>
@@ -116,7 +121,7 @@ export function PathMap({ locale }: { locale: Locale }) {
                       <div className="flex min-w-0 flex-1 flex-col">
                         <span className="font-display font-semibold">{t(lesson.title, locale)}</span>
                         <span className={`text-xs ${isCurrent ? "text-white/85" : "text-muted"}`}>
-                          ⏱ 5 min · ⚡ {lesson.xp} XP
+                          <bdi>⏱ {d.minutes}</bdi> · <bdi>⚡ {lesson.xp} XP</bdi>
                         </span>
                       </div>
                       {isDone && (
