@@ -16,6 +16,13 @@ export function LangSwitch({ locale }: { locale: Locale }) {
           key={l}
           href={`/${l}${rest ? `/${rest}` : ""}`}
           aria-current={l === locale ? "true" : undefined}
+          onClick={() => {
+            try {
+              window.localStorage.setItem("satr-locale", l);
+            } catch {
+              // Remembering the language is a convenience only.
+            }
+          }}
           className={`px-3 py-1 ${l === locale ? "bg-ink text-paper" : "text-muted hover:text-ink"}`}
         >
           {labels[l]}

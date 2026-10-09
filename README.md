@@ -6,7 +6,8 @@ A bilingual (Arabic / English) platform for learning to code, from web to mobile
 ## What's here
 
 - `design/brand-identity.html`: the proposed visual identity (name, logo, colors, type, lesson screen).
-- `web/`: the web app (Next.js 15, React 19, TypeScript, Tailwind CSS 4).
+- `web/`: the web app (Next.js 15, React 19, TypeScript, Tailwind CSS 4), exported as static HTML.
+- `web/android/`: the Android app, which wraps the same static site with Capacitor (works offline).
 
 ## The web app
 
@@ -24,6 +25,26 @@ cd web
 npm install
 npm run dev   # http://localhost:3000
 ```
+
+### Deploy to Vercel
+
+Import the repository in Vercel and set **Root Directory** to `web`. Vercel detects Next.js and serves the
+static export; no other settings are needed. No GitHub Actions are used anywhere in this repository.
+
+### Build the Android APK
+
+Needs JDK 21 and the Android SDK (`ANDROID_HOME`).
+
+```bash
+cd web
+npm run build             # writes the static site to out/
+npx cap sync android      # copies out/ into the Android project
+cd android && ./gradlew assembleDebug
+# APK: web/android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+App icons and splash screens are generated from `web/assets/` with `npx @capacitor/assets generate --android`.
+`MainActivity.java` maps folder paths such as `/ar/learn/` to their `index.html`, which the static export needs.
 
 ### Add a lesson
 

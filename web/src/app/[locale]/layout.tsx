@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { IBM_Plex_Sans_Arabic, JetBrains_Mono, Readex_Pro } from "next/font/google";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/Header";
+import { NativeBridge } from "@/components/NativeBridge";
 import { dirOf, isLocale, locales } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
 import "../globals.css";
@@ -29,6 +30,7 @@ export default async function LocaleLayout({ children, params }: { children: Rea
   return (
     <html lang={locale} dir={dirOf(locale)} className={`${readex.variable} ${plexArabic.variable} ${jetbrains.variable}`}>
       <body className="flex min-h-screen flex-col antialiased">
+        <NativeBridge />
         <Header locale={locale} />
         <main className="flex-1">{children}</main>
         <footer className="border-t border-line px-4 py-6 text-center text-sm text-muted">{dict.footer}</footer>
