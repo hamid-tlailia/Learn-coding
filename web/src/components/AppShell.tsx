@@ -11,6 +11,8 @@ import { useSettings } from "@/lib/settings";
 import { Backdrop } from "./Backdrop";
 import { CodeIcon, GearIcon, HomeIcon, PathIcon, UserIcon } from "./Icons";
 import { Logo } from "./Logo";
+import { Onboarding } from "./Onboarding";
+import { useMounted } from "./ui";
 
 const tabs = [
   { key: "home", href: "", Icon: HomeIcon },
@@ -45,7 +47,12 @@ export function AppShell({ locale, children }: { locale: Locale; children: React
   const immersive = /^\/learn\/[^/]+\/[^/]+$/.test(rest) || rest === "/playground" || rest === "/challenge";
   const active = tabs.find((t) => t.href && rest.startsWith(t.href))?.key ?? (rest === "" ? "home" : null);
 
+  const mounted = useMounted();
+  const { onboarded } = useSettings();
+
   if (immersive) return <>{children}</>;
+  // First launch: questions before anything else.
+  if (mounted && !onboarded) return <Onboarding locale={locale} />;
 
   return (
     <div className="relative min-h-full">

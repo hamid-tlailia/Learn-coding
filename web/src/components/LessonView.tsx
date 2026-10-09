@@ -9,7 +9,7 @@ import type { FileKind, Files, Lesson } from "@/content/types";
 import { dirOf, t, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
 import { celebrate, play } from "@/lib/feedback";
-import { completeLesson, levelOf, useProgress } from "@/lib/progress";
+import { completeLesson, isLessonOpen, levelOf, useProgress } from "@/lib/progress";
 import { buildPreview, collectLogs, runChecks } from "@/lib/runner";
 import { Celebration } from "./Celebration";
 import { BulbIcon, CheckIcon, CloseIcon, UndoIcon } from "./Icons";
@@ -68,7 +68,7 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
 
   // The explanation language can differ from the interface, so learners can peek at the other one.
   const [tl, setTl] = useState<Locale>(locale);
-  const [phase, setPhase] = useState<"learn" | "code">("learn");
+  const [phase, setPhase] = useState<"learn" | "code" | "done">("learn");
   const [step, setStep] = useState(0);
   const [dir, setDir] = useState(1);
   const [files, setFiles] = useState<Files>(lesson.starter);
@@ -108,6 +108,23 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
 
   if (!mounted) return <div className="min-h-dvh bg-paper" />;
 
+  // Lessons open in order: no jumping ahead by link.
+  if (!won && !isLessonOpen(stage.slug, lesson.slug, progress)) {
+    return (
+      <div className="grid min-h-dvh place-items-center bg-paper p-6 text-center">
+        <div className="flex max-w-sm flex-col items-center gap-4">
+          <span className="text-6xl" aria-hidden="true">
+            🔒
+          </span>
+          <p className="text-lg">{dict.learn.lockedLesson}</p>
+          <Link href={back} className="btn-grad rounded-2xl px-6 py-3 font-display font-bold">
+            {dict.practice.toPath}
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   function win() {
     const before = levelOf(progress.xp).level;
     const first = completeLesson(key, lesson.xp);
@@ -116,6 +133,8 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
     play(levelUp ? "levelUp" : "complete");
     celebrate(levelUp);
     setWon({ xp, levelUp });
+    // The exercise is over: close the editor and show what was built.
+    if (phase === "code") setPhase("done");
   }
 
   function go(delta: number) {
@@ -248,6 +267,35 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
     </AnimatePresence>
   );
 
+  // ------------------------------------------------------------ Done: editor closed, show the result
+  if (phase === "done") {
+    return (
+      <div className="fixed inset-0 z-40 flex flex-col overflow-y-auto bg-paper" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+        <div className="mx-auto flex w-full max-w-2xl flex-col gap-5 px-4 py-6">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold">{d.doneTitle}</h1>
+            <Link href={back} aria-label={d.close} className="grid size-10 place-items-center rounded-xl text-muted hover:bg-surface-2">
+              <CloseIcon className="size-6" />
+            </Link>
+          </div>
+          <iframe title={d.result} sandbox="allow-scripts" srcDoc={buildPreview(files)} className="h-64 w-full rounded-3xl border border-line bg-white shadow-card" />
+          {lesson.files.map((kind) => (
+            <div key={kind} className="flex flex-col gap-1.5">
+              <span className="text-sm font-semibold text-muted">
+                {d.yourCode} · {kind.toUpperCase()}
+              </span>
+              <pre className="max-h-64 overflow-auto rounded-2xl bg-code-bg p-4 font-mono text-sm text-code-fg">{files[kind]}</pre>
+            </div>
+          ))}
+          <Link href={nextHref} className="btn-grad grid h-14 place-items-center rounded-2xl font-display text-lg font-bold">
+            {next ? dict.done.continue : stage.exam ? dict.done.toExam : dict.done.back}
+          </Link>
+        </div>
+        {celebration}
+      </div>
+    );
+  }
+
   // ------------------------------------------------------------ Code phase
   if (phase === "code") {
     return (
@@ -269,6 +317,12 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
                 {langSwitch}
               </div>
               {taskList}
+              {lesson.example && (
+                <details className="rounded-2xl bg-surface-2 p-3">
+                  <summary className="cursor-pointer font-semibold">{getDictionary(tl).lesson.peek}</summary>
+                  <pre className="mt-2 overflow-x-auto rounded-xl bg-code-bg p-3 font-mono text-xs text-code-fg">{lesson.example.code}</pre>
+                </details>
+              )}
               {results && passedCount < lesson.tasks.length && <p className="text-sm font-semibold text-coral">{d.almost}</p>}
               <AnimatePresence>
                 {hintsShown > 0 && (

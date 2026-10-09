@@ -1,6 +1,7 @@
 "use client";
 
 import { lessonKey, stages } from "@/content/curriculum";
+import type { FileKind } from "@/content/types";
 import { createStore } from "./store";
 
 /**
@@ -14,7 +15,11 @@ export type Progress = {
   daily: Record<string, number>;
   streak: { count: number; last: string | null };
   exams: Record<string, number>;
+  /** Issued certificates by stage slug. */
+  certs: Record<string, Cert>;
 };
+
+export type Cert = { id: string; name: string; date: string; photo: string };
 
 const store = createStore<Progress>("satr-progress-v1", {
   completed: [],
@@ -22,6 +27,7 @@ const store = createStore<Progress>("satr-progress-v1", {
   daily: {},
   streak: { count: 0, last: null },
   exams: {},
+  certs: {},
 });
 
 export const useProgress = store.use;
@@ -63,6 +69,27 @@ export function recordExam(stage: string, score: number, passPercent: number) {
   store.set(award({ ...p, exams: { ...p.exams, [stage]: best } }, firstPass ? 100 : 0));
 }
 
+/** A stage's certificate is earned when its exam is passed (and every stage before it, by order). */
+export function certEarned(stageSlug: string, p: Progress) {
+  const stage = stages.find((s) => s.slug === stageSlug);
+  return !!stage?.certificate && !!stage.exam && (p.exams[stage.slug] ?? 0) >= stage.exam.passPercent;
+}
+
+/** A short, readable ID like CM-2026-7Q4K-M2XD, derived from the name, stage and date. */
+function certId(name: string, stage: string, date: string) {
+  let h = 2166136261;
+  for (const ch of `${name}|${stage}|${date}`) h = Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0;
+  const code = h.toString(36).toUpperCase().padStart(8, "0").slice(-8);
+  return `CM-${date.slice(0, 4)}-${code.slice(0, 4)}-${code.slice(4)}`;
+}
+
+export function issueCert(stage: string, name: string, photo: string): Cert {
+  const date = dayKey();
+  const cert = { id: certId(name, stage, date), name, date, photo };
+  store.set((p) => ({ ...p, certs: { ...p.certs, [stage]: cert } }));
+  return cert;
+}
+
 export function resetProgress() {
   store.set(store.initial);
 }
@@ -86,20 +113,44 @@ export function levelOf(xp: number) {
   return { level, into: rest, need };
 }
 
-/** The free editor opens after the first lesson where the learner writes code. */
-export function canUseEditor(p: Progress) {
-  return stages.some((s) => s.lessons.some((l) => l.files.length > 0 && p.completed.includes(lessonKey(s.slug, l.slug))));
+/**
+ * Which files the free editor offers: HTML once the learner can build a whole page,
+ * then CSS and JavaScript after their first lesson in each.
+ */
+export function editorKinds(p: Progress): FileKind[] {
+  const kinds: FileKind[] = [];
+  if (p.completed.includes("html/page-skeleton")) kinds.push("html");
+  if (kinds.length && p.completed.some((k) => k.startsWith("css/"))) kinds.push("css");
+  if (kinds.length && p.completed.some((k) => k.startsWith("javascript/"))) kinds.push("js");
+  return kinds;
 }
 
-/** A stage opens once every earlier stage that has an exam has been passed. */
+export function canUseEditor(p: Progress) {
+  return editorKinds(p).length > 0;
+}
+
+/**
+ * Stages open strictly in order: a stage unlocks once every earlier stage is finished,
+ * meaning all its lessons are done and, when it has one, its exam is passed. No skipping.
+ */
 export function isStageUnlocked(slug: string, progress: Progress): boolean {
   for (const stage of stages) {
     if (stage.slug === slug) return stage.status === "available";
-    if (stage.status === "available" && stage.exam && (progress.exams[stage.slug] ?? 0) < stage.exam.passPercent) {
-      return false;
-    }
+    if (stage.status !== "available") return false;
+    const lessonsDone = stage.lessons.every((l) => progress.completed.includes(lessonKey(stage.slug, l.slug)));
+    const examDone = !stage.exam || (progress.exams[stage.slug] ?? 0) >= stage.exam.passPercent;
+    if (!lessonsDone || !examDone) return false;
   }
   return false;
+}
+
+/** A lesson can be opened when it is done, or it is the next one in an unlocked stage. */
+export function isLessonOpen(stageSlug: string, lessonSlug: string, progress: Progress): boolean {
+  if (!isStageUnlocked(stageSlug, progress)) return false;
+  const stage = stages.find((s) => s.slug === stageSlug);
+  if (!stage) return false;
+  const next = stage.lessons.find((l) => !progress.completed.includes(lessonKey(stage.slug, l.slug)));
+  return progress.completed.includes(lessonKey(stageSlug, lessonSlug)) || next?.slug === lessonSlug;
 }
 
 /** The next lesson to study: the first unfinished lesson in an unlocked stage. */

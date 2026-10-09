@@ -253,3 +253,41 @@ pre,
     animation: none;
   }
 }
+
+/* Launch loader */
+.loader-glow {
+  background-image: var(--grad);
+  filter: blur(22px);
+  animation: glow 1.4s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  from {
+    opacity: 0.35;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 0.8;
+    transform: scale(1.15);
+  }
+}
+
+.loader-bar {
+  animation: load 1.1s ease-in-out infinite;
+}
+
+@keyframes load {
+  from {
+    transform: translateX(-110%);
+  }
+  to {
+    transform: translateX(330%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loader-glow,
+  .loader-bar {
+    animation: none;
+  }
+}

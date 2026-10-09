@@ -9,6 +9,7 @@ import { getDictionary } from "@/i18n/dictionary";
 import { canUseEditor, dayKey, levelOf, liveStreak, nextLesson, useProgress } from "@/lib/progress";
 import { useSettings } from "@/lib/settings";
 import { PlayIcon } from "./Icons";
+import { Avatar } from "./Avatar";
 import { TechIcon } from "./TechIcon";
 import { Card, rise, Stagger, StatPills, useMounted } from "./ui";
 
@@ -74,11 +75,11 @@ export function HomeDashboard({ locale }: { locale: Locale }) {
       <motion.header variants={rise} className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <motion.span
-            className="grid size-14 place-items-center rounded-2xl bg-accent-soft text-3xl"
+            className="block"
             animate={{ rotate: [0, -8, 8, 0] }}
             transition={{ duration: 1.2, delay: 0.5 }}
           >
-            {settings.avatar}
+            <Avatar className="size-14 rounded-2xl text-3xl" />
           </motion.span>
           <div>
             <p className="text-sm text-muted">{greeting}</p>
@@ -194,17 +195,17 @@ export function HomeDashboard({ locale }: { locale: Locale }) {
               </div>
             </div>
             {/* The last seven days, full names, today highlighted */}
-            <ol className="grid grid-cols-7 gap-1">
+            <ol className="-mx-2 grid grid-cols-7 gap-0.5">
               {week.map((d, i) => (
                 <li
                   key={i}
-                  className={`flex flex-col items-center gap-1.5 rounded-2xl py-2 ${d.today ? "bg-accent-soft" : ""}`}
+                  className={`flex flex-col items-center gap-1.5 rounded-2xl px-1 py-2.5 ${d.today ? "bg-accent-soft" : ""}`}
                 >
                   <motion.span
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.3 + i * 0.05, type: "spring", stiffness: 400, damping: 18 }}
-                    className={`grid size-8 place-items-center rounded-full text-sm ${
+                    className={`grid size-7 place-items-center rounded-full text-xs ${
                       d.xp > 0 ? "bg-saffron text-ink" : "bg-surface-2"
                     } ${d.today ? "ring-2 ring-accent" : ""}`}
                   >

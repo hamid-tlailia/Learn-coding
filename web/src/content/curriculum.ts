@@ -62,6 +62,7 @@ export const stages: Stage[] = [
     status: "available",
     lessons: jsLessons,
     exam: jsExam,
+    certificate: { ar: "أساسيات تطوير الويب", en: "Web Development Fundamentals" },
   },
   {
     slug: "git",

@@ -7,9 +7,24 @@ export type ThemeMode = "system" | "light" | "dark";
 export type Accent = "neon" | "zellige" | "saffron" | "ocean" | "rose" | "violet";
 export type Backdrop = "cosmic" | "aurora" | "code" | "waves" | "none";
 
+export type Goal = "career" | "projects" | "study" | "fun";
+export type Level = "new" | "some" | "dev";
+export type StudyTime = "morning" | "afternoon" | "evening" | "night";
+
 export type Settings = {
+  /** Set once the first-launch questions are answered. */
+  onboarded: boolean;
   name: string;
+  /** Real full name, printed on certificates. */
+  fullName: string;
   avatar: string;
+  /** Profile photo as a small JPEG data URL, or "" to use the emoji avatar. */
+  photo: string;
+  goal: Goal;
+  level: Level;
+  studyTime: StudyTime;
+  /** A daily local notification at the study time (Android app). */
+  reminder: boolean;
   theme: ThemeMode;
   accent: Accent;
   backdrop: Backdrop;
@@ -20,10 +35,16 @@ export type Settings = {
   editorFontSize: number;
 };
 
-
 export const defaultSettings: Settings = {
+  onboarded: false,
   name: "",
+  fullName: "",
   avatar: "🦊",
+  photo: "",
+  goal: "career",
+  level: "new",
+  studyTime: "evening",
+  reminder: true,
   theme: "dark",
   accent: "neon",
   backdrop: "cosmic",
@@ -51,3 +72,6 @@ export const useSettings = settingsStore.use;
 export function updateSettings(patch: Partial<Settings>) {
   settingsStore.set((s) => ({ ...s, ...patch }));
 }
+
+/** The hour of the daily reminder for each study time. */
+export const studyHours: Record<StudyTime, number> = { morning: 8, afternoon: 14, evening: 19, night: 22 };

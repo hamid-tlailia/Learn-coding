@@ -5,8 +5,9 @@ import { motion } from "motion/react";
 import { stages } from "@/content/curriculum";
 import { t, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
-import { levelOf, liveStreak, useProgress, type Progress } from "@/lib/progress";
+import { certEarned, levelOf, liveStreak, useProgress, type Progress } from "@/lib/progress";
 import { useSettings } from "@/lib/settings";
+import { Avatar } from "./Avatar";
 import { TechIcon } from "./TechIcon";
 import { Card, rise, Stagger, StatPills, useMounted } from "./ui";
 
@@ -39,12 +40,12 @@ export function ProfileView({ locale }: { locale: Locale }) {
       <motion.div variants={rise}>
         <Card className="flex flex-col items-center gap-3 text-center">
           <motion.span
-            className="grid size-24 place-items-center rounded-[2rem] bg-accent-soft text-6xl"
+            className="block"
             initial={{ scale: 0.5, rotate: -20 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ type: "spring", stiffness: 260, damping: 14 }}
           >
-            {settings.avatar}
+            <Avatar className="size-24 rounded-[2rem] text-6xl" />
           </motion.span>
           <h1 className="text-2xl font-bold">{settings.name || dict.home.coder}</h1>
           <span className="rounded-full btn-grad px-4 py-1 font-display font-semibold">
@@ -117,7 +118,7 @@ export function ProfileView({ locale }: { locale: Locale }) {
           {stages
             .filter((s) => s.certificate)
             .map((s) => (
-              <div key={s.slug} className="w-72 flex-none snap-start rounded-3xl p-[2px]" style={{ background: "var(--grad)" }}>
+              <Link key={s.slug} href={`/${locale}/certificate/${s.slug}/`} className="w-72 flex-none snap-start rounded-3xl p-[2px]" style={{ background: "var(--grad)" }}>
                 <div className="relative flex h-full flex-col items-center gap-2 overflow-hidden rounded-[22px] bg-surface p-5 text-center">
                   <span className="absolute inset-3 rounded-2xl border border-line" aria-hidden="true" />
                   <span className="relative font-display text-sm font-bold">
@@ -125,13 +126,15 @@ export function ProfileView({ locale }: { locale: Locale }) {
                   </span>
                   <span className="relative text-xs text-muted">{pr.certificateOf}</span>
                   <span className="relative font-display text-lg font-bold">{t(s.certificate!, locale)}</span>
-                  <span className="relative font-display text-muted">{settings.name || dict.home.coder}</span>
+                  <span className="relative font-display text-muted">{progress.certs[s.slug]?.name ?? (settings.fullName || settings.name || dict.home.coder)}</span>
                   <span className="relative grid size-16 place-items-center rounded-full bg-gradient-to-br from-[#fde68a] to-[#d97706] text-2xl shadow-lg">
                     <TechIcon tech={s.icon} className="size-8" />
                   </span>
-                  <span className="relative rounded-full bg-surface-2 px-3 py-1 text-xs font-semibold text-muted">🔒 {pr.locked}</span>
+                  <span className="relative rounded-full bg-surface-2 px-3 py-1 text-xs font-semibold text-muted">
+                    {progress.certs[s.slug] ? `✓ ${progress.certs[s.slug].id}` : certEarned(s.slug, progress) ? "🎓" : `🔒 ${pr.locked}`}
+                  </span>
                 </div>
-              </div>
+              </Link>
             ))}
         </div>
         <p className="text-sm text-muted">{pr.certificatesText}</p>

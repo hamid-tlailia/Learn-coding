@@ -3,13 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { locales, t, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
 import { play } from "@/lib/feedback";
 import { LOCALE_KEY } from "@/lib/keys";
 import { resetProgress } from "@/lib/progress";
-import { accents, avatars, updateSettings, useSettings, type Accent, type Backdrop, type ThemeMode } from "@/lib/settings";
+import { accents, avatars, studyHours, updateSettings, useSettings, type Accent, type Backdrop, type StudyTime, type ThemeMode } from "@/lib/settings";
+import { photoToDataUrl } from "@/lib/image";
+import { syncReminder } from "@/lib/reminder";
+import { Avatar } from "./Avatar";
 import { Card, PageHeader, Press, rise, Stagger, Toggle, useMounted } from "./ui";
 
 const SCROLL_KEY = "cm-settings-scroll";
@@ -78,6 +81,8 @@ export function SettingsView({ locale }: { locale: Locale }) {
   const pathname = usePathname();
   const [confirming, setConfirming] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const photoInput = useRef<HTMLInputElement>(null);
+  const o = dict.onboarding;
 
   // After switching language, come back to the same spot instead of the top of the page.
   useEffect(() => {
@@ -133,6 +138,39 @@ export function SettingsView({ locale }: { locale: Locale }) {
               </motion.button>
             ))}
           </div>
+        </Row>
+        <Row label={o.photoTitle} stack>
+          <div className="flex items-center gap-4">
+            <Avatar className="size-16 rounded-2xl text-3xl" />
+            <input
+              ref={photoInput}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={async (e) => {
+                const f = e.target.files?.[0];
+                if (f) updateSettings({ photo: await photoToDataUrl(f) });
+              }}
+            />
+            <Press onClick={() => photoInput.current?.click()} className="btn-grad rounded-2xl px-4 py-2 text-sm font-semibold">
+              📷 {o.pickPhoto}
+            </Press>
+            {s.photo && (
+              <Press onClick={() => updateSettings({ photo: "" })} className="rounded-2xl bg-surface-2 px-4 py-2 text-sm font-semibold">
+                {o.removePhoto}
+              </Press>
+            )}
+          </div>
+        </Row>
+        <Row label={dict.cert.fullName} htmlFor="full-name" stack>
+          <input
+            id="full-name"
+            value={s.fullName}
+            maxLength={40}
+            placeholder={dict.cert.fullName}
+            onChange={(e) => updateSettings({ fullName: e.target.value })}
+            className="rounded-2xl border border-line bg-surface-2 px-4 py-3 outline-none focus:border-accent"
+          />
         </Row>
       </Section>
 
@@ -232,6 +270,28 @@ export function SettingsView({ locale }: { locale: Locale }) {
             value={s.dailyGoal}
             onChange={(dailyGoal) => updateSettings({ dailyGoal })}
             options={[20, 50, 100].map((v) => ({ value: v, label: `${st.goals[v]} · ${v}` }))}
+          />
+        </Row>
+        <Row label={o.timeTitle} stack>
+          <Segmented<StudyTime>
+            id="study-time"
+            value={s.studyTime}
+            onChange={(studyTime) => {
+              updateSettings({ studyTime });
+              syncReminder(s.reminder, studyHours[studyTime], { title: o.reminderTitle, body: o.reminderBody });
+            }}
+            options={(["morning", "afternoon", "evening", "night"] as const).map((v) => ({ value: v, label: o.times[v].split(" ")[0] }))}
+          />
+        </Row>
+        <Row label={o.reminder} htmlFor="reminder">
+          <Toggle
+            id="reminder"
+            label={o.reminder}
+            checked={s.reminder}
+            onChange={(reminder) => {
+              updateSettings({ reminder });
+              syncReminder(reminder, studyHours[s.studyTime], { title: o.reminderTitle, body: o.reminderBody });
+            }}
           />
         </Row>
         <Row label={st.fontSize} stack>

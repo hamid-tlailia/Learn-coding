@@ -7,12 +7,13 @@ import { challenges } from "@/content/challenges";
 import { t, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
 import { celebrate, play } from "@/lib/feedback";
-import { awardXp } from "@/lib/progress";
+import { awardXp, useProgress } from "@/lib/progress";
 import { Celebration } from "./Celebration";
 import { CloseIcon } from "./Icons";
 import { Press, useMounted } from "./ui";
 
 const POINTS = 10;
+const ROUNDS = 5;
 
 function shuffle<T>(items: T[]) {
   const a = [...items];
@@ -35,7 +36,13 @@ export function ChallengeView({ locale }: { locale: Locale }) {
   const [finished, setFinished] = useState(false);
   const [game, setGame] = useState(0);
 
-  const c = challenges[round];
+  const progress = useProgress();
+  // Only challenges from finished lessons; a fresh random set of up to 5 each game.
+  const pool = useMemo(
+    () => shuffle(challenges.filter((x) => progress.completed.includes(x.after))).slice(0, ROUNDS),
+    [game, mounted], // eslint-disable-line react-hooks/exhaustive-deps
+  );
+  const c = pool[round] ?? challenges[0];
   const parts = c.code.split("_");
   const blanks = parts.length - 1;
   // Each chip keeps its original index so duplicates (two "h1") stay distinct.
@@ -50,6 +57,22 @@ export function ChallengeView({ locale }: { locale: Locale }) {
   }, [finished]);
 
   if (!mounted) return <div className="min-h-dvh bg-paper" />;
+
+  if (pool.length === 0) {
+    return (
+      <div className="grid min-h-dvh place-items-center bg-paper p-6 text-center">
+        <div className="flex max-w-sm flex-col items-center gap-4">
+          <span className="text-6xl" aria-hidden="true">
+            🧩
+          </span>
+          <p className="text-lg">{p.challengeLocked}</p>
+          <Link href={`/${locale}/learn/`} className="btn-grad rounded-2xl px-6 py-3 font-display font-bold">
+            {p.toPath}
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const full = filled.length === blanks && filled.every((f) => f !== null);
 
@@ -80,7 +103,7 @@ export function ChallengeView({ locale }: { locale: Locale }) {
 
   function next() {
     setVerdict(null);
-    if (round + 1 < challenges.length) {
+    if (round + 1 < pool.length) {
       play("whoosh");
       setRound((r) => r + 1);
     } else {
@@ -110,7 +133,7 @@ export function ChallengeView({ locale }: { locale: Locale }) {
         </Link>
         <span className="glass rounded-full px-3 py-1 text-sm font-bold tabular-nums">⏱ {time}</span>
         <div className="flex flex-1 gap-1" aria-hidden="true">
-          {challenges.map((_, i) => (
+          {pool.map((_, i) => (
             <span key={i} className={`h-2 flex-1 rounded-full ${i < round || finished ? "btn-grad" : i === round ? "bg-saffron" : "bg-line"}`} />
           ))}
         </div>

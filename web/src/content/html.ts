@@ -170,7 +170,7 @@ export const htmlLessons: Lesson[] = [
       },
     },
     files: ["html"],
-    starter: { html: "<!-- اكتب الكود هنا / Write your code here -->\n" },
+    starter: { html: "" },
     solution: { html: "<h1>Hello, I'm Hamid</h1>\n<p>I'm learning to code with Code Master.</p>\n" },
     tasks: [
       {
@@ -233,7 +233,7 @@ export const htmlLessons: Lesson[] = [
       since: "Baseline 2023",
     },
     files: ["html"],
-    starter: { html: "<h1>My favourite site</h1>\n\n" },
+    starter: { html: "" },
     solution: {
       html: '<h1>My favourite site</h1>\n<a href="https://developer.mozilla.org">MDN Docs</a>\n<img src="https://picsum.photos/300/200" alt="A landscape photo">\n',
     },
@@ -290,7 +290,7 @@ export const htmlLessons: Lesson[] = [
       code: "ul>li*3",
     },
     files: ["html"],
-    starter: { html: "<h2>What I want to learn</h2>\n\n<h2>Steps to make tea</h2>\n\n" },
+    starter: { html: "" },
     solution: {
       html: "<h2>What I want to learn</h2>\n<ul>\n  <li>HTML</li>\n  <li>CSS</li>\n  <li>JavaScript</li>\n</ul>\n<h2>Steps to make tea</h2>\n<ol>\n  <li>Boil water</li>\n  <li>Add tea</li>\n  <li>Wait 3 minutes</li>\n</ol>\n",
     },
@@ -354,7 +354,7 @@ export const htmlLessons: Lesson[] = [
       since: "HTML5",
     },
     files: ["html"],
-    starter: { html: "<!-- My portfolio page -->\n" },
+    starter: { html: "" },
     solution: {
       html: '<header>\n  <h1>Hamid</h1>\n  <nav>\n    <a href="#about">About</a>\n    <a href="#projects">Projects</a>\n  </nav>\n</header>\n<main>\n  <h2 id="about">About me</h2>\n  <p>I am learning web development.</p>\n</main>\n<footer>\n  <p>© 2026 Hamid</p>\n</footer>\n',
     },

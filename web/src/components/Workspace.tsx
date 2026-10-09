@@ -207,6 +207,7 @@ export function Workspace({
                   label={fileNames[active]}
                   fontSize={editorFontSize}
                   onReady={(v) => (view.current = v)}
+                  hint={dict.typeHere}
                 />
               </motion.div>
             </AnimatePresence>

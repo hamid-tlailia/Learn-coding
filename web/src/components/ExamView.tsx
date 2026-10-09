@@ -7,7 +7,9 @@ import { getStage } from "@/content/curriculum";
 import { t, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
 import { celebrate, play } from "@/lib/feedback";
-import { recordExam } from "@/lib/progress";
+import { isStageUnlocked, recordExam, useProgress } from "@/lib/progress";
+import { lessonKey } from "@/content/curriculum";
+import { useMounted } from "./ui";
 import { CheckIcon, CloseIcon } from "./Icons";
 import { RichText } from "./RichText";
 import { Press } from "./ui";
@@ -16,6 +18,8 @@ export function ExamView({ locale, stageSlug }: { locale: Locale; stageSlug: str
   const dict = getDictionary(locale).exam;
   const stage = getStage(stageSlug)!;
   const exam = stage.exam!;
+  const progress = useProgress();
+  const mounted = useMounted();
   const total = exam.questions.length;
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
@@ -67,6 +71,26 @@ export function ExamView({ locale, stageSlug }: { locale: Locale; stageSlug: str
     setCurrent(0);
     setScore(null);
     setLeft(total * 60);
+  }
+
+  // The exam opens only after every lesson of an unlocked stage is done.
+  const ready =
+    isStageUnlocked(stage.slug, progress) && stage.lessons.every((l) => progress.completed.includes(lessonKey(stage.slug, l.slug)));
+  if (!mounted) return <div className="min-h-dvh bg-paper" />;
+  if (!ready && score === null) {
+    return (
+      <div className="grid min-h-dvh place-items-center bg-paper p-6 text-center">
+        <div className="flex max-w-sm flex-col items-center gap-4">
+          <span className="text-6xl" aria-hidden="true">
+            🔒
+          </span>
+          <p className="text-lg">{getDictionary(locale).learn.lockedLesson}</p>
+          <Link href={back} className="btn-grad rounded-2xl px-6 py-3 font-display font-bold">
+            {getDictionary(locale).practice.toPath}
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   // ------------------------------------------------------------ Results

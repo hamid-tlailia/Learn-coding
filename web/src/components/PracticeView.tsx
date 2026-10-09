@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { motion } from "motion/react";
 import { stages, lessonKey } from "@/content/curriculum";
+import { challenges } from "@/content/challenges";
 import { shortcuts } from "@/content/shortcuts";
 import { t, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
@@ -84,7 +85,11 @@ export function PracticeView({ locale }: { locale: Locale }) {
           </motion.span>
           <div className="relative flex flex-col gap-1">
             <h2 className="text-xl font-bold">{p.challenge}</h2>
-            <p className="text-sm opacity-90">{p.challengeText}</p>
+            <p className="text-sm opacity-90">
+              {challenges.filter((x) => progress.completed.includes(x.after)).length
+                ? p.challengeCount.replace("{n}", String(challenges.filter((x) => progress.completed.includes(x.after)).length))
+                : p.challengeLocked}
+            </p>
             <span className="mt-1 font-semibold">{p.play} {locale === "ar" ? "←" : "→"}</span>
           </div>
         </Link>

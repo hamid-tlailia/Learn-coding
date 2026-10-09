@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans_Arabic, JetBrains_Mono, Readex_Pro } from "next/font/google";
 import { notFound } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
+import { Loader } from "@/components/Loader";
 import { NativeBridge } from "@/components/NativeBridge";
 import { ThemeScript } from "@/components/ThemeScript";
 import { dirOf, isLocale, locales } from "@/i18n/config";
@@ -36,6 +37,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function LocaleLayout({ children, params }: { children: React.ReactNode; params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
+  const dict = getDictionary(locale);
 
   return (
     <html
@@ -48,6 +50,7 @@ export default async function LocaleLayout({ children, params }: { children: Rea
         <ThemeScript />
       </head>
       <body className="antialiased" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+        <Loader label={dict.onboarding.loading} />
         <NativeBridge />
         <AppShell locale={locale}>{children}</AppShell>
       </body>
