@@ -15,6 +15,7 @@ export const reactLessons: Lesson[] = [
       { icon: "⚛️", ar: "**React** مكتبة من Meta لبناء الواجهات، وهي الأكثر طلبًا في سوق العمل. فكرتها: تقسّم الواجهة إلى **مكوّنات** (components) صغيرة قابلة لإعادة الاستخدام.", en: "**React** is Meta's library for building interfaces, and the most in-demand on the job market. The idea: split the UI into small, reusable **components**." },
       { icon: "🧩", ar: "المكوّن دالة اسمها يبدأ بحرف كبير وتُرجع ما يظهر على الشاشة: `function App() { return <h1>Hello</h1>; }`.", en: "A component is a function whose name starts with a capital letter and returns what appears on screen: `function App() { return <h1>Hello</h1>; }`." },
       { icon: "🔁", ar: "React تحدّث الصفحة تلقائيًا عندما تتغير البيانات. لا تكتب `querySelector` ولا `textContent`: تصف **كيف تبدو** الواجهة، و React تتولى التحديث.", en: "React updates the page automatically when data changes. No `querySelector`, no `textContent`: you describe **what** the UI looks like, and React handles the updates." },
+      { icon: "🏷️", ar: "ستكتب وسومًا تشبه HTML: `<h1>` عنوان، `<p>` فقرة، `<button>` زر، `<ul>` و `<li>` قائمة وعناصرها، و `<div>` حاوية. و `className=\"card\"` يعطي العنصر اسم تنسيق تستخدمه في CSS.", en: "You'll write HTML-like tags: `<h1>` a heading, `<p>` a paragraph, `<button>` a button, `<ul>` and `<li>` a list and its items, and `<div>` a container. `className=\"card\"` gives an element a style name used in CSS." },
     ],
     example: {
       code: 'function App() {\n  return (\n    <main>\n      <h1>Hello, React 👋</h1>\n      <p>My first component.</p>\n    </main>\n  );\n}',
@@ -59,8 +60,8 @@ export const reactLessons: Lesson[] = [
     },
     tasks: [
       { id: "class", label: { ar: "غلّف المحتوى بـ `<div className=\"card\">`", en: "Wrap the content in `<div className=\"card\">`" }, test: ({ doc }) => !!doc.querySelector("div.card") },
-      { id: "expr", label: { ar: "اعرض `course.title` في `<h1>` و `course.lessons` في `<p>`", en: "Show `course.title` in an `<h1>` and `course.lessons` in a `<p>`" }, test: ({ doc }) => text(doc.querySelector(".card h1")) === "React" && /8/.test(text(doc.querySelector(".card p"))) },
-      { id: "cond", label: { ar: "اعرض `<span>NEW</span>` فقط إذا كان `course.isNew`", en: "Show `<span>NEW</span>` only when `course.isNew`" }, test: ({ doc, files }) => /course\.isNew\s*(&&|\?)/.test(files.js ?? "") && text(doc.querySelector(".card span")) === "NEW" },
+      { id: "expr", label: { ar: "اعرض `course.title` في `<h1>` و `course.lessons` في `<p>`", en: "Show `course.title` in an `<h1>` and `course.lessons` in a `<p>`" }, test: ({ doc }) => /\bReact\b/.test(text(doc.querySelector(".card h1"))) && /8/.test(text(doc.querySelector(".card p"))) },
+      { id: "cond", label: { ar: "اعرض `<span>NEW</span>` فقط إذا كان `course.isNew`", en: "Show `<span>NEW</span>` only when `course.isNew`" }, test: ({ doc, files }) => /isNew\s*(&&|\?)/.test(files.js ?? "") && text(doc.querySelector(".card span")) === "NEW" },
     ],
     hints: [
       { ar: '`<div className="card"><h1>{course.title}</h1><p>{course.lessons} lessons</p></div>`', en: '`<div className="card"><h1>{course.title}</h1><p>{course.lessons} lessons</p></div>`' },
@@ -89,7 +90,7 @@ export const reactLessons: Lesson[] = [
     tasks: [
       { id: "component", label: { ar: "اجعل `Course` يُرجع `<article className=\"course\">` فيه `<h2>{title}</h2>`", en: "Make `Course` return `<article className=\"course\">` with `<h2>{title}</h2>`" }, test: ({ doc }) => !!doc.querySelector("article.course h2") },
       { id: "twice", label: { ar: "استخدم `<Course />` مرتين بعنوانين مختلفين", en: "Use `<Course />` twice with different titles" }, test: ({ doc }) => { const t = Array.from(doc.querySelectorAll("article.course h2")).map(text); return t.length >= 2 && new Set(t).size >= 2; } },
-      { id: "level", label: { ar: "اعرض `level` أيضًا داخل كل بطاقة", en: "Show `level` inside each card too" }, test: ({ doc }) => Array.from(doc.querySelectorAll("article.course")).every((a) => text(a.querySelector("p")).length > 0) && doc.querySelectorAll("article.course").length >= 2 },
+      { id: "level", label: { ar: "اعرض `level` أيضًا داخل `<p>` في كل بطاقة", en: "Show `level` in a `<p>` inside each card too" }, test: ({ doc }) => Array.from(doc.querySelectorAll("article.course")).every((a) => text(a.querySelector("p")).length > 0) && doc.querySelectorAll("article.course").length >= 2 },
     ],
     hints: [
       { ar: '`return <article className="course"><h2>{title}</h2><p>{level}</p></article>;`', en: '`return <article className="course"><h2>{title}</h2><p>{level}</p></article>;`' },
@@ -202,7 +203,7 @@ export const reactLessons: Lesson[] = [
       { icon: "⏳", ar: "النمط المعتاد: حالة للبيانات وحالة للتحميل. اعرض «جارٍ التحميل…» حتى تصل البيانات، ثم اعرضها.", en: "The usual pattern: one state for data and one for loading. Show \"Loading…\" until the data arrives, then render it." },
     ],
     example: {
-      code: `import { useEffect, useState } from "react";\n\nconst POSTS_URL = "${POSTS_URL}";\n\nexport default function App() {\n  const [posts, setPosts] = useState([]);\n  useEffect(() => {\n    fetch(POSTS_URL).then((r) => r.json()).then(setPosts);\n  }, []);\n  return <ul>{posts.map((p) => <li key={p.id}>{p.title}</li>)}</ul>;\n}`,
+      code: `import { useEffect, useState } from "react";\n\nconst POSTS_URL = "${POSTS_URL}";\n\nexport default function App() {\n  const [posts, setPosts] = useState([]);\n  useEffect(() => {\n    async function load() {\n      const res = await fetch(POSTS_URL);\n      setPosts(await res.json());\n    }\n    load();\n  }, []);\n  return <ul>{posts.map((p) => <li key={p.id}>{p.title}</li>)}</ul>;\n}`,
       note: { ar: "جلب المقالات مرة واحدة عند الظهور، ثم عرضها.", en: "Fetch posts once on mount, then show them." },
     },
     files: ["js"],
@@ -211,7 +212,7 @@ export const reactLessons: Lesson[] = [
       js: `import { useEffect, useState } from "react";\n\nconst POSTS_URL = "${POSTS_URL}";\n\nexport default function App() {\n  const [posts, setPosts] = useState([]);\n  const [loading, setLoading] = useState(true);\n\n  useEffect(() => {\n    async function load() {\n      const res = await fetch(POSTS_URL);\n      setPosts(await res.json());\n      setLoading(false);\n    }\n    load();\n  }, []);\n\n  if (loading) return <p>Loading…</p>;\n  return (\n    <ul>\n      {posts.map((p) => (\n        <li key={p.id}>{p.title}</li>\n      ))}\n    </ul>\n  );\n}\n`,
     },
     tasks: [
-      { id: "effect", label: { ar: "اجلب `POSTS_URL` داخل `useEffect` مع `[]`", en: "Fetch `POSTS_URL` inside `useEffect` with `[]`" }, test: ({ files }) => /useEffect\(/.test(files.js ?? "") && /fetch\(\s*POSTS_URL/.test(files.js ?? "") && /\},\s*\[\s*\]\s*\)/.test(files.js ?? "") },
+      { id: "effect", label: { ar: "اجلب `POSTS_URL` داخل `useEffect` مع `[]`", en: "Fetch `POSTS_URL` inside `useEffect` with `[]`" }, test: ({ files }) => /useEffect\(/.test(files.js ?? "") && /fetch\(\s*POSTS_URL/.test(files.js ?? "") && /useEffect\([\s\S]*?,\s*\[\s*\]\s*\)/.test(files.js ?? "") },
       { id: "loading", label: { ar: "اعرض «Loading…» أثناء التحميل بحالة `loading`", en: "Show \"Loading…\" while loading, with a `loading` state" }, test: ({ files }) => /useState\(\s*true\s*\)/.test(files.js ?? "") && /Loading/.test(files.js ?? "") },
       { id: "list", label: { ar: "اعرض العناوين الثلاثة في `<li>`", en: "Show the three titles in `<li>` items" }, test: ({ doc }) => doc.querySelectorAll("li").length === 3 },
     ],

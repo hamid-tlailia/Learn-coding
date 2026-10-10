@@ -59,7 +59,7 @@ export const proLessons: Lesson[] = [
     },
     harness: 'console.log("__email__", [isValidEmail("a@b.co"), isValidEmail("ab.co"), isValidEmail(""), isValidEmail("a@b")].join(","));',
     tasks: [
-      { id: "fn", label: { ar: "اكتب `isValidEmail(email)` تُرجع `true` أو `false`", en: "Write `isValidEmail(email)` returning `true` or `false`" }, test: ({ logs }) => printed(logs, "__email__ true,false,false,false") },
+      { id: "fn", label: { ar: "اكتب `isValidEmail(email)`: صالح = نص ثم `@` ثم نطاق فيه نقطة (`a@b.co` صحيح، و `ab.co` و `a@b` والنص الفارغ خطأ)", en: "Write `isValidEmail(email)`: valid = text, then `@`, then a domain with a dot (`a@b.co` is true; `ab.co`, `a@b` and empty text are false)" }, test: ({ logs }) => printed(logs, "__email__ true,false,false,false") },
       { id: "tests", label: { ar: "اكتب 3 اختبارات على الأقل بـ `test` و `expect`", en: "Write at least 3 tests with `test` and `expect`" }, test: ({ logs }) => logs.filter((l) => l.startsWith("✅")).length >= 3 },
       { id: "green", label: { ar: "كل الاختبارات تنجح (لا يوجد ❌)", en: "All tests pass (no ❌)" }, test: ({ logs }) => logs.some((l) => l.startsWith("✅")) && !logs.some((l) => l.startsWith("❌")) },
     ],

@@ -95,7 +95,7 @@ export const objects: Lesson = {
   tasks: [
     { id: "object", label: { ar: "أنشئ كائنًا `book` فيه `title` و `pages`", en: "Create a `book` object with `title` and `pages`" }, test: ({ logs }) => logs.some((l) => /^__b__ object t \d+$/.test(l.trim())) },
     { id: "change", label: { ar: "غيّر `book.pages` إلى 464", en: "Change `book.pages` to 464" }, test: ({ logs }) => printed(logs, "__b__ object t 464") },
-    { id: "destructure", label: { ar: "فكّك `title` و `pages` واطبع جملة بهما", en: "Destructure `title` and `pages` and print a sentence" }, test: ({ files, logs }) => /const\s*\{\s*\w+\s*,\s*\w+\s*\}\s*=\s*book/.test(files.js ?? "") && logs.some((l) => /464/.test(l) && !l.startsWith("__b__")) },
+    { id: "destructure", label: { ar: "فكّك `title` و `pages` واطبع جملة بهما", en: "Destructure `title` and `pages` and print a sentence" }, test: ({ files, logs }) => /(const|let)\s*\{[^}]*\btitle\b[^}]*\}\s*=\s*book\b/.test(files.js ?? "") && /(const|let)\s*\{[^}]*\bpages\b[^}]*\}\s*=\s*book\b/.test(files.js ?? "") && logs.some((l) => /464/.test(l) && !l.startsWith("__b__")) },
   ],
   hints: [
     { ar: '`const book = { title: "Clean Code", pages: 400 };` ثم `book.pages = 464;`', en: '`const book = { title: "Clean Code", pages: 400 };` then `book.pages = 464;`' },
@@ -145,7 +145,7 @@ export const asyncAwait: Lesson = {
   tasks: [
     { id: "async", label: { ar: "اكتب دالة `async` اسمها `load`", en: "Write an `async` function called `load`" }, test: ({ files }) => /async\s+function\s+load|const\s+load\s*=\s*async/.test(files.js ?? "") },
     { id: "await", label: { ar: "داخلها استخدم `await wait(200)`", en: "Inside it, use `await wait(200)`" }, test: ({ files }) => /await\s+wait\(/.test(files.js ?? "") },
-    { id: "order", label: { ar: "اطبع `Loading` قبل الانتظار و `Ready` بعده، ثم استدعِ `load()`", en: "Print `Loading` before the wait and `Ready` after, then call `load()`" }, test: ({ logs }) => logs.indexOf("Loading") >= 0 && logs.indexOf("Ready") > logs.indexOf("Loading") },
+    { id: "order", label: { ar: "اطبع `Loading` قبل الانتظار و `Ready` بعده، ثم استدعِ `load()`", en: "Print `Loading` before the wait and `Ready` after, then call `load()`" }, test: ({ logs }) => { const i = logs.findIndex((l) => /^loading/i.test(l.trim())); const j = logs.findIndex((l) => /^ready/i.test(l.trim())); return i >= 0 && j > i; } },
   ],
   hints: [
     { ar: '`async function load() { console.log("Loading"); await wait(200); console.log("Ready"); }`', en: '`async function load() { console.log("Loading"); await wait(200); console.log("Ready"); }`' },

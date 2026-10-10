@@ -87,6 +87,7 @@ export const cssLessons: Lesson[] = [
         ar: "**المتغيرات** (custom properties) تحفظ قيمة لتستخدمها في كل مكان: `--main: #7c5cff;` ثم `color: var(--main);`. تغيّرها مرة واحدة فتتغير في كل الموقع.",
         en: "**Variables** (custom properties) store a value to reuse everywhere: `--main: #7c5cff;` then `color: var(--main);`. Change it once and the whole site follows.",
       },
+      { icon: "🌐", ar: "`:root` يعني الصفحة كلها، لذلك نعرّف المتغيرات داخله: `:root { --main: #7c5cff; }` فتصبح متاحة لكل العناصر.", en: "`:root` means the whole page, so we define variables there: `:root { --main: #7c5cff; }` and every element can use them." },
     ],
     example: {
       code: ":root {\n  --main: #7c5cff;\n}\n\nbody {\n  font-family: system-ui, sans-serif;\n  background-color: #f3f6f6;\n}\n\nh1 {\n  color: var(--main);\n  font-size: 2rem;\n}",
@@ -122,7 +123,7 @@ export const cssLessons: Lesson[] = [
       {
         id: "use",
         label: { ar: "لوّن `h1` بـ `var(--main)`", en: "Color `h1` with `var(--main)`" },
-        test: ({ rule }) => rule("h1", "color").includes("var(--main)"),
+        test: ({ rule }) => /var\(\s*--main\b/.test(rule("h1", "color")),
       },
       {
         id: "rem",

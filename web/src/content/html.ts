@@ -109,7 +109,7 @@ export const htmlLessons: Lesson[] = [
       {
         id: "lang",
         label: { ar: "أضف `<html>` مع خاصية `lang`", en: "Add `<html>` with a `lang` attribute" },
-        test: ({ source }) => /<html[^>]*\blang=["'][a-z-]+["']/i.test(source),
+        test: ({ source }) => /<html[^>]*\blang=["']?[a-z]{2}/i.test(source),
       },
       {
         id: "charset",

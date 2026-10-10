@@ -207,7 +207,7 @@ export const arrayMethods: Lesson = {
   tasks: [
     { id: "reduce", label: { ar: "احسب مجموع الأسعار بـ `reduce` واطبعه (65)", en: "Total the prices with `reduce` and print it (65)" }, test: ({ files, logs }) => /\.reduce\(/.test(files.js ?? "") && printed(logs, "65") },
     { id: "filter", label: { ar: "بـ `filter` اطبع عدد المنتجات الأرخص من 25 (2)", en: "With `filter`, print how many cost under 25 (2)" }, test: ({ files, logs }) => /\.filter\(/.test(files.js ?? "") && printed(logs, "2") },
-    { id: "spread", label: { ar: "انسخ السلة مع منتج جديد بـ `...` واطبع طولها (4)", en: "Copy the cart plus a new item with `...` and print its length (4)" }, test: ({ files, logs }) => /\[\s*\.\.\.cart/.test(files.js ?? "") && printed(logs, "4") },
+    { id: "spread", label: { ar: "انسخ السلة مع منتج جديد بـ `...` واطبع طولها (4)", en: "Copy the cart plus a new item with `...` and print its length (4)" }, test: ({ files, logs }) => /\.\.\.cart\b/.test(files.js ?? "") && printed(logs, "4") },
   ],
   hints: [
     { ar: "`cart.reduce((sum, item) => sum + item.price, 0)`", en: "`cart.reduce((sum, item) => sum + item.price, 0)`" },
@@ -235,6 +235,7 @@ export const classes: Lesson = {
       ar: "الحقول الخاصة تبدأ بـ `#`: `#balance` لا يمكن تغييرها من الخارج، فقط عبر الدوال. هكذا تحمي البيانات من الأخطاء.",
       en: "Private fields start with `#`: `#balance` can't be changed from outside, only through methods. That's how you protect data from mistakes.",
     },
+      { icon: "🔍", ar: "**الـ getter** دالة تُقرأ كأنها خاصية: `get balance() { return this.#balance; }` ثم `account.balance` بدون أقواس. مفيد لقيمة محسوبة أو خاصة.", en: "A **getter** is a method you read like a property: `get balance() { return this.#balance; }` then `account.balance` with no parentheses. Handy for a computed or private value." },
   ],
   example: {
     code: "class Counter {\n  #count = 0;\n\n  increment() {\n    this.#count++;\n  }\n\n  get value() {\n    return this.#count;\n  }\n}\n\nconst c = new Counter();\nc.increment();\nc.increment();\nconsole.log(c.value);",
@@ -255,7 +256,7 @@ export const classes: Lesson = {
   },
   harness: 'try { const a = new Account("Ali"); a.deposit(30); a.deposit(12); console.log("__acc__", a.owner, a.balance, "balance" in a && Object.keys(a).includes("balance") ? "public" : "private"); } catch (e) { console.log("__acc__", "missing"); }',
   tasks: [
-    { id: "class", label: { ar: "أنشئ `class Account` فيه `constructor(owner)`", en: "Create `class Account` with `constructor(owner)`" }, test: ({ logs }) => logs.some((l) => l.startsWith("__acc__ Ali")) },
+    { id: "class", label: { ar: "أنشئ `class Account` فيه `constructor(owner)` يحفظ `this.owner`", en: "Create `class Account` with a `constructor(owner)` that saves `this.owner`" }, test: ({ logs }) => logs.some((l) => l.startsWith("__acc__ Ali")) },
     { id: "deposit", label: { ar: "أضف دالة `deposit(amount)` و getter اسمه `balance`", en: "Add a `deposit(amount)` method and a `balance` getter" }, test: ({ logs }) => logs.some((l) => /^__acc__ Ali 42 /.test(l)) },
     { id: "private", label: { ar: "اجعل الرصيد حقلًا خاصًا `#balance`", en: "Keep the balance in a private `#balance` field" }, test: ({ files, logs }) => /#balance/.test(files.js ?? "") && printed(logs, "__acc__ Ali 42 private") },
   ],

@@ -26,24 +26,24 @@ export const strings: Lesson = {
     { icon: "🔁", ar: "`replaceAll(\"a\", \"b\")` يستبدل كل ظهور. وكل هذه الدوال **تُرجع نصًا جديدًا** ولا تغيّر الأصلي: النصوص في JavaScript لا تتغير.", en: "`replaceAll(\"a\", \"b\")` replaces every match. All these methods **return a new string** and leave the original alone: strings in JavaScript never change." },
   ],
   example: {
-    code: 'const raw = "   hELLo   WoRLD  ";\nconst clean = raw.trim().toLowerCase();\nconsole.log(clean);                       // "hello   world"\nconst words = clean.split(" ").filter((w) => w);\nconsole.log(words);                       // ["hello", "world"]\nconsole.log(words.join("-"));            // "hello-world"\nconsole.log("code".slice(0, 1).toUpperCase() + "code".slice(1)); // "Code"',
+    code: 'const raw = "   hELLo   WoRLD  ";\nconst clean = raw.trim().toLowerCase();\nconsole.log(clean);                       // "hello   world"\nconst words = clean.split(" ").filter((w) => w);\nconsole.log(words);                       // ["hello", "world"]\nconsole.log(words.join("-"));            // "hello-world"\nconst word = "code";\nconsole.log(`${word.slice(0, 1).toUpperCase()}${word.slice(1)}`); // "Code"',
     note: { ar: "تنظيف نص فوضوي خطوة بخطوة.", en: "Tidying messy text step by step." },
     lang: "js",
   },
   files: ["js"],
   starter: { js: "// 1) formatName(raw)  →  \"  sARA   aLI \" becomes \"Sara Ali\"\n\n// 2) slugify(title)   →  \"Learn JS Fast\" becomes \"learn-js-fast\"\n\n// 3) initials(name)   →  \"Sara Ali\" becomes \"S.A.\"\n" },
   solution: {
-    js: 'function formatName(raw) {\n  return raw\n    .trim()\n    .split(" ")\n    .filter((word) => word)\n    .map((word) => word.slice(0, 1).toUpperCase() + word.slice(1).toLowerCase())\n    .join(" ");\n}\n\nfunction slugify(title) {\n  return title.trim().toLowerCase().split(" ").filter((w) => w).join("-");\n}\n\nfunction initials(name) {\n  return name.split(" ").map((w) => w.slice(0, 1).toUpperCase() + ".").join("");\n}\n\nconsole.log(formatName("  sARA   aLI "));\n',
+    js: 'function formatName(raw) {\n  return raw\n    .trim()\n    .split(" ")\n    .filter((word) => word)\n    .map((word) => `${word.slice(0, 1).toUpperCase()}${word.slice(1).toLowerCase()}`)\n    .join(" ");\n}\n\nfunction slugify(title) {\n  return title.trim().toLowerCase().split(" ").filter((w) => w).join("-");\n}\n\nfunction initials(name) {\n  return name.split(" ").map((w) => `${w.slice(0, 1).toUpperCase()}.`).join("");\n}\n\nconsole.log(formatName("  sARA   aLI "));\n',
   },
   harness: 'try { console.log("__s__ name " + formatName("  sARA   aLI ")); console.log("__s__ name2 " + formatName("omar")); } catch (e) { console.log("__s__ name error"); } try { console.log("__s__ slug " + slugify("  Learn JS   Fast ")); } catch (e) { console.log("__s__ slug error"); } try { console.log("__s__ ini " + initials("Sara Ali")); } catch (e) { console.log("__s__ ini error"); }',
   tasks: [
-    { id: "name", label: { ar: "`formatName` ينظّف المسافات ويجعل أول حرف كبيرًا والباقي صغيرًا", en: "`formatName` trims spaces and capitalizes only the first letter of each word" }, test: ({ logs }) => exact(logs, "__s__ name Sara Ali") && exact(logs, "__s__ name2 Omar") },
-    { id: "slug", label: { ar: "`slugify` يحوّل العنوان إلى `learn-js-fast`", en: "`slugify` turns the title into `learn-js-fast`" }, test: ({ logs }) => exact(logs, "__s__ slug learn-js-fast") },
+    { id: "name", label: { ar: "`formatName` يحذف كل المسافات الزائدة (حتى بين الكلمات) ويجعل أول حرف من كل كلمة كبيرًا والباقي صغيرًا", en: "`formatName` removes every extra space (even between words) and capitalizes only the first letter of each word" }, test: ({ logs }) => exact(logs, "__s__ name Sara Ali") && exact(logs, "__s__ name2 Omar") },
+    { id: "slug", label: { ar: "`slugify` يحوّل العنوان إلى `learn-js-fast` حتى مع مسافات زائدة في أي مكان", en: "`slugify` turns the title into `learn-js-fast`, even with extra spaces anywhere" }, test: ({ logs }) => exact(logs, "__s__ slug learn-js-fast") },
     { id: "ini", label: { ar: "`initials` يُرجع `S.A.`", en: "`initials` returns `S.A.`" }, test: ({ logs }) => exact(logs, "__s__ ini S.A.") },
   ],
   hints: [
     { ar: '`raw.trim().split(" ").filter((w) => w)` يعطيك الكلمات بدون الفراغات الزائدة.', en: '`raw.trim().split(" ").filter((w) => w)` gives you the words without the extra blanks.' },
-    { ar: "لكل كلمة: `word.slice(0, 1).toUpperCase() + word.slice(1).toLowerCase()` ثم `join(\" \")`.", en: "For each word: `word.slice(0, 1).toUpperCase() + word.slice(1).toLowerCase()`, then `join(\" \")`." },
+    { ar: "لكل كلمة استخدم `map` وقالبًا نصيًا: الحرف الأول `word.slice(0, 1).toUpperCase()` ثم الباقي `word.slice(1).toLowerCase()`، ثم `join(\" \")`.", en: "For each word use `map` and a template literal: the first letter `word.slice(0, 1).toUpperCase()`, then the rest `word.slice(1).toLowerCase()`, then `join(\" \")`." },
   ],
   deep: {
     more: [
@@ -70,6 +70,7 @@ export const webStorage: Lesson = {
     { icon: "🔑", ar: "مفاتيح وقيم نصية: `localStorage.setItem(\"theme\", \"dark\")` للحفظ، و `localStorage.getItem(\"theme\")` للقراءة (تُرجع `null` إن لم يوجد)، و `removeItem` للحذف.", en: "Text keys and values: `localStorage.setItem(\"theme\", \"dark\")` to save, `localStorage.getItem(\"theme\")` to read (it returns `null` if missing), and `removeItem` to delete." },
     { icon: "🔢", ar: "القيم دائمًا نصوص. للأرقام: `Number(localStorage.getItem(\"visits\") ?? 0)`. وللكائنات: احفظ `JSON.stringify(obj)` واقرأ بـ `JSON.parse(text)`.", en: "Values are always text. For numbers: `Number(localStorage.getItem(\"visits\") ?? 0)`. For objects: save `JSON.stringify(obj)` and read with `JSON.parse(text)`." },
     { icon: "🧪", ar: "هنا في المحرر يبدأ التخزين فارغًا مع كل تشغيل، أما في موقعك الحقيقي فيبقى حتى بعد إغلاق المتصفح.", en: "In this editor storage starts empty on every run; on your real site it stays even after the browser closes." },
+      { icon: "❔", ar: "المعامل `??` يعني «إن لم توجد قيمة فخذ هذه»: `localStorage.getItem(\"visits\") ?? 0` يعطي `0` إذا كانت النتيجة `null`.", en: "The `??` operator means \"if there's no value, use this\": `localStorage.getItem(\"visits\") ?? 0` gives `0` when the result is `null`." },
   ],
   example: {
     code: 'const saved = JSON.parse(localStorage.getItem("profile") ?? "null");\nconsole.log("Before:", saved);\n\nlocalStorage.setItem("profile", JSON.stringify({ name: "Sara", level: 3 }));\nconst profile = JSON.parse(localStorage.getItem("profile"));\nconsole.log("After:", profile.name, profile.level);',
@@ -87,7 +88,7 @@ export const webStorage: Lesson = {
     { id: "count", label: { ar: "اقرأ `visits` وزِده واحدًا واحفظه بـ `setItem`", en: "Read `visits`, add one and save it with `setItem`" }, test: ({ logs }) => c(logs, "visits", 1) },
     { id: "show", label: { ar: "اعرضه في `#visits` بالشكل `Visits: 1`", en: "Show it in `#visits` as `Visits: 1`" }, test: ({ logs }) => c(logs, "shown", "Visits: 1") },
     { id: "theme", label: { ar: "زر `#theme` يبدّل `dark` على `<body>` ويحفظ `dark` أو `light`", en: "`#theme` toggles `dark` on `<body>` and saves `dark` or `light`" }, test: ({ logs }) => c(logs, "theme", "dark true") && c(logs, "theme2", "light") },
-    { id: "load", label: { ar: "عند البداية اقرأ الثيم المحفوظ وطبّقه", en: "On start, read the saved theme and apply it" }, test: ({ files }) => /getItem\(\s*["']theme["']\s*\)/.test(files.js ?? "") },
+    { id: "load", label: { ar: "عند البداية اقرأ الثيم المحفوظ وطبّقه", en: "On start, read the saved theme and apply it" }, test: ({ files }) => /getItem\(\s*(["'`]theme["'`]|\w+)\s*\)/.test(files.js ?? "") && /theme/.test(files.js ?? "") },
   ],
   hints: [
     { ar: '`const visits = Number(localStorage.getItem("visits") ?? 0) + 1; localStorage.setItem("visits", String(visits));`', en: '`const visits = Number(localStorage.getItem("visits") ?? 0) + 1; localStorage.setItem("visits", String(visits));`' },
@@ -178,7 +179,7 @@ export const dataLoading: Lesson = {
     { id: "loading", label: { ar: "اعرض `Loading…` أثناء الانتظار", en: "Show `Loading…` while waiting" }, test: ({ logs, files }) => c(logs, "loading", true) || /if\s*\(\s*loading\s*\)/.test(files.js ?? "") },
     { id: "fetch", label: { ar: "اجلب `PEOPLE_URL` داخل `useEffect`", en: "Fetch `PEOPLE_URL` inside `useEffect`" }, test: ({ files }) => /useEffect\([\s\S]*fetch\(\s*PEOPLE_URL\s*\)/.test(files.js ?? "") },
     { id: "list", label: { ar: "اعرض الأسماء في `<li>` لكل شخص", en: "Show the names in an `<li>` per person" }, test: ({ logs }) => c(logs, "list", true) },
-    { id: "error", label: { ar: "حالة خطأ بـ `try/catch` وأوقف التحميل في النهاية", en: "An error state with `try/catch`, and stop loading at the end" }, test: ({ logs, files }) => /try\s*\{[\s\S]*catch/.test(files.js ?? "") && /setError\(/.test(files.js ?? "") && c(logs, "done", true) },
+    { id: "error", label: { ar: "حالة خطأ بـ `try/catch` (مثل `setError`) وأوقف التحميل في النهاية", en: "An error state set in `try/catch` (e.g. `setError`), and stop loading at the end" }, test: ({ logs, files }) => /try\s*\{[\s\S]*catch/.test(files.js ?? "") && /catch\s*(\([^)]*\))?\s*\{[\s\S]*?set\w+\(/.test(files.js ?? "") && c(logs, "done", true) },
   ],
   hints: [
     { ar: '`const [loading, setLoading] = useState(true);` و `if (loading) return <p>Loading…</p>;`', en: '`const [loading, setLoading] = useState(true);` and `if (loading) return <p>Loading…</p>;`' },
@@ -215,7 +216,7 @@ export const routing: Lesson = {
   files: ["js"],
   starter: { js: "function Home() {\n  return <h1>Home</h1>;\n}\n\nfunction About() {\n  return <h1>About</h1>;\n}\n\nfunction Contact() {\n  return <h1>Contact</h1>;\n}\n\nexport default function App() {\n  \n}\n" },
   solution: {
-    js: 'function Home() {\n  return <h1>Home</h1>;\n}\n\nfunction About() {\n  return <h1>About</h1>;\n}\n\nfunction Contact() {\n  return <h1>Contact</h1>;\n}\n\nconst pages = { home: Home, about: About, contact: Contact };\n\nexport default function App() {\n  const [page, setPage] = useState("home");\n  const Page = pages[page];\n  return (\n    <div>\n      <nav>\n        {Object.keys(pages).map((name) => (\n          <button key={name} className={name === page ? "active" : ""} onClick={() => setPage(name)}>\n            {name[0].toUpperCase() + name.slice(1)}\n          </button>\n        ))}\n      </nav>\n      <Page />\n    </div>\n  );\n}\n',
+    js: 'function Home() {\n  return <h1>Home</h1>;\n}\n\nfunction About() {\n  return <h1>About</h1>;\n}\n\nfunction Contact() {\n  return <h1>Contact</h1>;\n}\n\nexport default function App() {\n  const [page, setPage] = useState("home");\n  return (\n    <div>\n      <nav>\n        <button className={page === "home" ? "active" : ""} onClick={() => setPage("home")}>Home</button>\n        <button className={page === "about" ? "active" : ""} onClick={() => setPage("about")}>About</button>\n        <button className={page === "contact" ? "active" : ""} onClick={() => setPage("contact")}>Contact</button>\n      </nav>\n      {page === "home" && <Home />}\n      {page === "about" && <About />}\n      {page === "contact" && <Contact />}\n    </div>\n  );\n}\n',
   },
   settle: 900,
   harness: steps(`var h1 = function () { var h = root.querySelector("h1"); return h ? h.textContent.trim() : ""; };
@@ -225,7 +226,7 @@ export const routing: Lesson = {
     var c2 = btn("contact"); if (c2) c2.click(); await wait();
     console.log("__c__ contact " + (h1() === "Contact" && !btn("about").classList.contains("active")));`),
   tasks: [
-    { id: "state", label: { ar: "حالة `page` تبدأ بـ `\"home\"`", en: "A `page` state starting at `\"home\"`" }, test: ({ files }) => /useState\(\s*["']home["']\s*\)/.test(files.js ?? "") },
+    { id: "state", label: { ar: "حالة `page` تبدأ بـ `\"home\"`", en: "A `page` state starting at `\"home\"`" }, test: ({ files }) => /useState\(\s*["'`]home["'`]\s*\)/.test(files.js ?? "") },
     { id: "nav", label: { ar: "`<nav>` فيه أزرار `Home` و `About` و `Contact`، وتبدأ بصفحة Home", en: "A `<nav>` with `Home`, `About` and `Contact` buttons, starting on Home" }, test: ({ logs }) => c(logs, "start", true) },
     { id: "about", label: { ar: "زر About يعرض صفحة About ويأخذ الصنف `active`", en: "About shows the About page and gets the `active` class" }, test: ({ logs }) => c(logs, "about", true) },
     { id: "contact", label: { ar: "زر Contact يعرض صفحة Contact، و `active` ينتقل معه", en: "Contact shows the Contact page, and `active` moves with it" }, test: ({ logs }) => c(logs, "contact", true) },

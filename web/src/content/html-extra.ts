@@ -154,7 +154,7 @@ export const forms: Lesson = {
       id: "labels",
       label: { ar: "اربط كل حقل بـ `<label for>` يساوي `id` الحقل", en: "Link every field to a `<label for>` matching its `id`" },
       test: ({ doc }) => {
-        const inputs = Array.from(doc.querySelectorAll("form input"));
+        const inputs = Array.from(doc.querySelectorAll("form input:not([type=submit]):not([type=button]):not([type=hidden]):not([type=reset])"));
         return inputs.length > 0 && inputs.every((i) => i.id && doc.querySelector(`label[for="${i.id}"]`));
       },
     },

@@ -73,6 +73,7 @@ export const jsLessons: Lesson[] = [
         ar: "**القوالب النصية** (template literals) بعلامة `` ` `` تدمج المتغيرات داخل النص: `` `Hi ${name}` ``.",
         en: "**Template literals** with backticks `` ` `` drop variables into text: `` `Hi ${name}` ``.",
       },
+      { icon: "➕", ar: "اختصارات للتغيير: `score += 5` تعني `score = score + 5`، و `count++` تزيد واحدًا. ولجمع النصوص يمكن استخدام `+`: `\"Hi \" + name`، لكن القوالب النصية أوضح.", en: "Shortcuts for updating: `score += 5` means `score = score + 5`, and `count++` adds one. You can join text with `+`: `\"Hi \" + name`, but template literals read better." },
     ],
     example: {
       code: 'const name = "Hamid";\nlet score = 0;\nscore = score + 10;\nconsole.log(`${name} has ${score} points`);',
@@ -93,7 +94,7 @@ export const jsLessons: Lesson[] = [
     solution: { js: 'const name = "Hamid";\nlet age = 20;\nage = age + 1;\nconsole.log(`${name} is ${age}`);\n', html: "<h1>Variables</h1>\n" },
     tasks: [
       { id: "const", label: { ar: "عرّف `name` بـ `const`", en: "Declare `name` with `const`" }, test: ({ files }) => /const\s+name\s*=/.test(files.js ?? "") },
-      { id: "let", label: { ar: "عرّف `age` بـ `let` ثم زد قيمتها", en: "Declare `age` with `let`, then increase it" }, test: ({ files }) => /let\s+age\s*=/.test(files.js ?? "") && /age\s*(\+\+|\+=|=\s*age\s*\+)/.test(files.js ?? "") },
+      { id: "let", label: { ar: "عرّف `age` بـ `let` ثم زد قيمتها", en: "Declare `age` with `let`, then increase it" }, test: ({ files }) => /let\s+age\s*=/.test(files.js ?? "") && /\bage\s*(\+\+|\+=|=\s*[^;\n]*\bage\b)/.test(files.js ?? "") },
       { id: "novar", label: { ar: "لا تستخدم `var`", en: "Don't use `var`" }, test: ({ files }) => !/\bvar\s/.test(files.js ?? "") },
       { id: "template", label: { ar: "اطبع جملة بقالب نصي `` `${...}` ``", en: "Print a sentence with a template literal `` `${...}` ``" }, test: ({ files, logs }) => /`[^`]*\$\{[^}]+\}[^`]*`/.test(files.js ?? "") && logs.length > 0 },
     ],
@@ -177,6 +178,7 @@ export const jsLessons: Lesson[] = [
         ar: "`map()` تصنع مصفوفة جديدة بتحويل كل عنصر: `[1, 2, 3].map(n => n * 2)` تعطي `[2, 4, 6]`. و `filter()` تختار العناصر التي تحقق شرطًا.",
         en: "`map()` builds a new array by transforming each item: `[1, 2, 3].map(n => n * 2)` gives `[2, 4, 6]`. `filter()` keeps the items that pass a test.",
       },
+      { icon: "🔢", ar: "وإذا احتجت **رقم** كل عنصر أيضًا: `prices.forEach((price, index) => { … })`. الدالة تستقبل العنصر ثم موقعه (يبدأ من 0).", en: "When you also need each item's **position**: `prices.forEach((price, index) => { … })`. The function receives the item, then its index (starting at 0)." },
     ],
     example: {
       code: "const nums = [1, 2, 3, 4];\n\nfor (const n of nums) {\n  console.log(n);\n}\n\nconsole.log(nums.map((n) => n * 10));\nconsole.log(nums.filter((n) => n > 2));",
@@ -199,7 +201,7 @@ export const jsLessons: Lesson[] = [
       html: "<h1>Arrays</h1>\n",
     },
     tasks: [
-      { id: "forof", label: { ar: "اطبع كل سعر بحلقة `for...of`", en: "Print each price with a `for...of` loop" }, test: ({ files, logs }) => /for\s*\(\s*const\s+\w+\s+of\s+prices\s*\)/.test(files.js ?? "") && printed(logs, "10") && printed(logs, "40") },
+      { id: "forof", label: { ar: "اطبع كل سعر بحلقة `for...of`", en: "Print each price with a `for...of` loop" }, test: ({ files, logs }) => /for\s*\(\s*(const|let)\s+\w+\s+of\s+prices\s*\)/.test(files.js ?? "") && printed(logs, "10") && printed(logs, "40") },
       { id: "map", label: { ar: "ضاعف الأسعار بـ `map` واطبعها هكذا: `20,50,80`", en: "Double the prices with `map` and print `20,50,80`" }, test: ({ files, logs }) => /\.map\(/.test(files.js ?? "") && logs.some((l) => l.replace(/[\s[\]]/g, "") === "20,50,80") },
     ],
     hints: [
@@ -227,6 +229,9 @@ export const jsLessons: Lesson[] = [
         ar: "**الأحداث** (events) هي ما يفعله المستخدم: ضغطة، كتابة، تمرير. `button.addEventListener(\"click\", () => { ... })` ينفّذ كودًا عند كل ضغطة.",
         en: "**Events** are what the user does: a click, typing, scrolling. `button.addEventListener(\"click\", () => { ... })` runs code on every click.",
       },
+      { icon: "🏷️", ar: "لتجد JavaScript عنصرًا نعطيه اسمًا بالخاصية `id`: `<button id=\"btn\">`. والرمز `#btn` يعني «العنصر الذي اسمه btn». و `<p>` فقرة نص، و `<button>` زر.", en: "So JavaScript can find an element, we name it with an `id`: `<button id=\"btn\">`. `#btn` means \"the element named btn\". `<p>` is a paragraph of text, and `<button>` is a button." },
+      { icon: "🎛️", ar: "للأصناف (classes): `classList.add(\"dark\")` تضيف، و `remove` تحذف، و `toggle` تبدّل (تضيف إن لم توجد وتحذف إن وُجدت)، و `contains` تسأل: هل هي موجودة؟ و `document.body` هو جسم الصفحة كله.", en: "For classes: `classList.add(\"dark\")` adds, `remove` removes, `toggle` switches (adds if missing, removes if present), and `contains` asks whether it's there. `document.body` is the whole page body." },
+      { icon: "🧱", ar: "لإنشاء عناصر جديدة: `const li = document.createElement(\"li\"); li.textContent = \"Hi\"; list.append(li);`. ولإفراغ عنصر من محتواه: `list.textContent = \"\";`.", en: "To create new elements: `const li = document.createElement(\"li\"); li.textContent = \"Hi\"; list.append(li);`. To empty an element: `list.textContent = \"\";`." },
     ],
     example: {
       code: 'const btn = document.querySelector("#btn");\nlet count = 0;\n\nbtn.addEventListener("click", () => {\n  count++;\n  btn.textContent = `Clicked ${count}`;\n});',

@@ -91,8 +91,8 @@ export const reactMore: Lesson[] = [
       var r = btn("reset"); if (r) r.click(); await wait();
       console.log("__c__ reset " + /count:\\s*0/i.test(txt()));`),
     tasks: [
-      { id: "display", label: { ar: "`Display` يعرض `Count: {value}` من props", en: "`Display` shows `Count: {value}` from props" }, test: ({ logs, files }) => c(logs, "start", true) && /function\s+Display\s*\(\s*\{\s*value\s*\}/.test(files.js ?? "") },
-      { id: "controls", label: { ar: "`Controls` فيه زرّا `Add` و `Reset` يستدعيان `onAdd` و `onReset`", en: "`Controls` has `Add` and `Reset` buttons calling `onAdd` and `onReset`" }, test: ({ files }) => /onClick=\{\s*onAdd\s*\}|onClick=\{\s*\(\)\s*=>\s*onAdd\(\)\s*\}/.test(files.js ?? "") && /onClick=\{\s*onReset\s*\}|onClick=\{\s*\(\)\s*=>\s*onReset\(\)\s*\}/.test(files.js ?? "") },
+      { id: "display", label: { ar: "`Display` يعرض `Count: {value}` من props", en: "`Display` shows `Count: {value}` from props" }, test: ({ logs, files }) => c(logs, "start", true) && /(function\s+Display\b|(const|let)\s+Display\s*=)/.test(files.js ?? "") },
+      { id: "controls", label: { ar: "`Controls` فيه زرّا `Add` و `Reset` يستدعيان `onAdd` و `onReset`", en: "`Controls` has `Add` and `Reset` buttons calling `onAdd` and `onReset`" }, test: ({ files }) => { const js = files.js ?? ""; const calls = (name: string) => new RegExp(`onClick=\\{\\s*((\\w+\\.)?${name}\\b|\\(\\)\\s*=>\\s*\\{?\\s*(\\w+\\.)?${name}\\()`).test(js); return calls("onAdd") && calls("onReset"); } },
       { id: "state", label: { ar: "الحالة في `App` فقط، و `Add` يزيد العدد", en: "The state lives only in `App`, and `Add` increases the count" }, test: ({ logs, files }) => c(logs, "added", true) && (files.js?.match(/useState\(/g) ?? []).length === 1 },
       { id: "reset", label: { ar: "`Reset` يعيده إلى 0", en: "`Reset` sets it back to 0" }, test: ({ logs }) => c(logs, "reset", true) },
     ],
@@ -241,7 +241,7 @@ export const mobileMore: Lesson[] = [
       var b = press("back"); if (b) b.click(); await wait();
       console.log("__c__ back " + !!press("open profile"));`),
     tasks: [
-      { id: "state", label: { ar: "حالة `screen` تبدأ بـ `\"home\"`", en: "A `screen` state starting at `\"home\"`" }, test: ({ files }) => /useState\(\s*["']home["']\s*\)/.test(files.js ?? "") },
+      { id: "state", label: { ar: "حالة `screen` تبدأ بـ `\"home\"`", en: "A `screen` state starting at `\"home\"`" }, test: ({ files }) => /useState\(\s*["'`]home["'`]\s*\)/.test(files.js ?? "") },
       { id: "home", label: { ar: "شاشة Home فيها `Pressable` بنص `Open profile`", en: "A Home screen with a `Pressable` labelled `Open profile`" }, test: ({ logs }) => c(logs, "home", true) },
       { id: "profile", label: { ar: "الضغط يفتح شاشة Profile فيها زر `Back`", en: "Tapping opens a Profile screen with a `Back` button" }, test: ({ logs }) => c(logs, "profile", true) },
       { id: "back", label: { ar: "`Back` يعيد إلى Home", en: "`Back` returns to Home" }, test: ({ logs }) => c(logs, "back", true) },
@@ -293,7 +293,7 @@ export const mobileMore: Lesson[] = [
       console.log("__c__ stored " + stored);
       console.log("__c__ saved " + /saved!/i.test(txt()));`),
     tasks: [
-      { id: "load", label: { ar: "اقرأ `name` بـ `AsyncStorage.getItem` داخل `useEffect`", en: "Read `name` with `AsyncStorage.getItem` inside `useEffect`" }, test: ({ files }) => /useEffect\([\s\S]*AsyncStorage\.getItem\(\s*["']name["']/.test(files.js ?? "") },
+      { id: "load", label: { ar: "اقرأ `name` بـ `AsyncStorage.getItem` داخل `useEffect`", en: "Read `name` with `AsyncStorage.getItem` inside `useEffect`" }, test: ({ files }) => /useEffect\([\s\S]*AsyncStorage\.getItem\(\s*["'`]name["'`]/.test(files.js ?? "") },
       { id: "input", label: { ar: "`TextInput` مربوط بحالة `name`", en: "A `TextInput` bound to a `name` state" }, test: ({ files }) => /<TextInput[\s\S]*value=\{\s*name\s*\}[\s\S]*onChangeText=/.test(files.js ?? "") || /<TextInput[\s\S]*onChangeText=[\s\S]*value=\{\s*name\s*\}/.test(files.js ?? "") },
       { id: "save", label: { ar: "زر `Save` يحفظ بـ `await AsyncStorage.setItem(\"name\", name)`", en: "A `Save` button stores it with `await AsyncStorage.setItem(\"name\", name)`" }, test: ({ logs }) => c(logs, "stored", "Omar") },
       { id: "status", label: { ar: "بعد الحفظ يظهر `Saved!`", en: "After saving, `Saved!` shows" }, test: ({ logs }) => c(logs, "saved", true) },
