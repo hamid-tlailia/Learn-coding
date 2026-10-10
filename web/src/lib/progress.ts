@@ -50,6 +50,11 @@ function award(p: Progress, xp: number): Progress {
   return { ...p, xp: p.xp + xp, daily: { ...p.daily, [today]: (p.daily[today] ?? 0) + xp }, streak: bumpStreak(p.streak) };
 }
 
+/** Reads the stored progress directly, for effects that run before a component has re-rendered with it. */
+export function isCompleted(key: string) {
+  return store.get().completed.includes(key);
+}
+
 /** Returns true when this call completed the lesson for the first time. */
 export function completeLesson(key: string, xp: number): boolean {
   const p = store.get();

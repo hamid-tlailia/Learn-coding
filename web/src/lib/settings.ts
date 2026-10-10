@@ -49,7 +49,7 @@ export const defaultSettings: Settings = {
   studyTime: "evening",
   track: "web",
   reminder: true,
-  theme: "dark",
+  theme: "system",
   accent: "neon",
   backdrop: "cosmic",
   sound: true,

@@ -10,7 +10,7 @@ import type { FileKind, Files, Lesson } from "@/content/types";
 import { dirOf, t, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
 import { celebrate, play } from "@/lib/feedback";
-import { completeLesson, isLessonOpen, levelOf, useProgress } from "@/lib/progress";
+import { completeLesson, isCompleted, isLessonOpen, levelOf, useProgress } from "@/lib/progress";
 import { buildPreview, collectLogs, isInternalLog, runChecks } from "@/lib/runner";
 import { RuntimePreview } from "./RuntimePreview";
 import type { Runtime } from "@/content/types";
@@ -24,6 +24,14 @@ import { Workspace } from "./Workspace";
 function positionKey(key: string) {
   return `cm-position-v1:${key}`;
 }
+
+/** Example, hint and task code is for reading: learners type it themselves, so selecting and copying it is blocked. */
+const noCopy = {
+  onCopy: (e: React.ClipboardEvent) => e.preventDefault(),
+  onCut: (e: React.ClipboardEvent) => e.preventDefault(),
+  onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
+  style: { userSelect: "none", WebkitUserSelect: "none", WebkitTouchCallout: "none" } as React.CSSProperties,
+};
 
 function draftKey(key: string) {
   return `satr-draft-v1:${key}`;
@@ -138,16 +146,24 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
     }
   }, [key, step, phase]);
 
+  // A draft is only kept while the lesson is unfinished, so a finished (or solved) lesson
+  // never reopens with its answer already in the editor.
+  const finished = progress.completed.includes(key);
   useEffect(() => {
     try {
-      const saved = window.localStorage.getItem(draftKey(key));
-      if (saved) setFiles(JSON.parse(saved));
+      if (isCompleted(key)) window.localStorage.removeItem(draftKey(key));
+      else {
+        const saved = window.localStorage.getItem(draftKey(key));
+        if (saved) setFiles(JSON.parse(saved));
+      }
     } catch {
       // No saved draft: keep the starter code.
     }
+    // Only on opening the lesson: finishing it mid-session must not reset the editor.
   }, [key]);
 
   useEffect(() => {
+    if (finished || isCompleted(key)) return;
     const id = window.setTimeout(() => {
       try {
         window.localStorage.setItem(draftKey(key), JSON.stringify(files));
@@ -156,7 +172,7 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
       }
     }, 500);
     return () => window.clearTimeout(id);
-  }, [files, key]);
+  }, [files, key, finished]);
 
   if (!mounted) return <div className="min-h-dvh bg-paper" />;
 
@@ -180,6 +196,11 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
   function win() {
     const before = levelOf(progress.xp).level;
     const first = completeLesson(key, lesson.xp);
+    try {
+      window.localStorage.removeItem(draftKey(key));
+    } catch {
+      // Nothing to clear.
+    }
     const xp = first ? lesson.xp : 0;
     const levelUp = first && levelOf(progress.xp + xp).level > before;
     play(levelUp ? "levelUp" : "complete");
@@ -367,7 +388,7 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
           sideBadge={results ? `${passedCount}/${lesson.tasks.length}` : undefined}
           forcePane={forcePane}
           side={
-            <div dir={tdir} lang={tl} className="flex flex-col gap-4">
+            <div dir={tdir} lang={tl} className="flex flex-col gap-4" {...noCopy}>
               <div className="flex items-center justify-between gap-2">
                 <h2 className="font-bold">{d.task}</h2>
                 {langSwitch}
@@ -519,7 +540,7 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
             {s.kind === "example" && lesson.example && (
               <>
                 <h2 className="text-2xl font-bold">{d.example}</h2>
-                <pre className="overflow-x-auto rounded-2xl bg-code-bg p-4 font-mono text-sm text-code-fg">{lesson.example.code}</pre>
+                <pre {...noCopy} className="overflow-x-auto rounded-2xl bg-code-bg p-4 font-mono text-sm text-code-fg">{lesson.example.code}</pre>
                 {lesson.example.lang === "none" ? null : lesson.runtime === "react" || lesson.runtime === "native" ? (
                   <RuntimePreview
                     title={d.result}
@@ -558,7 +579,7 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
                   <RichText text={t(lesson.tip.text, tl)} />
                 </p>
                 {lesson.tip.code && (
-                  <code className="self-start rounded-xl bg-saffron-soft px-3 py-2 font-mono text-base font-semibold">{lesson.tip.code}</code>
+                  <code {...noCopy} className="self-start rounded-xl bg-saffron-soft px-3 py-2 font-mono text-base font-semibold">{lesson.tip.code}</code>
                 )}
               </div>
             )}
@@ -571,11 +592,11 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
                 </div>
                 <div className="flex flex-col gap-1">
                   <span className="text-sm font-bold text-coral">✗ {d.oldWay}</span>
-                  <pre className="overflow-x-auto rounded-2xl border border-coral/40 bg-coral/10 p-3 font-mono text-sm line-through decoration-coral/50">{lesson.modern.old}</pre>
+                  <pre {...noCopy} className="overflow-x-auto rounded-2xl border border-coral/40 bg-coral/10 p-3 font-mono text-sm line-through decoration-coral/50">{lesson.modern.old}</pre>
                 </div>
                 <div className="flex flex-col gap-1">
                   <span className="text-sm font-bold text-ok">✓ {d.newWay}</span>
-                  <pre className="overflow-x-auto rounded-2xl border border-ok/40 bg-ok/10 p-3 font-mono text-sm">{lesson.modern.now}</pre>
+                  <pre {...noCopy} className="overflow-x-auto rounded-2xl border border-ok/40 bg-ok/10 p-3 font-mono text-sm">{lesson.modern.now}</pre>
                 </div>
                 <p className="text-lg">
                   <RichText text={t(lesson.modern.text, tl)} />
