@@ -23,8 +23,11 @@ export type Progress = {
   projects: Record<string, number>;
 };
 
-/** `score` and `grade` are frozen when the certificate is issued. */
-export type Cert = { id: string; name: string; date: string; photo: string; score?: number; grade?: Grade };
+/**
+ * `score` and `grade` are frozen when the certificate is issued. `registered` means the public
+ * registry knows this ID, so its QR code can be verified online.
+ */
+export type Cert = { id: string; name: string; date: string; photo: string; score?: number; grade?: Grade; registered?: boolean };
 
 const store = createStore<Progress>("satr-progress-v1", {
   completed: [],
@@ -119,11 +122,17 @@ function certId(name: string, stage: string, date: string) {
   return `CM-${date.slice(0, 4)}-${code.slice(0, 4)}-${code.slice(4)}`;
 }
 
-export function issueCert(stage: string, name: string, photo: string): Cert {
-  const date = dayKey();
-  const cert = { id: certId(name, stage, date), name, date, photo, ...certGrade(stage, store.get()) };
+/** Issues a certificate; `remote` is the registry's record when it could be reached. */
+export function issueCert(stage: string, name: string, photo: string, remote?: { id: string; date: string } | null): Cert {
+  const date = remote?.date ?? dayKey();
+  const cert = { id: remote?.id ?? certId(name, stage, date), name, date, photo, ...certGrade(stage, store.get()), registered: !!remote };
   store.set((p) => ({ ...p, certs: { ...p.certs, [stage]: cert } }));
   return cert;
+}
+
+/** A certificate issued offline gets its registry ID once the registry is reached. */
+export function markRegistered(stage: string, id: string, date: string) {
+  store.set((p) => (p.certs[stage] ? { ...p, certs: { ...p.certs, [stage]: { ...p.certs[stage], id, date, registered: true } } } : p));
 }
 
 export function resetProgress() {

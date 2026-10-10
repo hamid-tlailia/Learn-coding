@@ -10,9 +10,9 @@ import { getStage, orderedStages } from "@/content/curriculum";
 import { t, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
 import { celebrate, play } from "@/lib/feedback";
-import { certEarned, certGrade, dayKey, issueCert, useProgress, type Cert } from "@/lib/progress";
+import { lookupCert, registerCert, verifyUrl } from "@/lib/certApi";
+import { certEarned, certGrade, dayKey, issueCert, markRegistered, useProgress, type Cert } from "@/lib/progress";
 import { updateSettings, useSettings } from "@/lib/settings";
-import { SITE_URL } from "@/lib/site";
 import { Certificate } from "./Certificate";
 import type { Tech } from "./TechIcon";
 import { Card, PageHeader, Press, Toggle, useMounted } from "./ui";
@@ -47,9 +47,34 @@ export function CertificateView({ locale, stageSlug }: { locale: Locale; stageSl
   const [name, setName] = useState("");
   const [withPhoto, setWithPhoto] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [issuing, setIssuing] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const node = useRef<HTMLDivElement>(null);
+  const issued = progress.certs[stageSlug];
 
   useEffect(() => setName(settings.fullName || settings.name), [settings.fullName, settings.name]);
+
+  // A certificate issued offline is recorded in the registry as soon as the app is online again.
+  async function sync() {
+    const current = progress.certs[stageSlug];
+    if (!current || current.registered || syncing) return;
+    setSyncing(true);
+    // It may already be there (e.g. registered on a previous attempt whose answer was lost).
+    const found = await lookupCert(current.id);
+    if (found !== "missing" && found !== "error" && found.name === current.name) markRegistered(stageSlug, found.id, found.date);
+    else if (found !== "error") {
+      const grade = certGrade(stageSlug, progress);
+      const r = await registerCert({ name: current.name, stage: stageSlug, score: current.score ?? grade.score, grade: current.grade ?? grade.grade });
+      if (r) markRegistered(stageSlug, r.id, r.date);
+    }
+    setSyncing(false);
+  }
+
+  useEffect(() => {
+    if (mounted && issued && !issued.registered) sync();
+    // Once per visit; the retry button covers later attempts.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mounted, issued?.id]);
 
   if (!mounted) return <div className="min-h-dvh" />;
 
@@ -93,7 +118,7 @@ export function CertificateView({ locale, stageSlug }: { locale: Locale; stageSl
 
   async function share() {
     const text = `${c.heading}: ${t(stage.certificate!, locale)} · Code Master`;
-    const url = `${SITE_URL}/?cert=${cert?.id ?? ""}`;
+    const url = cert ? verifyUrl(cert.id) : "";
     try {
       if (Capacitor.isNativePlatform()) return await save();
       if (navigator.share) await navigator.share({ title: c.heading, text, url });
@@ -105,7 +130,7 @@ export function CertificateView({ locale, stageSlug }: { locale: Locale; stageSl
 
   const linkedin =
     cert &&
-    `https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=${encodeURIComponent(stage.certificate!.en)}&organizationName=Code%20Master&issueYear=${cert.date.slice(0, 4)}&issueMonth=${Number(cert.date.slice(5, 7))}&certUrl=${encodeURIComponent(`${SITE_URL}/?cert=${cert.id}`)}&certId=${cert.id}`;
+    `https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=${encodeURIComponent(stage.certificate!.en)}&organizationName=Code%20Master&issueYear=${cert.date.slice(0, 4)}&issueMonth=${Number(cert.date.slice(5, 7))}&certUrl=${encodeURIComponent(verifyUrl(cert.id))}&certId=${cert.id}`;
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-5 px-4 py-6 lg:py-10">
@@ -141,17 +166,41 @@ export function CertificateView({ locale, stageSlug }: { locale: Locale; stageSl
           )}
           <Press
             silent
-            disabled={name.trim().split(/\s+/).length < 2}
-            onClick={() => {
+            disabled={name.trim().split(/\s+/).length < 2 || issuing}
+            onClick={async () => {
+              setIssuing(true);
               updateSettings({ fullName: name.trim() });
-              issueCert(stage.slug, name.trim(), withPhoto ? settings.photo : "");
+              const grade = certGrade(stage.slug, progress);
+              const remote = await registerCert({ name: name.trim(), stage: stage.slug, score: grade.score, grade: grade.grade });
+              issueCert(stage.slug, name.trim(), withPhoto ? settings.photo : "", remote);
+              setIssuing(false);
               play("levelUp");
               celebrate(true);
             }}
             className="btn-grad h-14 rounded-2xl font-display text-lg font-bold disabled:opacity-40"
           >
-            🎓 {c.issue}
+            {issuing ? "…" : `🎓 ${c.issue}`}
           </Press>
+        </Card>
+      )}
+
+      {cert && (
+        <Card className="flex items-center justify-between gap-3">
+          {cert.registered ? (
+            <>
+              <span className="text-sm font-semibold text-ok">✓ {c.registered}</span>
+              <a href={verifyUrl(cert.id)} target="_blank" rel="noreferrer" className="flex-none text-sm font-semibold text-accent">
+                🔍 {c.openVerify}
+              </a>
+            </>
+          ) : (
+            <>
+              <span className="text-sm text-muted">⏳ {c.notRegistered}</span>
+              <Press onClick={sync} disabled={syncing} className="flex-none rounded-xl bg-surface-2 px-3 py-2 text-sm font-semibold">
+                {syncing ? "…" : c.retry}
+              </Press>
+            </>
+          )}
         </Card>
       )}
 

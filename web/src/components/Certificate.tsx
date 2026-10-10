@@ -5,6 +5,7 @@ import { forwardRef, useEffect, useState } from "react";
 import type { Stage } from "@/content/types";
 import { getDictionary } from "@/i18n/dictionary";
 import type { Cert } from "@/lib/progress";
+import { verifyUrl as urlFor } from "@/lib/certApi";
 import { SITE_URL } from "@/lib/site";
 import { TechIcon, type Tech } from "./TechIcon";
 
@@ -35,7 +36,7 @@ export const Certificate = forwardRef<HTMLDivElement, { stage: Stage; cert: Cert
   ref,
 ) {
   const [qr, setQr] = useState("");
-  const verifyUrl = `${SITE_URL}/?cert=${cert.id}`;
+  const verifyUrl = urlFor(cert.id);
 
   useEffect(() => {
     QRCode.toDataURL(verifyUrl, { margin: 1, width: 240, color: { dark: "#0a0f24", light: "#ffffff" } }).then(setQr, () => setQr(""));
