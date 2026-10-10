@@ -12,6 +12,7 @@ import { mobileExam, mobileLessons } from "./mobile";
 import { proExam, proLessons } from "./pro";
 import { backendProject, jsProject, mobileProject, proProject, reactProject } from "./projects";
 import { mobileMore, mobileMoreExam, reactMore, reactMoreExam } from "./more";
+import { authPractice, backendWebExam, browserApis, dataLoading, jsMoreExam, reactWebExam, routing, sqlPractice, strings, webStorage } from "./web-more";
 import { reactExam, reactLessons } from "./react";
 import { cssDeep } from "./deep/css";
 import { htmlDeep } from "./deep/html";
@@ -50,9 +51,10 @@ const mixExam = (stage: string, exam: Exam): Exam => ({ ...exam, questions: exam
 
 const html = order(htmlLessons, ["what-is-html", "page-skeleton", "first-page", textElements, "links-images", "lists", tables, forms, mediaA11y, "semantic-layout"]);
 const css = order(cssLessons, ["what-is-css", selectorsStates, "colors-fonts", "box-model", "flexbox", grid, position, "responsive", transitions, keyframes, modernCss]);
-const react = order(reactLessons, ["what-is-react", "jsx", "props", "state", "lists-keys", "forms-react", "effects", ...reactMore, "nextjs"]);
+const react = order(reactLessons, ["what-is-react", "jsx", "props", "state", "lists-keys", "forms-react", "effects", reactMore[0], dataLoading, ...reactMore.slice(1), routing, "nextjs"]);
 const mobile = order(mobileLessons, ["rn-intro", "rn-components", "rn-styles", "rn-touch", "rn-lists", "rn-input", ...mobileMore, "rn-publish"]);
-const js = order(jsLessons, ["what-is-js", "variables", conditions, "functions", "arrays-loops", arrayMethods, objects, classes, errors, "dom-events", asyncAwait, fetchJson, modules]);
+const js = order(jsLessons, ["what-is-js", "variables", conditions, "functions", strings, "arrays-loops", arrayMethods, objects, classes, errors, "dom-events", asyncAwait, fetchJson, webStorage, browserApis, modules]);
+const backend = order(backendLessons, ["http-apis", "express-basics", "rest-routes", "post-validation", "databases", sqlPractice, "auth-security", authPractice]);
 
 const allStages: Stage[] = [
   {
@@ -111,7 +113,7 @@ const allStages: Stage[] = [
     standard: { ar: "ECMAScript 2025", en: "ECMAScript 2025" },
     status: "available",
     lessons: js,
-    exam: jsExam,
+    exam: { ...jsExam, questions: [...jsExam.questions, ...jsMoreExam] },
     project: jsProject,
     certificate: { ar: "أساسيات تطوير الويب", en: "Web Development Fundamentals" },
   },
@@ -143,7 +145,7 @@ const allStages: Stage[] = [
     standard: { ar: "React 19 و Next.js 15", en: "React 19 and Next.js 15" },
     status: "available",
     lessons: react,
-    exam: { ...reactExam, questions: [...reactExam.questions, ...reactMoreExam] },
+    exam: { ...reactExam, questions: [...reactExam.questions, ...reactMoreExam, ...reactWebExam] },
     project: reactProject,
     certificate: { ar: "شهادة مطوّر Frontend", en: "Frontend Developer certificate" },
   },
@@ -159,8 +161,8 @@ const allStages: Stage[] = [
     },
     standard: { ar: "Node.js 22 LTS و Express 5", en: "Node.js 22 LTS and Express 5" },
     status: "available",
-    lessons: backendLessons,
-    exam: backendExam,
+    lessons: backend,
+    exam: { ...backendExam, questions: [...backendExam.questions, ...backendWebExam] },
     project: backendProject,
     certificate: { ar: "شهادة مطوّر Backend", en: "Backend Developer certificate" },
   },

@@ -49,6 +49,9 @@ function require(name) {
   if (name === "react-native") return window.ReactNative;
   if (name === "express") return window.express;
   if (name === "@react-native-async-storage/async-storage") return window.AsyncStorage;
+  if (name === "bcryptjs" || name === "bcrypt") return window.bcryptjs;
+  if (name === "jsonwebtoken") return window.jsonwebtoken;
+  if (name === "better-sqlite3") return window.BetterSqlite3;
   throw new Error("Cannot find module '" + name + "'");
 }
 var useState = window.React && React.useState, useEffect = window.React && React.useEffect,
@@ -78,6 +81,16 @@ const SERVER_HTML = `<div style="font-family:ui-monospace,monospace;color:#a7f3d
 const FORM_GUARD = `<script>addEventListener("submit",function(e){e.preventDefault()})</script>`;
 
 /**
+ * The sandbox blocks the real localStorage, so previews get an in-memory one with the same API.
+ * It lasts for one run of the learner's code.
+ */
+const STORAGE = `<script>(function(){try{localStorage.length;return}catch(e){}var m={};var s={getItem:function(k){return Object.prototype.hasOwnProperty.call(m,k)?m[k]:null},setItem:function(k,v){m[k]=String(v)},removeItem:function(k){delete m[k]},clear:function(){m={}},key:function(i){return Object.keys(m)[i]||null},get length(){return Object.keys(m).length}};try{Object.defineProperty(window,"localStorage",{value:s,configurable:true})}catch(e){}})()</script>`;
+
+/** Server lessons that use SQLite load it first (WebAssembly), then run the code once it's ready. */
+const usesDb = (js: string) => /better-sqlite3/.test(js);
+const later = (code: string) => `(function(){var s=document.createElement("script");s.textContent=${JSON.stringify(code).replace(/</g, "\\u003c")};document.body.appendChild(s)})();`;
+
+/**
  * Builds the document shown in the sandboxed preview iframe.
  * Plain lessons: the learner's HTML, CSS and JS. A learner who writes a full page
  * (<!DOCTYPE html>…) gets it as-is, with CSS and JS injected.
@@ -86,7 +99,7 @@ const FORM_GUARD = `<script>addEventListener("submit",function(e){e.preventDefau
 export function buildPreview(files: Files, opts: RunOptions = {}): string {
   const html = files.html ?? "";
   const style = `<style>${files.css ?? ""}</style>`;
-  const bridge = FORM_GUARD + (opts.token ? consoleBridge(opts.token) : "");
+  const bridge = FORM_GUARD + STORAGE + (opts.token ? consoleBridge(opts.token) : "");
   const done = opts.token
     ? `<script>setTimeout(function(){parent.postMessage({cm:${JSON.stringify(opts.token)},type:"done"},"*")},${opts.settle ?? 50})</script>`
     : "";
@@ -97,7 +110,8 @@ export function buildPreview(files: Files, opts: RunOptions = {}): string {
     const vendor =
       (ui ? `<script src="${origin}/vendor/react.js"></script><script src="${origin}/vendor/react-dom.js"></script>` : "") +
       (opts.runtime === "native" ? `<script src="${origin}/vendor/rn-shim.js"></script>` : "") +
-      (opts.runtime === "server" ? `<script src="${origin}/vendor/server-shim.js"></script>` : "");
+      (opts.runtime === "server" ? `<script src="${origin}/vendor/server-shim.js"></script>` : "") +
+      (opts.runtime === "server" && usesDb(files.js ?? "") ? `<script src="${origin}/vendor/sqlite.js"></script>` : "");
     // Checks interact (harness) once the UI has rendered, then read the rendered tree.
     const after = ui
       ? `<script>setTimeout(function(){try{${opts.harness ?? ""}}catch(e){console.error(e.message)}${
@@ -110,7 +124,12 @@ export function buildPreview(files: Files, opts: RunOptions = {}): string {
     const pageCss = opts.runtime === "native" ? PHONE_CSS : "body{font-family:system-ui,sans-serif;padding:16px;margin:0;line-height:1.5}img{max-width:100%}";
     return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">${bridge}
 <style>${pageCss}</style>${style}${vendor}</head><body>${body}
-<script>${PRELUDE}</script><script>${escapeScript(files.js ?? "")}</script>${ui ? `<script>${MOUNT}</script>` : ""}${after}${done}</body></html>`;
+<script>${PRELUDE}</script>${
+      opts.runtime === "server" && usesDb(files.js ?? "")
+        ? // The learner's script and the checks run as separate scripts after SQLite has loaded.
+          `<script>window.__dbReady.then(function(){${later(files.js ?? "")}${opts.harness ? later(opts.harness) : ""}},function(e){console.error("SQLite failed to load: "+e)})</script>`
+        : `<script>${escapeScript(files.js ?? "")}</script>${ui ? `<script>${MOUNT}</script>` : ""}${after}`
+    }${done}</body></html>`;
   }
 
   const script =

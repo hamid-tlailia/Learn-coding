@@ -61,7 +61,7 @@ Each task has a `test` function that receives the parsed HTML document and the l
 Start here (how the web works, thinking like a programmer, tools) → HTML → CSS → JavaScript → Git →
 React.js (+ Next.js) → Backend → Mobile (React Native / Expo) → Mastery.
 
-79 lessons in 9 stages, all available. Every stage after Start ends with an exam, and the
+86 lessons in 9 stages, all available. Every stage after Start ends with an exam, and the
 certificate stages also end with a project:
 
 | Stage | Lessons | Certificate |
@@ -69,10 +69,10 @@ certificate stages also end with a project:
 | Start | 3 (reading) | |
 | HTML | 10 | |
 | CSS | 11 | |
-| JavaScript | 13 + project (quiz app) | Web Development Fundamentals |
+| JavaScript | 16 + project (quiz app) | Web Development Fundamentals |
 | Git and GitHub | 5 (reading + quizzes) | |
-| React.js | 12 + project (shop with a cart) | Frontend Developer |
-| Backend (Node.js / Express) | 6 + project (notes API) | Backend Developer |
+| React.js | 14 + project (shop with a cart) | Frontend Developer |
+| Backend (Node.js / Express, SQLite, auth) | 8 + project (notes API) | Backend Developer |
 | Mobile (React Native) | 11 + project (habit tracker) | Mobile Developer |
 | Mastery (clean code, tests, performance, security, TypeScript, shipping, capstone, career) | 8 + project (portfolio) | Full-Stack Developer |
 
@@ -97,7 +97,20 @@ Lessons can set a `runtime`, which decides where the learner's code runs:
 - **Default**: the HTML, CSS and JS files in a sandboxed page.
 - **`react`**: JSX compiled in the browser with sucrase, rendered with React 18 (vendored in `web/public/vendor`).
 - **`native`**: React Native components rendered by `rn-shim.js` inside a phone frame. Elements carry `data-rn` for checks.
-- **`server`**: an Express-style API from `server-shim.js`. Checks send requests with `app.request(method, url, body)`.
+- **`server`**: an Express-style API from `server-shim.js` (middleware, headers, `bcryptjs` and `jsonwebtoken`
+  look-alikes). Checks send requests with `app.request(method, url, body, headers)`. Code that requires
+  `better-sqlite3` gets real SQLite (sql.js, WebAssembly, vendored in `sqlite.js`).
 
 Each lesson has an "old vs modern" card, so learners pick up current practice (HTML Living Standard,
 CSS Baseline, ECMAScript 2025).
+
+## Deployment and certificate verification
+
+The web app is deployed on Vercel (project `code-master`, root directory `web`, build `npm run build`,
+output `out`): https://code-master-gray.vercel.app
+
+`web/api/certs.mjs` is a Vercel Function. When a certificate is issued, the app asks it to sign the
+certificate (HMAC-SHA256 with `CERT_SECRET`, a sensitive environment variable). The signed token goes into
+the certificate's QR code, which opens `/verify/?c=<token>`; the page asks the API to check the signature,
+so a certificate can't be forged or altered without the key. If a Vercel Blob store is connected to the
+project (`BLOB_READ_WRITE_TOKEN`), each certificate is also stored and can be looked up by its ID.

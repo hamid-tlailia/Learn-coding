@@ -98,7 +98,7 @@ export function VerifyView() {
             </dd>
             <dt className="text-sm text-muted">التقدير · Grade</dt>
             <dd className="font-semibold">
-              {GRADES[state.cert.grade].ar} · {GRADES[state.cert.grade].en} · {state.cert.score}%
+              <bdi>{GRADES[state.cert.grade].ar}</bdi> · <bdi>{GRADES[state.cert.grade].en}</bdi> · <bdi>{state.cert.score}%</bdi>
             </dd>
             <dt className="text-sm text-muted">التاريخ · Date</dt>
             <dd className="font-mono">{state.cert.date}</dd>
