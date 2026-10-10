@@ -61,8 +61,8 @@ const MOUNT = `(function () {
   ReactDOM.flushSync(function () { root.render(React.createElement(C)); });
 })();`;
 
-const PHONE_CSS = `body{margin:0;min-height:100vh;display:grid;place-items:center;background:#e9e9f2;font-family:system-ui,sans-serif}
-#root{width:340px;height:620px;max-width:100%;border-radius:36px;border:10px solid #111827;background:#fff;overflow:auto;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+const PHONE_CSS = `*{box-sizing:border-box}body{margin:0;padding:16px;min-height:100vh;display:grid;grid-template-columns:minmax(0,1fr);place-items:center;background:#e9e9f2;font-family:system-ui,sans-serif}
+#root{width:min(340px,100%);height:min(620px,calc(100vh - 32px));max-width:100%;border-radius:36px;border:10px solid #111827;background:#fff;overflow:auto;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,.25)}
 #root>div{flex:1}`;
 
 const SERVER_HTML = `<div style="font-family:ui-monospace,monospace;color:#a7f3d0;background:#0c1230;min-height:100vh;margin:-16px;padding:24px">
