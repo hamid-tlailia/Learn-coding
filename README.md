@@ -59,6 +59,28 @@ Each task has a `test` function that receives the parsed HTML document and the l
 ## Path
 
 Start here (how the web works, thinking like a programmer, tools) → HTML → CSS → JavaScript → Git →
-React.js (+ Next.js) → Backend → Mobile (React Native / Expo).
-Start (3 reading lessons), HTML (9), CSS (9) and JavaScript (8) are available, each coding stage with an exam; each lesson has an "old vs modern" card so learners
-pick up current practice (HTML Living Standard, CSS Baseline, ECMAScript 2025). Later stages are listed as coming soon.
+React.js (+ Next.js) → Backend → Mobile (React Native / Expo) → Mastery.
+
+71 lessons in 9 stages, all available. Every stage after Start ends with an exam:
+
+| Stage | Lessons | Certificate |
+| --- | --- | --- |
+| Start | 3 (reading) | |
+| HTML | 10 | |
+| CSS | 11 | |
+| JavaScript | 13 | Web Development Fundamentals |
+| Git and GitHub | 5 (reading + quizzes) | |
+| React.js | 8 | Frontend Developer |
+| Backend (Node.js / Express) | 6 | Backend Developer |
+| Mobile (React Native) | 7 | Mobile Developer |
+| Mastery (clean code, tests, performance, security, TypeScript, shipping, capstone, career) | 8 | Full-Stack Developer |
+
+Lessons can set a `runtime`, which decides where the learner's code runs:
+
+- **Default**: the HTML, CSS and JS files in a sandboxed page.
+- **`react`**: JSX compiled in the browser with sucrase, rendered with React 18 (vendored in `web/public/vendor`).
+- **`native`**: React Native components rendered by `rn-shim.js` inside a phone frame. Elements carry `data-rn` for checks.
+- **`server`**: an Express-style API from `server-shim.js`. Checks send requests with `app.request(method, url, body)`.
+
+Each lesson has an "old vs modern" card, so learners pick up current practice (HTML Living Standard,
+CSS Baseline, ECMAScript 2025).

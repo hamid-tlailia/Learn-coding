@@ -10,7 +10,9 @@ import { dirOf, t, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
 import { celebrate, play } from "@/lib/feedback";
 import { completeLesson, isLessonOpen, levelOf, useProgress } from "@/lib/progress";
-import { buildPreview, collectLogs, runChecks } from "@/lib/runner";
+import { buildPreview, collectLogs, isInternalLog, runChecks } from "@/lib/runner";
+import { RuntimePreview } from "./RuntimePreview";
+import type { Runtime } from "@/content/types";
 import { Celebration } from "./Celebration";
 import { BulbIcon, CheckIcon, CloseIcon, UndoIcon } from "./Icons";
 import { RichText } from "./RichText";
@@ -40,12 +42,12 @@ function stepsOf(lesson: Lesson): Step[] {
 }
 
 /** Runs a JavaScript example on demand and shows what it prints. */
-function ExampleOutput({ code, html, label }: { code: string; html?: string; label: string }) {
+function ExampleOutput({ code, html, label, runtime }: { code: string; html?: string; label: string; runtime?: Runtime }) {
   const [logs, setLogs] = useState<string[] | null>(null);
   return (
     <div className="flex flex-col gap-2">
       <Press
-        onClick={async () => setLogs(await collectLogs({ js: code, html: html ?? "" }))}
+        onClick={async () => setLogs((await collectLogs({ js: code, html: html ?? "" }, { runtime })).filter((l) => !isInternalLog(l)))}
         className="self-start rounded-xl bg-ok px-4 py-2 font-display font-semibold text-white"
       >
         ▶ {label}
@@ -222,7 +224,7 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
   async function check() {
     if (checking) return;
     setChecking(true);
-    const r = await runChecks(lesson.tasks, files, lesson.harness, lesson.settle);
+    const r = await runChecks(lesson.tasks, files, { harness: lesson.harness, settle: lesson.settle, runtime: lesson.runtime });
     setChecking(false);
     setResults(r);
     if (lesson.tasks.every((task) => r[task.id])) {
@@ -328,7 +330,7 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
               <CloseIcon className="size-6" />
             </Link>
           </div>
-          <iframe title={d.result} sandbox="allow-scripts" srcDoc={buildPreview(files)} className="h-64 w-full rounded-3xl border border-line bg-white shadow-card" />
+          <RuntimePreview title={d.result} files={files} runtime={lesson.runtime} className={`w-full rounded-3xl border border-line bg-white shadow-card ${lesson.runtime === "native" ? "h-[680px]" : "h-64"}`} />
           {lesson.files.map((kind) => (
             <div key={kind} className="flex flex-col gap-1.5">
               <span className="text-sm font-semibold text-muted">
@@ -351,6 +353,7 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
     return (
       <>
         <Workspace
+          runtime={lesson.runtime}
           locale={tl}
           title={t(lesson.title, tl)}
           kinds={lesson.files}
@@ -514,8 +517,15 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
               <>
                 <h2 className="text-2xl font-bold">{d.example}</h2>
                 <pre className="overflow-x-auto rounded-2xl bg-code-bg p-4 font-mono text-sm text-code-fg">{lesson.example.code}</pre>
-                {lesson.example.lang === "js" ? (
-                  <ExampleOutput code={lesson.example.code} html={lesson.starter.html} label={d.run} />
+                {lesson.example.lang === "none" ? null : lesson.runtime === "react" || lesson.runtime === "native" ? (
+                  <RuntimePreview
+                    title={d.result}
+                    files={{ js: lesson.example.code, css: lesson.starter.css }}
+                    runtime={lesson.runtime}
+                    className={`w-full rounded-2xl border border-line bg-white ${lesson.runtime === "native" ? "h-[680px]" : "h-48"}`}
+                  />
+                ) : lesson.example.lang === "js" || lesson.runtime === "server" ? (
+                  <ExampleOutput code={lesson.example.code} html={lesson.starter.html} label={d.run} runtime={lesson.runtime} />
                 ) : (
                   <iframe
                     title={d.result}

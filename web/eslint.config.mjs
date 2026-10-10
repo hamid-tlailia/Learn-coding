@@ -19,6 +19,7 @@ const eslintConfig = [
       "build/**",
       "android/**",
       "next-env.d.ts",
+      "public/vendor/**",
     ],
   },
 ];

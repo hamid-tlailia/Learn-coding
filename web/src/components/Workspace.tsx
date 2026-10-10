@@ -3,11 +3,11 @@
 import type { EditorView } from "@uiw/react-codemirror";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
-import type { FileKind, Files } from "@/content/types";
+import type { FileKind, Files, Runtime } from "@/content/types";
 import { dirOf, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
 import { play } from "@/lib/feedback";
-import { buildPreview } from "@/lib/runner";
+import { buildPreview, compile, isInternalLog } from "@/lib/runner";
 import { useSettings } from "@/lib/settings";
 import { CodeEditor, insertAtCursor, insertPair } from "./CodeEditor";
 import { CloseIcon, ExpandIcon, ShrinkIcon } from "./Icons";
@@ -60,6 +60,7 @@ export function Workspace({
   sideBadge,
   actions,
   forcePane,
+  runtime,
 }: {
   locale: Locale;
   title: string;
@@ -73,6 +74,8 @@ export function Workspace({
   actions?: React.ReactNode;
   /** Lets the parent switch the phone tab, e.g. to show tasks after a check. */
   forcePane?: { pane: Pane; at: number };
+  /** React, mobile or server lessons: compile JSX and load that runtime in the preview. */
+  runtime?: Runtime;
 }) {
   const dict = getDictionary(locale).lesson;
   const { editorFontSize } = useSettings();
@@ -80,24 +83,31 @@ export function Workspace({
   const [pane, setPane] = useState<Pane>("code");
   // The preview reports console output through postMessage, tagged with this token.
   const [token] = useState(() => Math.random().toString(36).slice(2));
-  const [preview, setPreview] = useState(() => buildPreview(files, { token }));
+  // Runtimes need compiling first (JSX, imports), so their preview starts empty.
+  const [preview, setPreview] = useState(() => (runtime ? "" : buildPreview(files, { token })));
   const [logs, setLogs] = useState<{ type: string; text: string }[]>([]);
   const frame = useRef<HTMLIFrameElement | null>(null);
   const showConsole = kinds.includes("js");
+  const names: Record<FileKind, string> = {
+    ...fileNames,
+    js: runtime === "server" ? "server.js" : runtime ? "App.jsx" : fileNames.js,
+  };
   const [full, setFull] = useState(false);
   const view = useRef<EditorView | null>(null);
 
   useEffect(() => {
     const id = window.setTimeout(() => {
-      setLogs([]);
-      setPreview(buildPreview(files, { token }));
+      compile(files, runtime).then((f) => {
+        setLogs([]);
+        setPreview(buildPreview(f, { token, runtime }));
+      });
     }, 350);
     return () => window.clearTimeout(id);
-  }, [files, token]);
+  }, [files, token, runtime]);
 
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
-      if (e.source !== frame.current?.contentWindow || e.data?.cm !== token || e.data.type === "done") return;
+      if (e.source !== frame.current?.contentWindow || e.data?.cm !== token || e.data.type === "done" || isInternalLog(e.data.text ?? "")) return;
       setLogs((l) => [...l.slice(-49), { type: e.data.type, text: e.data.text }]);
     };
     window.addEventListener("message", onMessage);
@@ -186,7 +196,7 @@ export function Workspace({
                 className={`relative rounded-t-lg px-3 py-1.5 font-mono text-xs ${active === kind ? "text-code-fg" : "text-[#6c8589]"}`}
               >
                 {active === kind && <motion.span layoutId="file-tab" className="absolute inset-0 rounded-t-lg bg-white/[0.07]" />}
-                <span className="relative">{fileNames[kind]}</span>
+                <span className="relative">{names[kind]}</span>
               </button>
             ))}
           </div>
@@ -204,7 +214,7 @@ export function Workspace({
                   kind={active}
                   value={files[active] ?? ""}
                   onChange={(v) => onChange(active, v)}
-                  label={fileNames[active]}
+                  label={names[active]}
                   fontSize={editorFontSize}
                   onReady={(v) => (view.current = v)}
                   hint={dict.typeHere}
@@ -255,7 +265,7 @@ export function Workspace({
             <span className="size-3 rounded-full bg-[#2e9e5b]" />
             <span className="ms-2 font-mono text-xs text-[#5b6b6e]">{dict.result}</span>
           </div>
-          <iframe ref={frame} title={dict.result} sandbox="allow-scripts" srcDoc={preview} className="w-full flex-1 bg-white" />
+          <iframe ref={frame} title={dict.result} sandbox="allow-scripts allow-forms" srcDoc={preview} className="w-full flex-1 bg-white" />
           {showConsole && (
             <div className="flex max-h-[40%] min-h-28 flex-col border-t border-white/10 bg-[#070b1c]" dir="ltr">
               <span className="px-3 pt-2 font-mono text-[11px] uppercase tracking-wider text-[#6c7bb0]">Console</span>

@@ -124,7 +124,7 @@ export const Certificate = forwardRef<HTMLDivElement, { stage: Stage; cert: Cert
                 {skills.map((s) => (
                   <span key={s} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 999, background: "rgba(255,255,255,.07)", border: "1px solid rgba(255,255,255,.12)", fontWeight: 600 }}>
                     <TechIcon tech={s} className="size-6" />
-                    {{ html: "HTML", css: "CSS", js: "JavaScript", start: "Web", git: "Git", react: "React", node: "Node.js", mobile: "Mobile" }[s]}
+                    {{ html: "HTML", css: "CSS", js: "JavaScript", start: "Web", git: "Git", react: "React", node: "Node.js", mobile: "React Native", pro: "Pro" }[s]}
                   </span>
                 ))}
               </div>

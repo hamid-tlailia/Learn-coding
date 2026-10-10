@@ -388,5 +388,7 @@ export const cssExam: Exam = {
       ],
       answer: 1,
     },
+    { id: "x-keyframes", prompt: { ar: "كيف تعرّف حركة باسم `pulse`؟", en: "How do you define an animation named `pulse`?" }, options: [{ ar: "`@keyframes pulse { … }`", en: "`@keyframes pulse { … }`" }, { ar: "`@animation pulse { … }`", en: "`@animation pulse { … }`" }, { ar: "`.pulse:animate { … }`", en: "`.pulse:animate { … }`" }], answer: 0 },
+    { id: "x-vars", prompt: { ar: "كيف تستخدم متغير CSS اسمه `--brand`؟", en: "How do you use a CSS variable named `--brand`?" }, options: [{ ar: "`color: var(--brand);`", en: "`color: var(--brand);`" }, { ar: "`color: $brand;`", en: "`color: $brand;`" }, { ar: "`color: --brand;`", en: "`color: --brand;`" }], answer: 0 },
   ],
 };

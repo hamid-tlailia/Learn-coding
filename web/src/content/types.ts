@@ -1,6 +1,9 @@
 import type { L } from "@/i18n/config";
 
 export type FileKind = "html" | "css" | "js";
+
+/** Where the learner's JavaScript runs: plain browser (default), React, React Native look-alike, or an Express-style server. */
+export type Runtime = "react" | "native" | "server";
 export type Files = Partial<Record<FileKind, string>>;
 
 /** What a task check receives: the learner's files, the parsed page, CSS rules and console output. */
@@ -50,7 +53,8 @@ export type Lesson = {
   /** Paragraphs of explanation. Text inside `backticks` renders as inline code. */
   body: Para[];
   /** A worked example shown as its own card, with a live preview. */
-  example?: { code: string; note: L; lang?: FileKind };
+  /** `lang` picks the live preview: HTML by default, "none" for code that can't run here (e.g. TypeScript). */
+  example?: { code: string; note: L; lang?: FileKind | "none" };
   /** "The fastest way" card: the modern shortcut for this lesson's concept. */
   tip?: { text: L; code?: string };
   modern?: Modern;
@@ -66,6 +70,7 @@ export type Lesson = {
   harness?: string;
   /** How long to keep listening for console output after the code runs (asynchronous lessons). */
   settle?: number;
+  runtime?: Runtime;
   xp: number;
 };
 
@@ -77,7 +82,7 @@ export type Stage = {
   description: L;
   /** Short label shown on the stage badge, e.g. "HTML". */
   badge: string;
-  icon: "start" | "html" | "css" | "js" | "git" | "react" | "node" | "mobile";
+  icon: "start" | "html" | "css" | "js" | "git" | "react" | "node" | "mobile" | "pro";
   /** Background of the stage's course card. */
   gradient: string;
   /** The version of the standard the lessons follow. */

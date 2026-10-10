@@ -27,7 +27,7 @@ function extensionsFor(kind: FileKind, fontSize: number, hint: string) {
     case "css":
       return [css(), abbreviationTracker({ syntax: EmmetKnownSyntax.css }), emmetTab, look, empty, EditorView.lineWrapping];
     case "js":
-      return [javascript(), look, empty, EditorView.lineWrapping];
+      return [javascript({ jsx: true }), look, empty, EditorView.lineWrapping];
   }
 }
 

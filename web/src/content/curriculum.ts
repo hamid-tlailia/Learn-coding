@@ -5,18 +5,41 @@ import { forms, tables, textElements } from "./html-extra";
 import { introLessons } from "./intro";
 import { jsExam, jsLessons } from "./js";
 import { asyncAwait, conditions, objects } from "./js-extra";
-import type { Lesson, Stage } from "./types";
+import { arrayMethods, classes, errors, fetchJson, keyframes, mediaA11y, modernCss, modules } from "./advanced";
+import { backendExam, backendLessons } from "./backend";
+import { gitExam, gitLessons } from "./git";
+import { mobileExam, mobileLessons } from "./mobile";
+import { proExam, proLessons } from "./pro";
+import { reactExam, reactLessons } from "./react";
+import type { Exam, Lesson, Question, Stage } from "./types";
 
 /** Builds a stage's lesson order from slugs (core lessons) and lesson objects (extras). */
 function order(core: Lesson[], items: (string | Lesson)[]): Lesson[] {
   return items.map((item) => (typeof item === "string" ? core.find((l) => l.slug === item)! : item));
 }
 
-const html = order(htmlLessons, ["what-is-html", "page-skeleton", "first-page", textElements, "links-images", "lists", tables, forms, "semantic-layout"]);
-const css = order(cssLessons, ["what-is-css", selectorsStates, "colors-fonts", "box-model", "flexbox", grid, position, "responsive", transitions]);
-const js = order(jsLessons, ["what-is-js", "variables", conditions, "functions", "arrays-loops", objects, "dom-events", asyncAwait]);
+/**
+ * Questions are authored with the right answer anywhere (often first); rotate each one's
+ * options by a stable hash of its key so the right answer lands in a varied position.
+ */
+function mix(q: Question, key: string): Question {
+  let h = 0;
+  for (const ch of key) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  const n = q.options.length;
+  const shift = h % n;
+  if (!shift) return q;
+  const options = q.options.map((_, i) => q.options[(i + shift) % n]);
+  return { ...q, options, answer: (q.answer - shift + n) % n };
+}
+const mixLessons = (stage: string, lessons: Lesson[]) =>
+  lessons.map((l) => (l.quiz ? { ...l, quiz: l.quiz.map((q) => mix(q, `${stage}/${l.slug}/${q.id}`)) } : l));
+const mixExam = (stage: string, exam: Exam): Exam => ({ ...exam, questions: exam.questions.map((q) => mix(q, `${stage}/exam/${q.id}`)) });
 
-export const stages: Stage[] = [
+const html = order(htmlLessons, ["what-is-html", "page-skeleton", "first-page", textElements, "links-images", "lists", tables, forms, mediaA11y, "semantic-layout"]);
+const css = order(cssLessons, ["what-is-css", selectorsStates, "colors-fonts", "box-model", "flexbox", grid, position, "responsive", transitions, keyframes, modernCss]);
+const js = order(jsLessons, ["what-is-js", "variables", conditions, "functions", "arrays-loops", arrayMethods, objects, classes, errors, "dom-events", asyncAwait, fetchJson, modules]);
+
+const allStages: Stage[] = [
   {
     slug: "start",
     icon: "start",
@@ -86,8 +109,10 @@ export const stages: Stage[] = [
       ar: "حفظ نسخ مشروعك، العمل مع فريق، ونشر موقعك.",
       en: "Version your project, work with a team, and publish your site.",
     },
-    status: "soon",
-    lessons: [],
+    standard: { ar: "Git 2.x", en: "Git 2.x" },
+    status: "available",
+    lessons: gitLessons,
+    exam: gitExam,
   },
   {
     slug: "react",
@@ -99,8 +124,10 @@ export const stages: Stage[] = [
       ar: "المكوّنات، props و state، الـ hooks، ثم Next.js لبناء مواقع كاملة.",
       en: "Components, props and state, hooks, then Next.js for full sites.",
     },
-    status: "soon",
-    lessons: [],
+    standard: { ar: "React 19 و Next.js 15", en: "React 19 and Next.js 15" },
+    status: "available",
+    lessons: reactLessons,
+    exam: reactExam,
     certificate: { ar: "شهادة مطوّر Frontend", en: "Frontend Developer certificate" },
   },
   {
@@ -113,8 +140,10 @@ export const stages: Stage[] = [
       ar: "Node.js، بناء API، قواعد البيانات وتسجيل الدخول.",
       en: "Node.js, building APIs, databases and authentication.",
     },
-    status: "soon",
-    lessons: [],
+    standard: { ar: "Node.js 22 LTS و Express 5", en: "Node.js 22 LTS and Express 5" },
+    status: "available",
+    lessons: backendLessons,
+    exam: backendExam,
     certificate: { ar: "شهادة مطوّر Backend", en: "Backend Developer certificate" },
   },
   {
@@ -127,11 +156,34 @@ export const stages: Stage[] = [
       ar: "React Native و Expo: تطبيق واحد يعمل على Android و iOS.",
       en: "React Native and Expo: one app for Android and iOS.",
     },
-    status: "soon",
-    lessons: [],
+    standard: { ar: "React Native و Expo SDK", en: "React Native and Expo SDK" },
+    status: "available",
+    lessons: mobileLessons,
+    exam: mobileExam,
     certificate: { ar: "شهادة مطوّر Mobile", en: "Mobile Developer certificate" },
   },
+  {
+    slug: "pro",
+    icon: "pro",
+    gradient: "linear-gradient(135deg,#f59e0b,#e040fb)",
+    badge: "Pro",
+    title: { ar: "الاحتراف: من متعلّم إلى مطوّر", en: "Mastery: from learner to developer" },
+    description: {
+      ar: "كود نظيف، اختبارات، أداء، أمان، TypeScript، النشر، مشروع نهائي وأول وظيفة.",
+      en: "Clean code, testing, performance, security, TypeScript, shipping, a capstone and your first job.",
+    },
+    status: "available",
+    lessons: proLessons,
+    exam: proExam,
+    certificate: { ar: "شهادة مطوّر Full-Stack", en: "Full-Stack Developer certificate" },
+  },
 ];
+
+export const stages: Stage[] = allStages.map((s) => ({
+  ...s,
+  lessons: mixLessons(s.slug, s.lessons),
+  exam: s.exam && mixExam(s.slug, s.exam),
+}));
 
 export function getStage(slug: string) {
   return stages.find((s) => s.slug === slug);

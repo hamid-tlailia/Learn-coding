@@ -500,5 +500,7 @@ export const htmlExam: Exam = {
       ],
       answer: 2,
     },
+    { id: "x-alt", prompt: { ar: "لماذا نكتب `alt` لكل صورة؟", en: "Why give every image an `alt`?" }, options: [{ ar: "لقارئ الشاشة وعند فشل تحميل الصورة", en: "For screen readers and when the image fails to load" }, { ar: "لتكبير الصورة", en: "To enlarge the image" }, { ar: "لا فائدة منه", en: "It does nothing" }], answer: 0 },
+    { id: "x-video", prompt: { ar: "أي سمة تُظهر أزرار التشغيل في `<video>`؟", en: "Which attribute shows play buttons on a `<video>`?" }, options: [{ ar: "`controls`", en: "`controls`" }, { ar: "`buttons`", en: "`buttons`" }, { ar: "`play`", en: "`play`" }], answer: 0 },
   ],
 };

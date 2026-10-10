@@ -350,5 +350,8 @@ export const jsExam: Exam = {
       ],
       answer: 0,
     },
+    { id: "x-map", prompt: { ar: "ماذا تُرجع `[1, 2, 3].map((n) => n * 2)`؟", en: "What does `[1, 2, 3].map((n) => n * 2)` return?" }, options: [{ ar: "`[2, 4, 6]`", en: "`[2, 4, 6]`" }, { ar: "`12`", en: "`12`" }, { ar: "`[1, 2, 3]`", en: "`[1, 2, 3]`" }], answer: 0 },
+    { id: "x-catch", prompt: { ar: "أين تلتقط خطأً رُمي بـ `throw`؟", en: "Where do you catch an error raised with `throw`?" }, options: [{ ar: "في `catch` داخل `try/catch`", en: "In the `catch` of a `try/catch`" }, { ar: "في `finally` فقط", en: "Only in `finally`" }, { ar: "لا يمكن التقاطه", en: "It can't be caught" }], answer: 0 },
+    { id: "x-json", prompt: { ar: "بعد `const res = await fetch(url)`، كيف تقرأ البيانات؟", en: "After `const res = await fetch(url)`, how do you read the data?" }, options: [{ ar: "`await res.json()`", en: "`await res.json()`" }, { ar: "`res.data`", en: "`res.data`" }, { ar: "`JSON(res)`", en: "`JSON(res)`" }], answer: 0 },
   ],
 };

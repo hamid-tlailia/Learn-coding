@@ -1,5 +1,5 @@
 /** Simplified technology marks for stage badges and course cards. */
-export type Tech = "start" | "html" | "css" | "js" | "git" | "react" | "node" | "mobile";
+export type Tech = "start" | "html" | "css" | "js" | "git" | "react" | "node" | "mobile" | "pro";
 
 export function TechIcon({ tech, className = "size-10" }: { tech: Tech; className?: string }) {
   switch (tech) {
@@ -10,6 +10,16 @@ export function TechIcon({ tech, className = "size-10" }: { tech: Tech; classNam
           <circle cx="16" cy="13" r="3" fill="#8b5cf6" />
           <path d="M11 21l-4 5 6-2zM21 21l4 5-6-2z" fill="#22d3ee" />
           <path d="M14 24h4l-2 5z" fill="#f5b544" />
+        </svg>
+      );
+    case "pro":
+      return (
+        <svg viewBox="0 0 32 32" className={className} aria-hidden="true" direction="ltr">
+          <path d="M9 4h14v6a7 7 0 0 1-14 0z" fill="#f5b544" />
+          <path d="M9 6H5v2a5 5 0 0 0 5 5M23 6h4v2a5 5 0 0 1-5 5" fill="none" stroke="#f5b544" strokeWidth="2" />
+          <rect x="14" y="16" width="4" height="6" fill="#d97706" />
+          <rect x="9" y="22" width="14" height="5" rx="1.5" fill="#fff" />
+          <path d="M16 6.5l1.2 2.4 2.6.4-1.9 1.8.5 2.6-2.4-1.3-2.4 1.3.5-2.6-1.9-1.8 2.6-.4z" fill="#fff" />
         </svg>
       );
     case "html":
