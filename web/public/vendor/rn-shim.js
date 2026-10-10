@@ -1,6 +1,7 @@
 /* Code Master: a small React Native look-alike on top of React DOM, so mobile lessons
    run inside the app. Covers View, Text, Image, Pressable, Button, TextInput,
-   ScrollView, FlatList and StyleSheet, with React Native's flexbox defaults. */
+   ScrollView, FlatList, ActivityIndicator, Switch and StyleSheet, with React Native's
+   flexbox defaults, plus an in-memory AsyncStorage. */
 (function () {
   var R = window.React;
   var h = R.createElement;
@@ -58,7 +59,30 @@
     return h("div", { style: merge(box, css(p.style)), "data-rn": "FlatList" }, p.ListHeaderComponent ? h(p.ListHeaderComponent) : null, items);
   }
 
+  function ActivityIndicator(p) {
+    if (p.animating === false) return null;
+    var size = p.size === "large" ? 36 : 20;
+    return h("span", { "data-rn": "ActivityIndicator", role: "progressbar", style: merge({ display: "inline-block", alignSelf: "center", width: size + "px", height: size + "px", borderRadius: "50%", border: "3px solid " + (p.color || "#8b5cf6"), borderTopColor: "transparent", animation: "rn-spin .8s linear infinite" }, css(p.style)) });
+  }
+  function Switch(p) {
+    return h("input", { type: "checkbox", role: "switch", checked: !!p.value, "data-rn": "Switch", onChange: function (e) { if (p.onValueChange) p.onValueChange(e.target.checked); } });
+  }
+  var spin = document.createElement("style");
+  spin.textContent = "@keyframes rn-spin{to{transform:rotate(360deg)}}";
+  document.head.appendChild(spin);
+
+  // AsyncStorage keeps strings for this run only (the preview is sandboxed), with the real Promise API.
+  var memory = {};
+  window.AsyncStorage = {
+    getItem: function (k) { return Promise.resolve(Object.prototype.hasOwnProperty.call(memory, k) ? memory[k] : null); },
+    setItem: function (k, v) { memory[k] = String(v); return Promise.resolve(); },
+    removeItem: function (k) { delete memory[k]; return Promise.resolve(); },
+    clear: function () { memory = {}; return Promise.resolve(); },
+    getAllKeys: function () { return Promise.resolve(Object.keys(memory)); },
+  };
+
   window.ReactNative = {
+    ActivityIndicator: ActivityIndicator, Switch: Switch,
     View: View, Text: Text, Image: Image, Pressable: Pressable, TouchableOpacity: Pressable, Button: Button,
     TextInput: TextInput, ScrollView: ScrollView, FlatList: FlatList, SafeAreaView: View,
     StyleSheet: { create: function (o) { return o; }, hairlineWidth: 1, flatten: flat },

@@ -10,7 +10,7 @@ import { getStage, orderedStages } from "@/content/curriculum";
 import { t, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
 import { celebrate, play } from "@/lib/feedback";
-import { certEarned, dayKey, issueCert, useProgress, type Cert } from "@/lib/progress";
+import { certEarned, certGrade, dayKey, issueCert, useProgress, type Cert } from "@/lib/progress";
 import { updateSettings, useSettings } from "@/lib/settings";
 import { SITE_URL } from "@/lib/site";
 import { Certificate } from "./Certificate";
@@ -59,7 +59,13 @@ export function CertificateView({ locale, stageSlug }: { locale: Locale; stageSl
   const skills = upTo.map((s) => s.icon).filter((i): i is Tech => ["html", "css", "js", "react", "node", "mobile"].includes(i));
   const earned = certEarned(stage.slug, progress);
   const cert = progress.certs[stage.slug];
-  const preview: Cert = cert ?? { id: "CM-0000-XXXX-XXXX", name: name || "—", date: dayKey(), photo: withPhoto ? settings.photo : "" };
+  const preview: Cert = cert ?? {
+    id: "CM-0000-XXXX-XXXX",
+    name: name || "—",
+    date: dayKey(),
+    photo: withPhoto ? settings.photo : "",
+    ...certGrade(stage.slug, progress),
+  };
 
   async function image() {
     return toPng(node.current!, { pixelRatio: 2, cacheBust: true });

@@ -61,19 +61,36 @@ Each task has a `test` function that receives the parsed HTML document and the l
 Start here (how the web works, thinking like a programmer, tools) → HTML → CSS → JavaScript → Git →
 React.js (+ Next.js) → Backend → Mobile (React Native / Expo) → Mastery.
 
-71 lessons in 9 stages, all available. Every stage after Start ends with an exam:
+79 lessons in 9 stages, all available. Every stage after Start ends with an exam, and the
+certificate stages also end with a project:
 
 | Stage | Lessons | Certificate |
 | --- | --- | --- |
 | Start | 3 (reading) | |
 | HTML | 10 | |
 | CSS | 11 | |
-| JavaScript | 13 | Web Development Fundamentals |
+| JavaScript | 13 + project (quiz app) | Web Development Fundamentals |
 | Git and GitHub | 5 (reading + quizzes) | |
-| React.js | 8 | Frontend Developer |
-| Backend (Node.js / Express) | 6 | Backend Developer |
-| Mobile (React Native) | 7 | Mobile Developer |
-| Mastery (clean code, tests, performance, security, TypeScript, shipping, capstone, career) | 8 | Full-Stack Developer |
+| React.js | 12 + project (shop with a cart) | Frontend Developer |
+| Backend (Node.js / Express) | 6 + project (notes API) | Backend Developer |
+| Mobile (React Native) | 11 + project (habit tracker) | Mobile Developer |
+| Mastery (clean code, tests, performance, security, TypeScript, shipping, capstone, career) | 8 + project (portfolio) | Full-Stack Developer |
+
+Learners pick a **web** or **mobile** track first (mobile: Start → JavaScript → React → React Native);
+finishing it opens the other track, and Mastery comes last.
+
+How learning is reinforced:
+
+- **Go deeper**: every lesson has a card on how it works underneath and the most common mistakes (`content/deep/`).
+- **Notes**: a 📝 notebook per lesson, listed under Practice.
+- **Spaced review** (`lib/review.ts`): each finished lesson returns after 1, 3, 7, 14 and 30 days as short
+  questions (its quiz plus its fill-in-the-blank challenges); a mistake brings it back tomorrow. Reviews
+  for a track stop once its certificate is issued.
+- **Checks**: printed text ignores letter case and extra spaces, while code is checked exactly; friendly
+  warnings point out reserved words used as names and wrong letter case (`lib/lint.ts`). The solution
+  unlocks only after 3 unsuccessful checks.
+- **Projects** (`content/projects.ts`) are scored by a rubric; the certificate needs 60% and shows a grade
+  (40% exam + 60% project).
 
 Lessons can set a `runtime`, which decides where the learner's code runs:
 

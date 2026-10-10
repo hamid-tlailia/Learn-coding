@@ -2,6 +2,7 @@
 
 import { lessonKey, orderedStages, stages, type Track } from "@/content/curriculum";
 import type { FileKind } from "@/content/types";
+import { resetReviews, scheduleReview } from "./review";
 import { settingsStore } from "./settings";
 import { createStore } from "./store";
 
@@ -18,9 +19,12 @@ export type Progress = {
   exams: Record<string, number>;
   /** Issued certificates by stage slug. */
   certs: Record<string, Cert>;
+  /** Best project score (0–100) by stage slug. */
+  projects: Record<string, number>;
 };
 
-export type Cert = { id: string; name: string; date: string; photo: string };
+/** `score` and `grade` are frozen when the certificate is issued. */
+export type Cert = { id: string; name: string; date: string; photo: string; score?: number; grade?: Grade };
 
 const store = createStore<Progress>("satr-progress-v1", {
   completed: [],
@@ -29,6 +33,7 @@ const store = createStore<Progress>("satr-progress-v1", {
   streak: { count: 0, last: null },
   exams: {},
   certs: {},
+  projects: {},
 });
 
 export const useProgress = store.use;
@@ -60,6 +65,7 @@ export function completeLesson(key: string, xp: number): boolean {
   const p = store.get();
   if (p.completed.includes(key)) return false;
   store.set(award({ ...p, completed: [...p.completed, key] }, xp));
+  scheduleReview(key);
   return true;
 }
 
@@ -75,10 +81,34 @@ export function recordExam(stage: string, score: number, passPercent: number) {
   store.set(award({ ...p, exams: { ...p.exams, [stage]: best } }, firstPass ? 100 : 0));
 }
 
-/** A stage's certificate is earned when its exam is passed (and every stage before it, by order). */
+/** A project counts once at least this share of its rubric passes. */
+export const PROJECT_PASS = 60;
+
+/** Keeps the best submission of a stage's project. Returns true the first time it passes. */
+export function recordProject(stage: string, score: number) {
+  const p = store.get();
+  const before = p.projects?.[stage] ?? 0;
+  const firstPass = before < PROJECT_PASS && score >= PROJECT_PASS;
+  store.set(award({ ...p, projects: { ...p.projects, [stage]: Math.max(score, before) } }, firstPass ? 150 : 0));
+  return firstPass;
+}
+
+/** A stage's certificate is earned when its exam is passed and, when it has one, its project too. */
 export function certEarned(stageSlug: string, p: Progress) {
   const stage = stages.find((s) => s.slug === stageSlug);
-  return !!stage?.certificate && !!stage.exam && (p.exams[stage.slug] ?? 0) >= stage.exam.passPercent;
+  if (!stage?.certificate || !stage.exam || (p.exams[stage.slug] ?? 0) < stage.exam.passPercent) return false;
+  return !stage.project || (p.projects?.[stage.slug] ?? 0) >= PROJECT_PASS;
+}
+
+export type Grade = "excellent" | "veryGood" | "good" | "pass";
+
+/** The overall result printed on a certificate: 40% exam, 60% project (or the exam alone). */
+export function certGrade(stageSlug: string, p: Progress): { score: number; grade: Grade } {
+  const stage = stages.find((s) => s.slug === stageSlug);
+  const exam = p.exams[stageSlug] ?? 0;
+  const score = stage?.project ? Math.round(exam * 0.4 + (p.projects?.[stageSlug] ?? 0) * 0.6) : exam;
+  const grade: Grade = score >= 90 ? "excellent" : score >= 80 ? "veryGood" : score >= 70 ? "good" : "pass";
+  return { score, grade };
 }
 
 /** A short, readable ID like CM-2026-7Q4K-M2XD, derived from the name, stage and date. */
@@ -91,13 +121,14 @@ function certId(name: string, stage: string, date: string) {
 
 export function issueCert(stage: string, name: string, photo: string): Cert {
   const date = dayKey();
-  const cert = { id: certId(name, stage, date), name, date, photo };
+  const cert = { id: certId(name, stage, date), name, date, photo, ...certGrade(stage, store.get()) };
   store.set((p) => ({ ...p, certs: { ...p.certs, [stage]: cert } }));
   return cert;
 }
 
 export function resetProgress() {
   store.set(store.initial);
+  resetReviews();
 }
 
 /** A streak only counts while it was kept today or yesterday. */

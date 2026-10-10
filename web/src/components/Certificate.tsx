@@ -139,6 +139,16 @@ export const Certificate = forwardRef<HTMLDivElement, { stage: Stage; cert: Cert
                   </div>
                   <div style={{ fontSize: 20, fontWeight: 700 }}>{cert.date}</div>
                 </div>
+                {cert.grade && (
+                  <div>
+                    <div style={{ fontSize: 13, color: "#9aa3cc" }}>
+                      {en.grade} · <span dir="rtl">{ar.grade}</span>
+                    </div>
+                    <div style={{ fontSize: 20, fontWeight: 700, color: "#fcd34d" }}>
+                      {en.grades[cert.grade]} · <span dir="rtl">{ar.grades[cert.grade]}</span> · {cert.score}%
+                    </div>
+                  </div>
+                )}
                 <div>
                   <div style={{ fontSize: 13, color: "#9aa3cc" }}>
                     {en.id} · <span dir="rtl">{ar.id}</span>

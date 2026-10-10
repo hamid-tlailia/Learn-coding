@@ -30,6 +30,9 @@ export type Task = {
 /** A paragraph of explanation, with an optional big illustration emoji. */
 export type Para = L & { icon?: string };
 
+/** "Go deeper": how it works underneath and when to use it, plus the mistakes beginners make most. */
+export type Deep = { more: Para[]; mistakes: L[] };
+
 /** "Old way vs modern way": keeps learners away from outdated habits. */
 export type Modern = {
   old: string;
@@ -58,6 +61,7 @@ export type Lesson = {
   /** "The fastest way" card: the modern shortcut for this lesson's concept. */
   tip?: { text: L; code?: string };
   modern?: Modern;
+  deep?: Deep;
   /** Files in the editor. Empty for reading lessons, which end with `quiz` instead. */
   files: FileKind[];
   starter: Files;
@@ -90,6 +94,8 @@ export type Stage = {
   status: "available" | "soon";
   lessons: Lesson[];
   exam?: Exam;
+  /** A medium-sized build checked by a rubric; its score counts toward the certificate grade. */
+  project?: Lesson;
   /** Stages that end with a verifiable certificate. */
   certificate?: L;
 };

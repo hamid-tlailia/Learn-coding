@@ -10,7 +10,14 @@ import { backendExam, backendLessons } from "./backend";
 import { gitExam, gitLessons } from "./git";
 import { mobileExam, mobileLessons } from "./mobile";
 import { proExam, proLessons } from "./pro";
+import { backendProject, jsProject, mobileProject, proProject, reactProject } from "./projects";
+import { mobileMore, mobileMoreExam, reactMore, reactMoreExam } from "./more";
 import { reactExam, reactLessons } from "./react";
+import { cssDeep } from "./deep/css";
+import { htmlDeep } from "./deep/html";
+import { jsDeep } from "./deep/js";
+import { mobileDeep } from "./deep/mobile";
+import { stackDeep } from "./deep/stack";
 import type { Exam, Lesson, Question, Stage } from "./types";
 
 /** Builds a stage's lesson order from slugs (core lessons) and lesson objects (extras). */
@@ -31,12 +38,20 @@ function mix(q: Question, key: string): Question {
   const options = q.options.map((_, i) => q.options[(i + shift) % n]);
   return { ...q, options, answer: (q.answer - shift + n) % n };
 }
+const deepNotes = { ...htmlDeep, ...cssDeep, ...jsDeep, ...stackDeep, ...mobileDeep };
+
 const mixLessons = (stage: string, lessons: Lesson[]) =>
-  lessons.map((l) => (l.quiz ? { ...l, quiz: l.quiz.map((q) => mix(q, `${stage}/${l.slug}/${q.id}`)) } : l));
+  lessons.map((l) => ({
+    ...l,
+    quiz: l.quiz?.map((q) => mix(q, `${stage}/${l.slug}/${q.id}`)),
+    deep: l.deep ?? deepNotes[`${stage}/${l.slug}`],
+  }));
 const mixExam = (stage: string, exam: Exam): Exam => ({ ...exam, questions: exam.questions.map((q) => mix(q, `${stage}/exam/${q.id}`)) });
 
 const html = order(htmlLessons, ["what-is-html", "page-skeleton", "first-page", textElements, "links-images", "lists", tables, forms, mediaA11y, "semantic-layout"]);
 const css = order(cssLessons, ["what-is-css", selectorsStates, "colors-fonts", "box-model", "flexbox", grid, position, "responsive", transitions, keyframes, modernCss]);
+const react = order(reactLessons, ["what-is-react", "jsx", "props", "state", "lists-keys", "forms-react", "effects", ...reactMore, "nextjs"]);
+const mobile = order(mobileLessons, ["rn-intro", "rn-components", "rn-styles", "rn-touch", "rn-lists", "rn-input", ...mobileMore, "rn-publish"]);
 const js = order(jsLessons, ["what-is-js", "variables", conditions, "functions", "arrays-loops", arrayMethods, objects, classes, errors, "dom-events", asyncAwait, fetchJson, modules]);
 
 const allStages: Stage[] = [
@@ -97,6 +112,7 @@ const allStages: Stage[] = [
     status: "available",
     lessons: js,
     exam: jsExam,
+    project: jsProject,
     certificate: { ar: "أساسيات تطوير الويب", en: "Web Development Fundamentals" },
   },
   {
@@ -126,8 +142,9 @@ const allStages: Stage[] = [
     },
     standard: { ar: "React 19 و Next.js 15", en: "React 19 and Next.js 15" },
     status: "available",
-    lessons: reactLessons,
-    exam: reactExam,
+    lessons: react,
+    exam: { ...reactExam, questions: [...reactExam.questions, ...reactMoreExam] },
+    project: reactProject,
     certificate: { ar: "شهادة مطوّر Frontend", en: "Frontend Developer certificate" },
   },
   {
@@ -144,6 +161,7 @@ const allStages: Stage[] = [
     status: "available",
     lessons: backendLessons,
     exam: backendExam,
+    project: backendProject,
     certificate: { ar: "شهادة مطوّر Backend", en: "Backend Developer certificate" },
   },
   {
@@ -158,8 +176,9 @@ const allStages: Stage[] = [
     },
     standard: { ar: "React Native و Expo SDK", en: "React Native and Expo SDK" },
     status: "available",
-    lessons: mobileLessons,
-    exam: mobileExam,
+    lessons: mobile,
+    exam: { ...mobileExam, questions: [...mobileExam.questions, ...mobileMoreExam] },
+    project: mobileProject,
     certificate: { ar: "شهادة مطوّر Mobile", en: "Mobile Developer certificate" },
   },
   {
@@ -175,6 +194,7 @@ const allStages: Stage[] = [
     status: "available",
     lessons: proLessons,
     exam: proExam,
+    project: proProject,
     certificate: { ar: "شهادة مطوّر Full-Stack", en: "Full-Stack Developer certificate" },
   },
 ];

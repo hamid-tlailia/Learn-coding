@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { motion } from "motion/react";
+import { useEffect } from "react";
 import { lessonKey, orderedStages } from "@/content/curriculum";
 import { shortcuts } from "@/content/shortcuts";
 import { t, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
 import { canUseEditor, dayKey, levelOf, liveStreak, nextLesson, useProgress } from "@/lib/progress";
+import { dueReviews, scheduleMissing, useReviews } from "@/lib/review";
 import { useSettings } from "@/lib/settings";
 import { PlayIcon } from "./Icons";
 import { Avatar } from "./Avatar";
@@ -50,6 +52,9 @@ export function HomeDashboard({ locale }: { locale: Locale }) {
   const settings = useSettings();
   const track = settings.track;
   const next = nextLesson(progress, track);
+  const reviews = useReviews();
+  const due = dueReviews(reviews, progress, track);
+  useEffect(() => scheduleMissing(progress.completed), [progress.completed]);
   const today = progress.daily[dayKey()] ?? 0;
   const streak = liveStreak(progress);
   const { level, into, need } = levelOf(progress.xp);
@@ -89,6 +94,22 @@ export function HomeDashboard({ locale }: { locale: Locale }) {
         </div>
         <StatPills labels={dict.stats} />
       </motion.header>
+
+      {/* Spaced review: lessons whose review day has come */}
+      {due.length > 0 && (
+        <motion.div variants={rise}>
+          <Link href={`/${locale}/review/`} className="glass flex items-center gap-4 rounded-3xl border-2 border-saffron/50 p-4 shadow-card">
+            <span className="grid size-14 flex-none place-items-center rounded-2xl bg-saffron-soft text-3xl" aria-hidden="true">
+              🔁
+            </span>
+            <span className="flex min-w-0 flex-1 flex-col">
+              <span className="font-display text-lg font-bold">{dict.review.homeTitle}</span>
+              <span className="text-sm text-muted">{dict.review.homeText.replace("{n}", String(due.length))}</span>
+            </span>
+            <span className="text-xl font-bold text-saffron">{fwd}</span>
+          </Link>
+        </motion.div>
+      )}
 
       {/* Continue: the one thing to do next */}
       <motion.div variants={rise}>

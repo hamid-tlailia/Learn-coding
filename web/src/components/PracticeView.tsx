@@ -8,6 +8,7 @@ import { shortcuts } from "@/content/shortcuts";
 import { t, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
 import { play } from "@/lib/feedback";
+import { useNotes } from "@/lib/notes";
 import { canUseEditor, useProgress } from "@/lib/progress";
 import { CheckIcon, CodeIcon, LockIcon } from "./Icons";
 import { Card, PageHeader, rise, Stagger, useMounted } from "./ui";
@@ -17,6 +18,7 @@ export function PracticeView({ locale }: { locale: Locale }) {
   const dict = getDictionary(locale);
   const p = dict.practice;
   const progress = useProgress();
+  const notes = useNotes();
   if (!mounted) return <div className="min-h-dvh" />;
 
   const done = stages.flatMap((s) =>
@@ -139,6 +141,35 @@ export function PracticeView({ locale }: { locale: Locale }) {
                 </span>
               </Link>
             ))}
+          </div>
+        )}
+      </motion.section>
+
+      <motion.section variants={rise} className="flex flex-col gap-3">
+        <h2 className="text-xl font-bold">📝 {dict.lesson.notes}</h2>
+        {Object.keys(notes).length === 0 ? (
+          <Card className="text-muted">{p.notesEmpty}</Card>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {stages.flatMap((stage) =>
+              stage.lessons
+                .filter((l) => notes[lessonKey(stage.slug, l.slug)])
+                .map((lesson) => (
+                  <Link
+                    key={`${stage.slug}/${lesson.slug}`}
+                    href={`/${locale}/learn/${stage.slug}/${lesson.slug}/`}
+                    onClick={() => play("select")}
+                    className="flex flex-col gap-1 rounded-2xl glass p-4 shadow-card"
+                  >
+                    <span className="text-xs text-muted">
+                      {stage.badge} · {t(lesson.title, locale)}
+                    </span>
+                    <span className="line-clamp-3 whitespace-pre-wrap" style={{ unicodeBidi: "plaintext" }}>
+                      {notes[lessonKey(stage.slug, lesson.slug)].text}
+                    </span>
+                  </Link>
+                )),
+            )}
           </div>
         )}
       </motion.section>

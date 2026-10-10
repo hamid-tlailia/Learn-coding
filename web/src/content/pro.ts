@@ -1,7 +1,7 @@
 import type { Exam, Lesson } from "./types";
 
 /** The mastery stage: habits that turn someone who can code into a professional developer. */
-const printed = (logs: string[], value: string) => logs.some((l) => l.trim() === value);
+import { printed } from "./check";
 const reading = (l: Omit<Lesson, "files" | "starter" | "solution" | "tasks" | "hints">): Lesson => ({ ...l, files: [], starter: {}, solution: {}, tasks: [], hints: [] });
 
 const TEST_HELPERS =

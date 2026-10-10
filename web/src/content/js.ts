@@ -1,6 +1,6 @@
 import type { Exam, Lesson } from "./types";
 
-const printed = (logs: string[], value: string) => logs.some((l) => l.trim() === value);
+import { printed } from "./check";
 
 export const jsLessons: Lesson[] = [
   {

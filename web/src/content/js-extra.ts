@@ -1,6 +1,6 @@
 import type { Lesson } from "./types";
 
-const printed = (logs: string[], value: string) => logs.some((l) => l.trim() === value);
+import { printed } from "./check";
 
 /** JavaScript lessons that round out the stage: decisions, objects and asynchronous code. */
 export const conditions: Lesson = {

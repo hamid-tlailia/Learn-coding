@@ -48,10 +48,13 @@ function require(name) {
   if (name === "react-dom" || name === "react-dom/client") return ReactDOM;
   if (name === "react-native") return window.ReactNative;
   if (name === "express") return window.express;
+  if (name === "@react-native-async-storage/async-storage") return window.AsyncStorage;
   throw new Error("Cannot find module '" + name + "'");
 }
 var useState = window.React && React.useState, useEffect = window.React && React.useEffect,
-    useRef = window.React && React.useRef, useMemo = window.React && React.useMemo;`;
+    useRef = window.React && React.useRef, useMemo = window.React && React.useMemo,
+    useContext = window.React && React.useContext, createContext = window.React && React.createContext,
+    useReducer = window.React && React.useReducer, useCallback = window.React && React.useCallback;`;
 
 /** Renders the learner's component: export default, or a top-level function App. */
 const MOUNT = `(function () {

@@ -7,15 +7,17 @@ import { useEffect, useMemo, useState } from "react";
 import { getStage, lessonKey, orderedStages } from "@/content/curriculum";
 import { useSettings } from "@/lib/settings";
 import type { FileKind, Files, Lesson } from "@/content/types";
-import { dirOf, t, type Locale } from "@/i18n/config";
+import { dirOf, t, type L, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
 import { celebrate, play } from "@/lib/feedback";
 import { completeLesson, isCompleted, isLessonOpen, levelOf, useProgress } from "@/lib/progress";
 import { buildPreview, collectLogs, isInternalLog, runChecks } from "@/lib/runner";
+import { lintCode } from "@/lib/lint";
 import { RuntimePreview } from "./RuntimePreview";
 import type { Runtime } from "@/content/types";
 import { Celebration } from "./Celebration";
 import { BulbIcon, CheckIcon, CloseIcon, UndoIcon } from "./Icons";
+import { LessonNotes } from "./LessonNotes";
 import { RichText } from "./RichText";
 import { Press, useMounted } from "./ui";
 import { Workspace } from "./Workspace";
@@ -33,19 +35,27 @@ const noCopy = {
   style: { userSelect: "none", WebkitUserSelect: "none", WebkitTouchCallout: "none" } as React.CSSProperties,
 };
 
+/** The solution stays hidden until the learner has really tried: this many unsuccessful checks. */
+const SOLUTION_AFTER = 3;
+
+function failsKey(key: string) {
+  return `cm-fails-v1:${key}`;
+}
+
 function draftKey(key: string) {
   return `satr-draft-v1:${key}`;
 }
 
-type Step = { kind: "text" | "example" | "tip" | "modern" | "quiz" | "task"; q?: number };
+type Step = { kind: "text" | "example" | "tip" | "modern" | "deep" | "quiz" | "task"; q?: number };
 
-/** One idea per card: paragraphs, example, shortcut, old-vs-modern, then the quiz or the task. */
+/** One idea per card: paragraphs, example, shortcut, old-vs-modern, going deeper, then the quiz or the task. */
 function stepsOf(lesson: Lesson): Step[] {
   return [
     ...lesson.body.map(() => ({ kind: "text" as const })),
     ...(lesson.example ? [{ kind: "example" as const }] : []),
     ...(lesson.tip ? [{ kind: "tip" as const }] : []),
     ...(lesson.modern ? [{ kind: "modern" as const }] : []),
+    ...(lesson.deep ? [{ kind: "deep" as const }] : []),
     ...(lesson.quiz ? lesson.quiz.map((_, q) => ({ kind: "quiz" as const, q })) : [{ kind: "task" as const }]),
   ];
 }
@@ -92,6 +102,8 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
   const [files, setFiles] = useState<Files>(lesson.starter);
   const [results, setResults] = useState<Record<string, boolean> | null>(null);
   const [hintsShown, setHintsShown] = useState(0);
+  const [fails, setFails] = useState(0);
+  const [warnings, setWarnings] = useState<L[]>([]);
   const [shake, setShake] = useState(0);
   const [won, setWon] = useState<{ xp: number; levelUp: boolean } | null>(null);
   const [forcePane, setForcePane] = useState<{ pane: "side"; at: number }>();
@@ -160,6 +172,14 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
       // No saved draft: keep the starter code.
     }
     // Only on opening the lesson: finishing it mid-session must not reset the editor.
+  }, [key]);
+
+  useEffect(() => {
+    try {
+      setFails(Number(window.localStorage.getItem(failsKey(key)) ?? 0) || 0);
+    } catch {
+      setFails(0);
+    }
   }, [key]);
 
   useEffect(() => {
@@ -251,9 +271,22 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
     const r = await runChecks(lesson.tasks, files, { harness: lesson.harness, settle: lesson.settle, runtime: lesson.runtime });
     setChecking(false);
     setResults(r);
+    setWarnings(lintCode(files, lesson.runtime));
     if (lesson.tasks.every((task) => r[task.id])) {
+      try {
+        window.localStorage.removeItem(failsKey(key));
+      } catch {
+        // Nothing to clear.
+      }
       win();
     } else {
+      const n = fails + 1;
+      setFails(n);
+      try {
+        window.localStorage.setItem(failsKey(key), String(n));
+      } catch {
+        // The count then lasts for this visit only.
+      }
       play("wrong");
       setShake((n) => n + 1);
       setForcePane({ pane: "side", at: Date.now() });
@@ -390,7 +423,8 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
           side={
             <div dir={tdir} lang={tl} className="flex flex-col gap-4" {...noCopy}>
               <div className="flex items-center justify-between gap-2">
-                <h2 className="font-bold">{d.task}</h2>
+                <h2 className="flex-1 font-bold">{d.task}</h2>
+                <LessonNotes lessonKey={key} title={t(lesson.title, tl)} locale={tl} />
                 {langSwitch}
               </div>
               {taskList}
@@ -401,6 +435,18 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
                 </details>
               )}
               {results && passedCount < lesson.tasks.length && <p className="text-sm font-semibold text-coral">{d.almost}</p>}
+              {warnings.length > 0 && (
+                <div className="flex flex-col gap-2 rounded-2xl border border-saffron/40 bg-saffron-soft p-4 text-[0.95rem]">
+                  <h3 className="font-bold">⚠️ {d.warnings}</h3>
+                  <ul className="flex list-inside list-disc flex-col gap-1">
+                    {warnings.map((w, i) => (
+                      <li key={i}>
+                        <RichText text={t(w, tl)} />
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <AnimatePresence>
                 {hintsShown > 0 && (
                   <motion.ol
@@ -416,6 +462,9 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
                   </motion.ol>
                 )}
               </AnimatePresence>
+              {hintsShown >= lesson.hints.length && fails < SOLUTION_AFTER && (
+                <p className="rounded-2xl bg-surface-2 p-3 text-sm text-muted">🔒 {d.solutionLocked.replace("{n}", String(SOLUTION_AFTER - fails))}</p>
+              )}
               <button
                 type="button"
                 onClick={() => {
@@ -440,13 +489,18 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
               <Press
                 onClick={() => {
                   if (hintsShown < lesson.hints.length) setHintsShown((n) => n + 1);
-                  else setFiles(lesson.solution);
+                  else if (fails >= SOLUTION_AFTER) setFiles(lesson.solution);
+                  else play("wrong");
                   setForcePane({ pane: "side", at: Date.now() });
                 }}
                 className="flex h-12 items-center gap-2 rounded-2xl bg-white/[0.08] px-4 text-sm font-semibold text-code-fg"
               >
                 <BulbIcon className="size-5 text-saffron" />
-                {hintsShown < lesson.hints.length ? `${d.hint} ${hintsShown + 1}/${lesson.hints.length}` : d.solution}
+                {hintsShown < lesson.hints.length
+                  ? `${d.hint} ${hintsShown + 1}/${lesson.hints.length}`
+                  : fails >= SOLUTION_AFTER
+                    ? d.solution
+                    : `🔒 ${fails}/${SOLUTION_AFTER}`}
               </Press>
               <motion.div className="flex-1" key={shake} animate={shake ? { x: [0, -10, 10, -6, 6, 0] } : undefined} transition={{ duration: 0.4 }}>
                 <Press
@@ -488,6 +542,7 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
             </div>
           ))}
         </div>
+        <LessonNotes lessonKey={key} title={t(lesson.title, tl)} locale={tl} />
         {langSwitch}
       </div>
 
@@ -601,6 +656,36 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
                 <p className="text-lg">
                   <RichText text={t(lesson.modern.text, tl)} />
                 </p>
+              </div>
+            )}
+
+            {s.kind === "deep" && lesson.deep && (
+              <div className="flex flex-col gap-4">
+                <h2 className="text-2xl font-bold">🔬 {d.deep}</h2>
+                {lesson.deep.more.map((p, i) => (
+                  <div key={i} className="flex gap-3">
+                    {p.icon && (
+                      <span className="text-2xl" aria-hidden="true">
+                        {p.icon}
+                      </span>
+                    )}
+                    <p className="text-[1.05rem] leading-relaxed">
+                      <RichText text={t(p, tl)} />
+                    </p>
+                  </div>
+                ))}
+                {lesson.deep.mistakes.length > 0 && (
+                  <div className="flex flex-col gap-2 rounded-2xl border border-coral/30 bg-coral/10 p-4">
+                    <h3 className="font-bold">⚠️ {d.mistakes}</h3>
+                    <ul className="flex list-inside list-disc flex-col gap-1.5">
+                      {lesson.deep.mistakes.map((m, i) => (
+                        <li key={i}>
+                          <RichText text={t(m, tl)} />
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             )}
 

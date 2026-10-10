@@ -44,7 +44,7 @@ export function AppShell({ locale, children }: { locale: Locale; children: React
   const dict = getDictionary(locale);
   const rest = pathname.replace(/^\/(ar|en)/, "").replace(/\/$/, "");
   // Lessons, exams and the playground take the whole screen: no tab bar.
-  const immersive = /^\/learn\/[^/]+\/[^/]+$/.test(rest) || rest === "/playground" || rest === "/challenge";
+  const immersive = /^\/learn\/[^/]+\/[^/]+$/.test(rest) || rest === "/playground" || rest === "/challenge" || rest === "/review";
   const active = tabs.find((t) => t.href && rest.startsWith(t.href))?.key ?? (rest === "" ? "home" : null);
 
   const mounted = useMounted();

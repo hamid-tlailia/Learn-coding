@@ -6,7 +6,7 @@ import { lessonKey, orderedStages, trackParts } from "@/content/curriculum";
 import { t, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
 import { play } from "@/lib/feedback";
-import { isStageUnlocked, useProgress } from "@/lib/progress";
+import { isStageUnlocked, PROJECT_PASS, useProgress } from "@/lib/progress";
 import { useSettings } from "@/lib/settings";
 import { CheckIcon, LockIcon } from "./Icons";
 import { TechIcon } from "./TechIcon";
@@ -100,6 +100,7 @@ export function PathMap({ locale }: { locale: Locale }) {
         const current = stage.lessons.findIndex((l) => !done(l.slug));
         const examScore = progress.exams[stage.slug] ?? 0;
         const examPassed = !!stage.exam && examScore >= stage.exam.passPercent;
+        const projectScore = progress.projects?.[stage.slug] ?? 0;
         const allLessonsDone = current === -1;
         const stageDone = stage.lessons.filter((l) => done(l.slug)).length;
 
@@ -200,6 +201,32 @@ export function PathMap({ locale }: { locale: Locale }) {
                     ) : (
                       <div className="glass flex flex-1 items-center justify-between rounded-2xl p-4 opacity-60">
                         <span className="font-display font-semibold">{d.exam}</span>
+                        <LockIcon className="size-5 text-muted" />
+                      </div>
+                    )}
+                  </li>
+                )}
+
+                {stage.project && (
+                  <li className="relative flex items-center gap-3">
+                    <Hex tone={projectScore >= PROJECT_PASS ? "done" : examPassed ? "current" : "locked"} pulse={examPassed && projectScore < PROJECT_PASS}>
+                      <span className="text-2xl">🏗️</span>
+                    </Hex>
+                    {examPassed ? (
+                      <Link href={`/${locale}/learn/${stage.slug}/project/`} onClick={() => play("select")} className="flex flex-1">
+                        <motion.div whileTap={{ scale: 0.98 }} className="glass flex flex-1 items-center justify-between gap-3 rounded-2xl p-4">
+                          <span className="flex flex-col">
+                            <span className="font-display font-semibold">{dict.project.row}</span>
+                            <span className="text-xs text-muted">{t(stage.project.title, locale)}</span>
+                          </span>
+                          <span className="flex-none rounded-full bg-accent px-3 py-1 text-xs font-bold text-white">
+                            {projectScore > 0 ? `${projectScore}%` : d.start}
+                          </span>
+                        </motion.div>
+                      </Link>
+                    ) : (
+                      <div className="glass flex flex-1 items-center justify-between rounded-2xl p-4 opacity-60">
+                        <span className="font-display font-semibold">{dict.project.row}</span>
                         <LockIcon className="size-5 text-muted" />
                       </div>
                     )}

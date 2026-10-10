@@ -143,9 +143,14 @@ export function ExamView({ locale, stageSlug }: { locale: Locale; stageSlug: str
                 {dict.retry}
               </Press>
             )}
+            {passed && stage.project && (
+              <Link href={`/${locale}/learn/${stage.slug}/project/`} className="btn-grad grid h-14 place-items-center rounded-2xl font-display text-lg font-bold">
+                🏗️ {getDictionary(locale).project.row}
+              </Link>
+            )}
             <Link
               href={back}
-              className={`grid h-14 place-items-center rounded-2xl font-display text-lg font-bold ${passed ? "btn-grad" : "border border-line bg-surface"}`}
+              className={`grid h-14 place-items-center rounded-2xl font-display text-lg font-bold ${passed && !stage.project ? "btn-grad" : "border border-line bg-surface"}`}
             >
               {dict.backToPath}
             </Link>

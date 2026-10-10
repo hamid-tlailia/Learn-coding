@@ -1,7 +1,7 @@
 import type { Lesson } from "./types";
 
 const has = (v: string) => v.length > 0;
-const printed = (logs: string[], value: string) => logs.some((l) => l.trim() === value);
+import { printed } from "./check";
 
 /* ------------------------------------------------------------------ HTML */
 
