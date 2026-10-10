@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { App } from "@capacitor/app";
+import { refreshReminder } from "@/lib/reminder";
 
 /** Native side: android/app/src/main/java/com/satr/learn/ThemePlugin.java */
 const CmTheme = registerPlugin<{ set(options: { dark: boolean; color: string }): Promise<void> }>("CmTheme");
@@ -21,6 +22,7 @@ export function NativeBridge() {
       CmTheme.set({ dark, color }).catch(() => {});
     };
     syncBars();
+    refreshReminder();
     const observer = new MutationObserver(syncBars);
     observer.observe(root, { attributes: true, attributeFilter: ["data-theme"] });
 

@@ -11,6 +11,10 @@ const config: CapacitorConfig = {
     // Keep the header clear of the status bar on Android 15+, which draws apps edge to edge.
     adjustMarginsForEdgeToEdge: "auto",
   },
+  plugins: {
+    // Status-bar icon for the daily reminder: the </> mark (res/drawable/ic_stat_code.xml).
+    LocalNotifications: { smallIcon: "ic_stat_code", iconColor: "#8B5CF6" },
+  },
 };
 
 export default config;
