@@ -1,5 +1,6 @@
 "use client";
 
+import type { Track } from "@/content/curriculum";
 import { SETTINGS_KEY } from "./keys";
 import { createStore } from "./store";
 
@@ -23,6 +24,8 @@ export type Settings = {
   goal: Goal;
   level: Level;
   studyTime: StudyTime;
+  /** Web or mobile first; the other opens once it's finished. */
+  track: Track;
   /** A daily local notification at the study time (Android app). */
   reminder: boolean;
   theme: ThemeMode;
@@ -44,6 +47,7 @@ export const defaultSettings: Settings = {
   goal: "career",
   level: "new",
   studyTime: "evening",
+  track: "web",
   reminder: true,
   theme: "dark",
   accent: "neon",

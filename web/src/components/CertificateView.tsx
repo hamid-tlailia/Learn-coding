@@ -6,7 +6,7 @@ import { Share } from "@capacitor/share";
 import { toPng } from "html-to-image";
 import { motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
-import { getStage, stages } from "@/content/curriculum";
+import { getStage, orderedStages } from "@/content/curriculum";
 import { t, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
 import { celebrate, play } from "@/lib/feedback";
@@ -53,8 +53,9 @@ export function CertificateView({ locale, stageSlug }: { locale: Locale; stageSl
 
   if (!mounted) return <div className="min-h-dvh" />;
 
-  // Skills: the HTML, CSS and JS stages up to and including this one.
-  const upTo = stages.slice(0, stages.indexOf(stage) + 1);
+  // Skills: the stages studied up to and including this one, in the learner's track order.
+  const ordered = orderedStages(settings.track);
+  const upTo = ordered.slice(0, ordered.findIndex((s) => s.slug === stage.slug) + 1);
   const skills = upTo.map((s) => s.icon).filter((i): i is Tech => ["html", "css", "js", "react", "node", "mobile"].includes(i));
   const earned = certEarned(stage.slug, progress);
   const cert = progress.certs[stage.slug];

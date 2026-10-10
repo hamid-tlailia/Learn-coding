@@ -9,6 +9,7 @@ import { getDictionary } from "@/i18n/dictionary";
 import { celebrate, play } from "@/lib/feedback";
 import { isStageUnlocked, recordExam, useProgress } from "@/lib/progress";
 import { lessonKey } from "@/content/curriculum";
+import { useSettings } from "@/lib/settings";
 import { useMounted } from "./ui";
 import { CheckIcon, CloseIcon } from "./Icons";
 import { RichText } from "./RichText";
@@ -19,6 +20,7 @@ export function ExamView({ locale, stageSlug }: { locale: Locale; stageSlug: str
   const stage = getStage(stageSlug)!;
   const exam = stage.exam!;
   const progress = useProgress();
+  const { track } = useSettings();
   const mounted = useMounted();
   const total = exam.questions.length;
   const [current, setCurrent] = useState(0);
@@ -75,7 +77,7 @@ export function ExamView({ locale, stageSlug }: { locale: Locale; stageSlug: str
 
   // The exam opens only after every lesson of an unlocked stage is done.
   const ready =
-    isStageUnlocked(stage.slug, progress) && stage.lessons.every((l) => progress.completed.includes(lessonKey(stage.slug, l.slug)));
+    isStageUnlocked(stage.slug, progress, track) && stage.lessons.every((l) => progress.completed.includes(lessonKey(stage.slug, l.slug)));
   if (!mounted) return <div className="min-h-dvh bg-paper" />;
   if (!ready && score === null) {
     return (

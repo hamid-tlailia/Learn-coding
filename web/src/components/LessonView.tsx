@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
-import { getStage, lessonKey, stages } from "@/content/curriculum";
+import { getStage, lessonKey, orderedStages } from "@/content/curriculum";
+import { useSettings } from "@/lib/settings";
 import type { FileKind, Files, Lesson } from "@/content/types";
 import { dirOf, t, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
@@ -70,6 +71,7 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
   const next = stage.lessons[index + 1];
   const key = lessonKey(stage.slug, lesson.slug);
   const progress = useProgress();
+  const { track } = useSettings();
 
   // The explanation language can differ from the interface, so learners can peek at the other one.
   const [tl, setTl] = useState<Locale>(locale);
@@ -93,8 +95,9 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
   const steps = useMemo(() => stepsOf(lesson), [lesson]);
   const back = `/${locale}/learn/`;
   // The Start stage is one continuous run: lesson after lesson, then straight into HTML.
-  const flowing = stage.slug === stages[0].slug;
-  const following = stages[stages.indexOf(stage) + 1];
+  const ordered = orderedStages(track);
+  const flowing = stage.slug === ordered[0].slug;
+  const following = ordered[ordered.findIndex((s) => s.slug === stage.slug) + 1];
   const nextHref = next
     ? `/${locale}/learn/${stage.slug}/${next.slug}/`
     : stage.exam
@@ -158,7 +161,7 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
   if (!mounted) return <div className="min-h-dvh bg-paper" />;
 
   // Lessons open in order: no jumping ahead by link.
-  if (!won && !isLessonOpen(stage.slug, lesson.slug, progress)) {
+  if (!won && !isLessonOpen(stage.slug, lesson.slug, progress, track)) {
     return (
       <div className="grid min-h-dvh place-items-center bg-paper p-6 text-center">
         <div className="flex max-w-sm flex-col items-center gap-4">

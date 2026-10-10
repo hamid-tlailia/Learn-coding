@@ -17,7 +17,7 @@ const KEY = "satr-playground-v1";
 const starter: Files = {
   html: '<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n  <title>My page</title>\n</head>\n<body>\n  <main class="card">\n  <h1>Hello, Code Master 👋</h1>\n  <p>Edit me and watch the result.</p>\n  <button id="btn">Click me</button>\n  </main>\n</body>\n</html>\n',
   css: "body {\n  font-family: system-ui;\n  display: grid;\n  place-items: center;\n  min-height: 90vh;\n  background: #f3f6f6;\n}\n\n.card {\n  background: white;\n  padding: 24px;\n  border-radius: 20px;\n  box-shadow: 0 10px 30px #0001;\n}\n\nbutton {\n  background: #0e8c7f;\n  color: white;\n  border: 0;\n  padding: 10px 18px;\n  border-radius: 12px;\n}\n",
-  js: 'const btn = document.querySelector("#btn");\nlet clicks = 0;\n\nbtn.addEventListener("click", () => {\n  clicks++;\n  btn.textContent = `Clicked ${clicks} times`;\n});\n',
+  js: 'console.log("Hello, Code Master 👋");\n\nconst btn = document.querySelector("#btn");\nlet clicks = 0;\n\nbtn?.addEventListener("click", () => {\n  clicks++;\n  btn.textContent = `Clicked ${clicks} times`;\n});\n',
 };
 
 export function Playground({ locale }: { locale: Locale }) {

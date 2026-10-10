@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { locales, t, type Locale } from "@/i18n/config";
+import type { Track } from "@/content/curriculum";
 import { getDictionary } from "@/i18n/dictionary";
 import { play } from "@/lib/feedback";
 import { photoToDataUrl } from "@/lib/image";
@@ -32,9 +33,9 @@ const SCROLL_KEY = "cm-settings-scroll";
 const APP_VERSION = "1.0.0";
 
 /** A titled group of rows, each row separated by a hairline. */
-function Section({ icon, title, children }: { icon: string; title: string; children: React.ReactNode }) {
+function Section({ icon, title, children, id }: { icon: string; title: string; children: React.ReactNode; id?: string }) {
   return (
-    <motion.section variants={rise} className="flex flex-col gap-2">
+    <motion.section id={id} variants={rise} className="flex scroll-mt-6 flex-col gap-2">
       <h2 className="flex items-center gap-2 px-1 text-sm font-bold text-muted">
         <span aria-hidden="true">{icon}</span>
         {title}
@@ -131,6 +132,10 @@ export function SettingsView({ locale }: { locale: Locale }) {
       if (y !== null) {
         window.sessionStorage.removeItem(SCROLL_KEY);
         requestAnimationFrame(() => window.scrollTo({ top: Number(y), behavior: "instant" as ScrollBehavior }));
+      } else if (window.location.hash) {
+        // Links like "change track" open a section directly; wait for the entrance animation to lay it out.
+        const id = window.location.hash.slice(1);
+        window.setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" }), 350);
       }
     } catch {
       // Nothing to restore.
@@ -300,7 +305,15 @@ export function SettingsView({ locale }: { locale: Locale }) {
         </Row>
       </Section>
 
-      <Section icon="🎯" title={st.learning}>
+      <Section id="learning" icon="🎯" title={st.learning}>
+        <Row label={o.trackTitle} hint={o.trackText} stack>
+          <Segmented<Track>
+            id="track"
+            value={s.track}
+            onChange={(track) => updateSettings({ track })}
+            options={(["web", "mobile"] as const).map((v) => ({ value: v, label: o.tracks[v].s }))}
+          />
+        </Row>
         <Row label={st.dailyGoal} stack>
           <Segmented<number>
             id="goal"

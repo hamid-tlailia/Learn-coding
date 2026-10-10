@@ -185,6 +185,28 @@ export const stages: Stage[] = allStages.map((s) => ({
   exam: s.exam && mixExam(s.slug, s.exam),
 }));
 
+/** A learner picks web or mobile first; finishing it opens the other, and Mastery comes last. */
+export type Track = "web" | "mobile";
+
+const trackOwn: Record<Track, string[]> = {
+  web: ["start", "html", "css", "javascript", "git", "react", "backend"],
+  // Mobile needs JavaScript and React first, then goes straight to React Native.
+  mobile: ["start", "javascript", "react", "mobile"],
+};
+
+/** The track's stages in study order, split into its own part, the other track's remaining stages, and the final stage. */
+export function trackParts(track: Track) {
+  const own = trackOwn[track];
+  const other = trackOwn[track === "web" ? "mobile" : "web"].filter((s) => !own.includes(s));
+  const pick = (slugs: string[]) => slugs.map((slug) => stages.find((s) => s.slug === slug)!);
+  return { own: pick(own), other: pick(other), final: pick(stages.map((s) => s.slug).filter((s) => !own.includes(s) && !other.includes(s))) };
+}
+
+export function orderedStages(track: Track): Stage[] {
+  const { own, other, final } = trackParts(track);
+  return [...own, ...other, ...final];
+}
+
 export function getStage(slug: string) {
   return stages.find((s) => s.slug === slug);
 }

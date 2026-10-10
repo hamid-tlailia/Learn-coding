@@ -1,7 +1,8 @@
 "use client";
 
-import { lessonKey, stages } from "@/content/curriculum";
+import { lessonKey, orderedStages, stages, type Track } from "@/content/curriculum";
 import type { FileKind } from "@/content/types";
+import { settingsStore } from "./settings";
 import { createStore } from "./store";
 
 /**
@@ -115,13 +116,14 @@ export function levelOf(xp: number) {
 
 /**
  * Which files the free editor offers: HTML once the learner can build a whole page,
- * then CSS and JavaScript after their first lesson in each.
+ * CSS after a CSS lesson on top of that, and JavaScript after the first JavaScript lesson
+ * (on its own for mobile learners, who start with JavaScript).
  */
 export function editorKinds(p: Progress): FileKind[] {
   const kinds: FileKind[] = [];
   if (p.completed.includes("html/page-skeleton")) kinds.push("html");
   if (kinds.length && p.completed.some((k) => k.startsWith("css/"))) kinds.push("css");
-  if (kinds.length && p.completed.some((k) => k.startsWith("javascript/"))) kinds.push("js");
+  if (p.completed.some((k) => k.startsWith("javascript/"))) kinds.push("js");
   return kinds;
 }
 
@@ -129,12 +131,17 @@ export function canUseEditor(p: Progress) {
   return editorKinds(p).length > 0;
 }
 
+/** The learner's chosen track. Read when needed; screens that show the order also subscribe to settings. */
+export function currentTrack(): Track {
+  return settingsStore.get().track ?? "web";
+}
+
 /**
- * Stages open strictly in order: a stage unlocks once every earlier stage is finished,
+ * Stages open strictly in the track's order: a stage unlocks once every earlier stage is finished,
  * meaning all its lessons are done and, when it has one, its exam is passed. No skipping.
  */
-export function isStageUnlocked(slug: string, progress: Progress): boolean {
-  for (const stage of stages) {
+export function isStageUnlocked(slug: string, progress: Progress, track: Track = currentTrack()): boolean {
+  for (const stage of orderedStages(track)) {
     if (stage.slug === slug) return stage.status === "available";
     if (stage.status !== "available") return false;
     const lessonsDone = stage.lessons.every((l) => progress.completed.includes(lessonKey(stage.slug, l.slug)));
@@ -145,8 +152,8 @@ export function isStageUnlocked(slug: string, progress: Progress): boolean {
 }
 
 /** A lesson can be opened when it is done, or it is the next one in an unlocked stage. */
-export function isLessonOpen(stageSlug: string, lessonSlug: string, progress: Progress): boolean {
-  if (!isStageUnlocked(stageSlug, progress)) return false;
+export function isLessonOpen(stageSlug: string, lessonSlug: string, progress: Progress, track: Track = currentTrack()): boolean {
+  if (!isStageUnlocked(stageSlug, progress, track)) return false;
   const stage = stages.find((s) => s.slug === stageSlug);
   if (!stage) return false;
   const next = stage.lessons.find((l) => !progress.completed.includes(lessonKey(stage.slug, l.slug)));
@@ -154,9 +161,9 @@ export function isLessonOpen(stageSlug: string, lessonSlug: string, progress: Pr
 }
 
 /** The next lesson to study: the first unfinished lesson in an unlocked stage. */
-export function nextLesson(progress: Progress) {
-  for (const stage of stages) {
-    if (!isStageUnlocked(stage.slug, progress)) continue;
+export function nextLesson(progress: Progress, track: Track = currentTrack()) {
+  for (const stage of orderedStages(track)) {
+    if (!isStageUnlocked(stage.slug, progress, track)) continue;
     const lesson = stage.lessons.find((l) => !progress.completed.includes(lessonKey(stage.slug, l.slug)));
     if (lesson) return { stage, lesson, index: stage.lessons.indexOf(lesson) };
   }

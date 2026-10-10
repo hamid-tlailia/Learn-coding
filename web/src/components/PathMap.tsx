@@ -2,14 +2,35 @@
 
 import Link from "next/link";
 import { motion } from "motion/react";
-import { lessonKey, stages } from "@/content/curriculum";
+import { lessonKey, orderedStages, trackParts } from "@/content/curriculum";
 import { t, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
 import { play } from "@/lib/feedback";
 import { isStageUnlocked, useProgress } from "@/lib/progress";
+import { useSettings } from "@/lib/settings";
 import { CheckIcon, LockIcon } from "./Icons";
 import { TechIcon } from "./TechIcon";
 import { PageHeader, useMounted } from "./ui";
+
+/** Divides the path into the chosen track, the track that opens after it, and the finale. */
+function PartHeading({ icon, label, title, action }: { icon: string; label: string; title: string; action?: { href: string; text: string } }) {
+  return (
+    <div className="mt-2 flex items-center gap-3">
+      <span className="grid size-11 flex-none place-items-center rounded-2xl bg-surface-2 text-2xl" aria-hidden="true">
+        {icon}
+      </span>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <span className="text-xs font-semibold text-muted">{label}</span>
+        <h2 className="font-display text-lg font-bold leading-tight">{title}</h2>
+      </div>
+      {action && (
+        <Link href={action.href} className="flex-none rounded-full bg-surface-2 px-3 py-1.5 text-xs font-semibold text-accent">
+          {action.text}
+        </Link>
+      )}
+    </div>
+  );
+}
 
 const HEX = "polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%)";
 
@@ -44,9 +65,13 @@ export function PathMap({ locale }: { locale: Locale }) {
   const dict = getDictionary(locale);
   const d = dict.learn;
   const progress = useProgress();
+  const { track } = useSettings();
   if (!mounted) return <div className="min-h-dvh" />;
 
-  const totalLessons = stages.reduce((n, s) => n + s.lessons.length, 0);
+  const o = dict.onboarding;
+  const ordered = orderedStages(track);
+  const parts = trackParts(track);
+  const totalLessons = ordered.reduce((n, s) => n + s.lessons.length, 0);
   const pct = totalLessons ? Math.round((progress.completed.length / totalLessons) * 100) : 0;
 
   return (
@@ -61,8 +86,16 @@ export function PathMap({ locale }: { locale: Locale }) {
         </div>
       </div>
 
-      {stages.map((stage, si) => {
-        const unlocked = isStageUnlocked(stage.slug, progress);
+      {ordered.map((stage, si) => {
+        const unlocked = isStageUnlocked(stage.slug, progress, track);
+        const heading =
+          si === 1 ? (
+            <PartHeading icon={track === "web" ? "🌐" : "📱"} label={d.yourTrack} title={o.tracks[track].t} action={{ href: `/${locale}/settings/#learning`, text: d.changeTrack }} />
+          ) : stage === parts.other[0] ? (
+            <PartHeading icon="🔓" label={d.thenOpens} title={o.tracks[track === "web" ? "mobile" : "web"].t} />
+          ) : stage === parts.final[0] ? (
+            <PartHeading icon="🏆" label={d.finalPart} title={t(stage.certificate ?? stage.title, locale)} />
+          ) : null;
         const done = (slug: string) => progress.completed.includes(lessonKey(stage.slug, slug));
         const current = stage.lessons.findIndex((l) => !done(l.slug));
         const examScore = progress.exams[stage.slug] ?? 0;
@@ -79,6 +112,7 @@ export function PathMap({ locale }: { locale: Locale }) {
             transition={{ type: "spring", stiffness: 200, damping: 24 }}
             className="flex flex-col gap-3"
           >
+            {heading}
             {/* Stage header: the course card */}
             <div className="relative overflow-hidden rounded-3xl p-5 text-white shadow-card" style={{ background: stage.gradient, opacity: unlocked ? 1 : 0.55 }}>
               <span className="absolute -end-6 -top-6 size-28 rounded-full bg-white/10" aria-hidden="true" />

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "motion/react";
-import { lessonKey, stages } from "@/content/curriculum";
+import { lessonKey, orderedStages } from "@/content/curriculum";
 import { shortcuts } from "@/content/shortcuts";
 import { t, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
@@ -48,7 +48,8 @@ export function HomeDashboard({ locale }: { locale: Locale }) {
   const h = dict.home;
   const progress = useProgress();
   const settings = useSettings();
-  const next = nextLesson(progress);
+  const track = settings.track;
+  const next = nextLesson(progress, track);
   const today = progress.daily[dayKey()] ?? 0;
   const streak = liveStreak(progress);
   const { level, into, need } = levelOf(progress.xp);
@@ -139,7 +140,7 @@ export function HomeDashboard({ locale }: { locale: Locale }) {
           </Link>
         </div>
         <div className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2">
-          {stages.map((stage, i) => {
+          {orderedStages(track).map((stage, i) => {
             const doneCount = stage.lessons.filter((l) => progress.completed.includes(lessonKey(stage.slug, l.slug))).length;
             const pct = stage.lessons.length ? Math.round((doneCount / stage.lessons.length) * 100) : 0;
             return (

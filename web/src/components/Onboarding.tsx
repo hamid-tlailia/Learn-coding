@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { useRef, useState } from "react";
-import { stages } from "@/content/curriculum";
+import { stages, type Track } from "@/content/curriculum";
 import type { Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
 import { celebrate, play } from "@/lib/feedback";
@@ -16,8 +16,8 @@ import { Avatar } from "./Avatar";
 import { Logo } from "./Logo";
 import { Press, Toggle } from "./ui";
 
-type Step = "welcome" | "name" | "photo" | "goal" | "level" | "time" | "ready";
-const order: Step[] = ["welcome", "name", "photo", "goal", "level", "time", "ready"];
+type Step = "welcome" | "name" | "photo" | "goal" | "track" | "level" | "time" | "ready";
+const order: Step[] = ["welcome", "name", "photo", "goal", "track", "level", "time", "ready"];
 
 function Choice({ on, onClick, icon, title, text }: { on: boolean; onClick: () => void; icon: string; title: string; text?: string }) {
   return (
@@ -224,6 +224,24 @@ export function Onboarding({ locale }: { locale: Locale }) {
                     />
                   ))}
                 </div>,
+              )}
+
+            {step === "track" &&
+              card(
+                o.trackTitle,
+                <div className="flex flex-col gap-3">
+                  {(["web", "mobile"] as Track[]).map((tr) => (
+                    <Choice
+                      key={tr}
+                      on={s.track === tr}
+                      onClick={() => updateSettings({ track: tr })}
+                      icon={tr === "web" ? "🌐" : "📱"}
+                      title={o.tracks[tr].t}
+                      text={o.tracks[tr].d}
+                    />
+                  ))}
+                </div>,
+                o.trackText,
               )}
 
             {step === "level" &&
