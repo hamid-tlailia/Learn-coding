@@ -36,7 +36,7 @@ export const Certificate = forwardRef<HTMLDivElement, { stage: Stage; cert: Cert
   ref,
 ) {
   const [qr, setQr] = useState("");
-  const verifyUrl = urlFor(cert.id);
+  const verifyUrl = urlFor(cert);
 
   useEffect(() => {
     QRCode.toDataURL(verifyUrl, { margin: 1, width: 240, color: { dark: "#0a0f24", light: "#ffffff" } }).then(setQr, () => setQr(""));

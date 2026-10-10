@@ -10,7 +10,7 @@ import { getStage, orderedStages } from "@/content/curriculum";
 import { t, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
 import { celebrate, play } from "@/lib/feedback";
-import { lookupCert, registerCert, verifyUrl } from "@/lib/certApi";
+import { registerCert, verifyUrl } from "@/lib/certApi";
 import { certEarned, certGrade, dayKey, issueCert, markRegistered, useProgress, type Cert } from "@/lib/progress";
 import { updateSettings, useSettings } from "@/lib/settings";
 import { Certificate } from "./Certificate";
@@ -59,14 +59,9 @@ export function CertificateView({ locale, stageSlug }: { locale: Locale; stageSl
     const current = progress.certs[stageSlug];
     if (!current || current.registered || syncing) return;
     setSyncing(true);
-    // It may already be there (e.g. registered on a previous attempt whose answer was lost).
-    const found = await lookupCert(current.id);
-    if (found !== "missing" && found !== "error" && found.name === current.name) markRegistered(stageSlug, found.id, found.date);
-    else if (found !== "error") {
-      const grade = certGrade(stageSlug, progress);
-      const r = await registerCert({ name: current.name, stage: stageSlug, score: current.score ?? grade.score, grade: current.grade ?? grade.grade });
-      if (r) markRegistered(stageSlug, r.id, r.date);
-    }
+    const grade = certGrade(stageSlug, progress);
+    const r = await registerCert({ name: current.name, stage: stageSlug, score: current.score ?? grade.score, grade: current.grade ?? grade.grade });
+    if (r) markRegistered(stageSlug, r.cert.id, r.cert.date, r.token);
     setSyncing(false);
   }
 
@@ -118,7 +113,7 @@ export function CertificateView({ locale, stageSlug }: { locale: Locale; stageSl
 
   async function share() {
     const text = `${c.heading}: ${t(stage.certificate!, locale)} · Code Master`;
-    const url = cert ? verifyUrl(cert.id) : "";
+    const url = cert ? verifyUrl(cert) : "";
     try {
       if (Capacitor.isNativePlatform()) return await save();
       if (navigator.share) await navigator.share({ title: c.heading, text, url });
@@ -130,7 +125,7 @@ export function CertificateView({ locale, stageSlug }: { locale: Locale; stageSl
 
   const linkedin =
     cert &&
-    `https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=${encodeURIComponent(stage.certificate!.en)}&organizationName=Code%20Master&issueYear=${cert.date.slice(0, 4)}&issueMonth=${Number(cert.date.slice(5, 7))}&certUrl=${encodeURIComponent(verifyUrl(cert.id))}&certId=${cert.id}`;
+    `https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=${encodeURIComponent(stage.certificate!.en)}&organizationName=Code%20Master&issueYear=${cert.date.slice(0, 4)}&issueMonth=${Number(cert.date.slice(5, 7))}&certUrl=${encodeURIComponent(verifyUrl(cert))}&certId=${cert.id}`;
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-5 px-4 py-6 lg:py-10">
@@ -172,7 +167,7 @@ export function CertificateView({ locale, stageSlug }: { locale: Locale; stageSl
               updateSettings({ fullName: name.trim() });
               const grade = certGrade(stage.slug, progress);
               const remote = await registerCert({ name: name.trim(), stage: stage.slug, score: grade.score, grade: grade.grade });
-              issueCert(stage.slug, name.trim(), withPhoto ? settings.photo : "", remote);
+              issueCert(stage.slug, name.trim(), withPhoto ? settings.photo : "", remote && { id: remote.cert.id, date: remote.cert.date, token: remote.token });
               setIssuing(false);
               play("levelUp");
               celebrate(true);
@@ -189,7 +184,7 @@ export function CertificateView({ locale, stageSlug }: { locale: Locale; stageSl
           {cert.registered ? (
             <>
               <span className="text-sm font-semibold text-ok">✓ {c.registered}</span>
-              <a href={verifyUrl(cert.id)} target="_blank" rel="noreferrer" className="flex-none text-sm font-semibold text-accent">
+              <a href={verifyUrl(cert)} target="_blank" rel="noreferrer" className="flex-none text-sm font-semibold text-accent">
                 🔍 {c.openVerify}
               </a>
             </>

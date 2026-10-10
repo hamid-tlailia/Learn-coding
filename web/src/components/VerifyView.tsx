@@ -19,18 +19,22 @@ export function VerifyView() {
   const [id, setId] = useState("");
   const [state, setState] = useState<State>({ kind: "idle" });
 
-  async function check(value: string) {
-    const clean = value.trim().toUpperCase();
-    if (!clean) return;
+  async function check(query: { token?: string; id?: string }) {
+    if (!query.token && !query.id?.trim()) return;
     setState({ kind: "loading" });
-    const r = await lookupCert(clean);
+    const r = await lookupCert(query.token ? { token: query.token } : { id: query.id!.trim().toUpperCase() });
     setState(r === "missing" ? { kind: "missing" } : r === "error" ? { kind: "error" } : { kind: "found", cert: r });
   }
 
   useEffect(() => {
-    const fromLink = new URLSearchParams(window.location.search).get("id") ?? "";
-    setId(fromLink);
-    if (fromLink) check(fromLink);
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("c");
+    const fromLink = params.get("id") ?? "";
+    if (token) check({ token });
+    else if (fromLink) {
+      setId(fromLink);
+      check({ id: fromLink });
+    }
   }, []);
 
   return (
@@ -54,7 +58,7 @@ export function VerifyView() {
         onSubmit={(e) => {
           e.preventDefault();
           window.history.replaceState(null, "", `?id=${encodeURIComponent(id.trim().toUpperCase())}`);
-          check(id);
+          check({ id });
         }}
       >
         <input
