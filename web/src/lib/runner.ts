@@ -1,4 +1,4 @@
-import type { CheckInput, Files, Runtime, Task } from "@/content/types";
+import type { CheckInput, Files, Runtime, Task, Variants } from "@/content/types";
 
 /**
  * Sent from inside the preview iframe to the app: console output and errors.
@@ -23,6 +23,8 @@ export type RunOptions = {
   runtime?: Runtime;
   /** For checks: print the rendered React tree so tasks can inspect it. */
   snapshot?: boolean;
+  /** Dark default page colors; follows the app theme when left out. */
+  dark?: boolean;
 };
 
 /**
@@ -86,6 +88,9 @@ const FORM_GUARD = `<script>addEventListener("submit",function(e){e.preventDefau
  */
 const STORAGE = `<script>(function(){try{localStorage.length;return}catch(e){}var m={};var s={getItem:function(k){return Object.prototype.hasOwnProperty.call(m,k)?m[k]:null},setItem:function(k,v){m[k]=String(v)},removeItem:function(k){delete m[k]},clear:function(){m={}},key:function(i){return Object.keys(m)[i]||null},get length(){return Object.keys(m).length}};try{Object.defineProperty(window,"localStorage",{value:s,configurable:true})}catch(e){}})()</script>`;
 
+/** Default page colors for previews in dark mode (an @layer, so any learner rule overrides it). */
+const PREVIEW_DARK = `<style>@layer cm-base{:root{color-scheme:dark}body{background:#111833;color:#e5e7f0}a{color:#93c5fd}}</style>`;
+
 /** Server lessons that use SQLite load it first (WebAssembly), then run the code once it's ready. */
 const usesDb = (js: string) => /better-sqlite3/.test(js);
 const later = (code: string) => `(function(){var s=document.createElement("script");s.textContent=${JSON.stringify(code).replace(/</g, "\\u003c")};document.body.appendChild(s)})();`;
@@ -98,7 +103,9 @@ const later = (code: string) => `(function(){var s=document.createElement("scrip
  */
 export function buildPreview(files: Files, opts: RunOptions = {}): string {
   const html = files.html ?? "";
-  const style = `<style>${files.css ?? ""}</style>`;
+  // In the app's dark theme the page starts dark too; the learner's own CSS still wins.
+  const dark = opts.dark ?? (typeof document !== "undefined" && document.documentElement.dataset.theme === "dark");
+  const style = `${dark ? PREVIEW_DARK : ""}<style>${files.css ?? ""}</style>`;
   const bridge = FORM_GUARD + STORAGE + (opts.token ? consoleBridge(opts.token) : "");
   const done = opts.token
     ? `<script>setTimeout(function(){parent.postMessage({cm:${JSON.stringify(opts.token)},type:"done"},"*")},${opts.settle ?? 50})</script>`
@@ -205,7 +212,7 @@ export async function collectLogs(files: Files, opts: Omit<RunOptions, "token"> 
     // Code that never finishes (an endless loop) still gets an answer.
     const timer = window.setTimeout(finish, 2500 + settle);
     window.addEventListener("message", onMessage);
-    frame.srcdoc = buildPreview(compiled, { ...opts, token, settle });
+    frame.srcdoc = buildPreview(compiled, { ...opts, token, settle, dark: false });
     document.body.appendChild(frame);
   });
 }
@@ -214,15 +221,23 @@ export async function collectLogs(files: Files, opts: Omit<RunOptions, "token"> 
 export async function runChecks(
   tasks: Task[],
   files: Files,
-  opts: { harness?: string; settle?: number; runtime?: Runtime } = {},
+  opts: { harness?: string; settle?: number; runtime?: Runtime; variants?: Variants } = {},
 ): Promise<Record<string, boolean>> {
   const source = files.html ?? "";
   const { rule, media } = parseCss(files.css ?? "");
   const logs = files.js !== undefined ? await collectLogs(files, { ...opts, snapshot: true }) : [];
+  const runs: string[][] = [];
+  if (opts.variants && files.js !== undefined) {
+    const find = new RegExp(opts.variants.find);
+    for (const value of opts.variants.values) {
+      const js = find.test(files.js) ? files.js.replace(find, (_m, keep: string) => `${keep}${value}`) : files.js;
+      runs.push(await collectLogs({ ...files, js }, { ...opts }));
+    }
+  }
   // React and mobile lessons are checked against what actually rendered.
   const rendered = logs.find((l) => l.startsWith("__dom__ "));
   const doc = new DOMParser().parseFromString(rendered ? rendered.slice(8) : source, "text/html");
-  const input: CheckInput = { files, doc, css: files.css ?? "", source, logs, rule, media };
+  const input: CheckInput = { files, doc, css: files.css ?? "", source, logs, rule, media, runs };
   const results: Record<string, boolean> = {};
   for (const task of tasks) {
     try {

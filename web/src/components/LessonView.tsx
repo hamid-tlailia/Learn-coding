@@ -268,7 +268,7 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
   async function check() {
     if (checking) return;
     setChecking(true);
-    const r = await runChecks(lesson.tasks, files, { harness: lesson.harness, settle: lesson.settle, runtime: lesson.runtime });
+    const r = await runChecks(lesson.tasks, files, { harness: lesson.harness, settle: lesson.settle, runtime: lesson.runtime, variants: lesson.variants });
     setChecking(false);
     setResults(r);
     setWarnings(lintCode(files, lesson.runtime));
@@ -387,7 +387,19 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
               <CloseIcon className="size-6" />
             </Link>
           </div>
-          <RuntimePreview title={d.result} files={files} runtime={lesson.runtime} className={`w-full rounded-3xl border border-line bg-white shadow-card ${lesson.runtime === "native" ? "h-[680px]" : "h-64"}`} />
+          <RuntimePreview title={d.result} files={files} runtime={lesson.runtime} className={`w-full rounded-3xl border border-line bg-preview shadow-card ${lesson.runtime === "native" ? "h-[680px]" : "h-64"}`} />
+          {warnings.length > 0 && (
+            <div className="flex flex-col gap-2 rounded-2xl border border-saffron/40 bg-saffron-soft p-4 text-[0.95rem]">
+              <h2 className="font-bold">💡 {d.betterWay}</h2>
+              <ul className="flex list-inside list-disc flex-col gap-1">
+                {warnings.map((w, i) => (
+                  <li key={i}>
+                    <RichText text={t(w, tl)} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {lesson.files.map((kind) => (
             <div key={kind} className="flex flex-col gap-1.5">
               <span className="text-sm font-semibold text-muted">
@@ -601,7 +613,7 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
                     title={d.result}
                     files={{ js: lesson.example.code, css: lesson.starter.css }}
                     runtime={lesson.runtime}
-                    className={`w-full rounded-2xl border border-line bg-white ${lesson.runtime === "native" ? "h-[680px]" : "h-48"}`}
+                    className={`w-full rounded-2xl border border-line bg-preview ${lesson.runtime === "native" ? "h-[680px]" : "h-48"}`}
                   />
                 ) : lesson.example.lang === "js" || lesson.runtime === "server" ? (
                   <ExampleOutput code={lesson.example.code} html={lesson.starter.html} label={d.run} runtime={lesson.runtime} />
@@ -612,7 +624,7 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
                     srcDoc={buildPreview(
                       lesson.example.lang === "css" ? { html: lesson.starter.html, css: lesson.example.code } : { html: lesson.example.code },
                     )}
-                    className="h-40 w-full rounded-2xl border border-line bg-white"
+                    className="h-40 w-full rounded-2xl border border-line bg-preview"
                   />
                 )}
                 <p className="text-muted">{t(lesson.example.note, tl)}</p>

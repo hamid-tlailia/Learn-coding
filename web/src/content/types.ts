@@ -19,7 +19,16 @@ export type CheckInput = {
   rule: (selector: string, property: string) => string;
   /** Media query conditions found in the CSS, e.g. "(max-width: 600px)". */
   media: string[];
+  /** Console output of each extra run, when the lesson has `variants` (one list per value). */
+  runs: string[][];
 };
+
+/**
+ * Runs the learner's code again with a different starting value, so checks can test behavior
+ * without asking for concepts not taught yet (e.g. if/else before functions). `find` is a regex
+ * whose first group is kept and whose rest is replaced by each value: `(const score = )\d+`.
+ */
+export type Variants = { find: string; values: string[] };
 
 export type Task = {
   id: string;
@@ -72,6 +81,7 @@ export type Lesson = {
   quiz?: Question[];
   /** Extra JavaScript run after the learner's code during a check, to test functions and events. */
   harness?: string;
+  variants?: Variants;
   /** How long to keep listening for console output after the code runs (asynchronous lessons). */
   settle?: number;
   runtime?: Runtime;

@@ -34,20 +34,22 @@ export const conditions: Lesson = {
     text: { ar: "`==` يحوّل الأنواع بصمت فيسبب أخطاء غريبة. المحترفون يستخدمون `===` دائمًا.", en: "`==` silently converts types and causes strange bugs. Professionals always use `===`." },
   },
   files: ["js", "html"],
-  starter: { js: "// اكتب الدالة grade هنا / Write grade here\n", html: "<h1>Conditions</h1>\n" },
+  starter: { js: "const score = 70;\n\n// إذا كانت score تساوي 50 أو أكثر اطبع \"pass\"، وإلا اطبع \"fail\"\n// If score is 50 or more print \"pass\", otherwise print \"fail\"\n", html: "<h1>Conditions</h1>\n" },
   solution: {
-    js: 'function grade(score) {\n  if (score >= 50) {\n    return "pass";\n  } else {\n    return "fail";\n  }\n}\n\nconsole.log(grade(80));\n',
+    js: 'const score = 70;\n\nif (score >= 50) {\n  console.log("pass");\n} else {\n  console.log("fail");\n}\n',
     html: "<h1>Conditions</h1>\n",
   },
-  harness: 'try { console.log("__g__", grade(50), grade(49), grade(100)); } catch (e) { console.log("__g__", "missing"); }',
+  // The code also runs with score = 50 and score = 30, to check both branches and the boundary.
+  variants: { find: "(\\b(?:const|let|var)\\s+score\\s*=\\s*)[^;\\n]+", values: ["50", "30"] },
   tasks: [
-    { id: "pass", label: { ar: "اكتب `grade(score)` تُرجع `\"pass\"` إذا كانت النتيجة 50 أو أكثر", en: "Write `grade(score)` that returns `\"pass\"` for 50 or more" }, test: ({ logs }) => logs.some((l) => /^__g__ pass \w+ pass$/.test(l.trim())) },
-    { id: "fail", label: { ar: "وتُرجع `\"fail\"` لأقل من 50", en: "and `\"fail\"` below 50" }, test: ({ logs }) => printed(logs, "__g__ pass fail pass") },
-    { id: "strict", label: { ar: "لا تستخدم `==` المزدوجة", en: "Don't use double `==`" }, test: ({ files }) => !/[^=!]==[^=]/.test(files.js ?? "") },
+    { id: "pass", label: { ar: "مع `score = 70` و `score = 50` يُطبع `pass`", en: "With `score = 70` and `score = 50`, it prints `pass`" }, test: ({ logs, runs }) => printed(logs, "pass") && !printed(logs, "fail") && printed(runs[0] ?? [], "pass") && !printed(runs[0] ?? [], "fail") },
+    { id: "fail", label: { ar: "مع `score = 30` يُطبع `fail`", en: "With `score = 30`, it prints `fail`" }, test: ({ runs }) => printed(runs[1] ?? [], "fail") && !printed(runs[1] ?? [], "pass") },
+    { id: "ifelse", label: { ar: "قرّر بـ `if` و `else` أو بالشكل المختصر `? :` (واترك اسم المتغير `score`)", en: "Decide with `if` and `else`, or the short `? :` form (keep the variable named `score`)" }, test: ({ files }) => { const js = files.js ?? ""; return ((/\bif\s*\(/.test(js) && /\belse\b/.test(js)) || /\?[^:;]+:/.test(js)) && /\bscore\b/.test(js); } },
+    { id: "strict", label: { ar: "لا تستخدم `==` المزدوجة", en: "Don't use double `==`" }, test: ({ files }) => !/[^=!<>]==[^=]/.test(files.js ?? "") },
   ],
   hints: [
-    { ar: "`function grade(score) { if (score >= 50) { return \"pass\"; } ... }`", en: "`function grade(score) { if (score >= 50) { return \"pass\"; } ... }`" },
-    { ar: "أكمل بـ `else { return \"fail\"; }`", en: "Finish with `else { return \"fail\"; }`" },
+    { ar: "`if (score >= 50) { console.log(\"pass\"); }`", en: "`if (score >= 50) { console.log(\"pass\"); }`" },
+    { ar: "أكمل بـ `else { console.log(\"fail\"); }`", en: "Finish with `else { console.log(\"fail\"); }`" },
   ],
   xp: 30,
 };

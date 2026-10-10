@@ -3,6 +3,8 @@
 /* Satr brand tokens. See design/brand-identity.html for the full identity.
    <html data-theme="light|dark" data-accent="zellige|saffron|ocean|rose|violet"> is set before paint. */
 :root {
+  /* Background behind the learner's page in previews; matches PREVIEW_DARK in lib/runner.ts. */
+  --preview: #ffffff;
   --paper: #f3f6f6;
   --surface: #ffffff;
   --surface-2: #eef3f3;
@@ -28,6 +30,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
+    --preview: #111833;
     --paper: #0a0f24;
     --surface: #131a3a;
     --surface-2: #1b2450;
@@ -49,6 +52,7 @@
 }
 
 :root[data-theme="dark"] {
+  --preview: #111833;
   --paper: #0a0f24;
   --surface: #131a3a;
   --surface-2: #1b2450;
@@ -79,6 +83,7 @@
 
 @theme inline {
   --color-paper: var(--paper);
+  --color-preview: var(--preview);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
   --color-ink: var(--ink);

@@ -258,14 +258,14 @@ export function Workspace({
         </section>
 
         {/* Result */}
-        <section className={`${pane === "result" ? "flex" : "hidden"} min-h-0 flex-1 flex-col overflow-hidden bg-white lg:flex lg:rounded-2xl`}>
-          <div className="flex items-center gap-1.5 border-b border-black/5 bg-[#f3f6f6] px-3 py-2" dir="ltr">
+        <section className={`${pane === "result" ? "flex" : "hidden"} min-h-0 flex-1 flex-col overflow-hidden bg-preview lg:flex lg:rounded-2xl`}>
+          <div className="flex items-center gap-1.5 border-b border-line bg-surface-2 px-3 py-2" dir="ltr">
             <span className="size-3 rounded-full bg-[#e5484d]" />
             <span className="size-3 rounded-full bg-[#f2a322]" />
             <span className="size-3 rounded-full bg-[#2e9e5b]" />
-            <span className="ms-2 font-mono text-xs text-[#5b6b6e]">{dict.result}</span>
+            <span className="ms-2 font-mono text-xs text-muted">{dict.result}</span>
           </div>
-          <iframe ref={frame} title={dict.result} sandbox="allow-scripts allow-forms" srcDoc={preview} className="w-full flex-1 bg-white" />
+          <iframe ref={frame} title={dict.result} sandbox="allow-scripts allow-forms" srcDoc={preview} className="w-full flex-1 bg-preview" />
           {showConsole && (
             <div className="flex max-h-[40%] min-h-28 flex-col border-t border-white/10 bg-[#070b1c]" dir="ltr">
               <span className="px-3 pt-2 font-mono text-[11px] uppercase tracking-wider text-[#6c7bb0]">Console</span>
