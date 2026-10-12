@@ -152,8 +152,8 @@ export const jsDeep: Record<string, Deep> = {
       },
       {
         icon: "🛑",
-        ar: "`for...of` تسمح لك بالخروج من الحلقة بـ `break` أو تخطي عنصر بـ `continue`، أما `map` فتمر على كل العناصر دائمًا. استخدم `map` عندما تريد مصفوفة جديدة، و `for...of` عندما تريد فقط **فعل** شيء لكل عنصر.",
-        en: "`for...of` lets you leave the loop with `break` or skip an item with `continue`, while `map` always visits every item. Use `map` when you want a new array, and `for...of` when you just want to **do** something per item.",
+        ar: "داخل `for...of` تستطيع الخروج من الحلقة بـ `break` أو تخطي عنصر بـ `continue`: مفيد عندما تبحث عن شيء وتريد التوقف عند إيجاده.",
+        en: "Inside `for...of` you can leave the loop with `break` or skip an item with `continue`: handy when you're searching for something and want to stop once you find it.",
       },
     ],
     mistakes: [
@@ -166,8 +166,8 @@ export const jsDeep: Record<string, Deep> = {
         en: "Using `for...in` instead of `for...of` on arrays → you get the indexes as strings, not the values. Use `for (const item of list)`.",
       },
       {
-        ar: "استدعاء `map` دون استخدام نتيجتها مثل `nums.map(n => n * 2);` وحدها → المصفوفة الأصلية لا تتغير. احفظ الناتج: `const doubled = nums.map(n => n * 2);`.",
-        en: "Calling `map` and ignoring its result, like `nums.map(n => n * 2);` on its own → the original array doesn't change. Store it: `const doubled = nums.map(n => n * 2);`.",
+        ar: "كتابة `prices.length()` بأقواس → خطأ لأن `length` خاصية وليست دالة. اكتب `prices.length`.",
+        en: "Writing `prices.length()` with parentheses → error, since `length` is a property, not a method. Write `prices.length`.",
       },
     ],
   },
@@ -176,13 +176,13 @@ export const jsDeep: Record<string, Deep> = {
     more: [
       {
         icon: "🔗",
-        ar: "لأن `filter` و `map` تُرجعان مصفوفات جديدة، يمكنك **سلسلتها**: `items.filter(i => i.price < 40).map(i => i.name)`. كل خطوة تقرأ مثل جملة واضحة.",
-        en: "Since `filter` and `map` return new arrays, you can **chain** them: `items.filter(i => i.price < 40).map(i => i.name)`. Each step reads like a clear sentence.",
+        ar: "`some` تسأل: هل يوجد عنصر واحد على الأقل يحقق الشرط؟ و `every`: هل كلها تحققه؟ وتُرجعان `true` أو `false`: `cart.some(i => i.price > 100)`.",
+        en: "`some` asks whether at least one item matches, and `every` whether all of them do; both return `true` or `false`: `cart.some(i => i.price > 100)`.",
       },
       {
         icon: "🪞",
-        ar: "النسخ بـ `...` **سطحي** (shallow): الكائنات الموجودة داخل المصفوفة لا تُنسخ، بل يُنسخ مرجعها فقط. للنسخ العميق الكامل استخدم `structuredClone(obj)`.",
-        en: "Copying with `...` is **shallow**: objects nested inside aren't duplicated, only their references are. For a full deep copy use `structuredClone(obj)`.",
+        ar: "`reduce` لا تقتصر على الجمع: يمكنها حساب أكبر قيمة أو عدّ الأشياء. مثلًا `nums.reduce((max, n) => n > max ? n : max, nums[0])` تجد الأكبر.",
+        en: "`reduce` isn't only for sums: it can find the largest value or count things. For example `nums.reduce((max, n) => n > max ? n : max, nums[0])` finds the biggest.",
       },
       {
         icon: "🧷",
@@ -264,12 +264,12 @@ export const jsDeep: Record<string, Deep> = {
         en: "Forgetting `new`, like `const c = Counter();` → `Class constructor cannot be invoked without 'new'`. Write `new Counter()`.",
       },
       {
-        ar: "نسيان `this.` داخل الدوال مثل `#count++` أو `owner` وحدها → خطأ أو متغير غير معرّف. اكتب `this.#count++` و `this.owner`.",
-        en: "Forgetting `this.` inside methods, like `#count++` or a bare `owner` → syntax error or undefined variable. Write `this.#count++` and `this.owner`.",
+        ar: "نسيان `this.` داخل الدوال مثل `balance += amount` أو `owner` وحدها → متغير غير معرّف. اكتب `this.balance` و `this.owner`.",
+        en: "Forgetting `this.` inside methods, like `balance += amount` or a bare `owner` → undefined variable. Write `this.balance` and `this.owner`.",
       },
       {
-        ar: "استدعاء الـ getter كدالة مثل `c.value()` → خطأ لأن `value` ليست دالة. الـ getter يُقرأ كخاصية: `c.value`.",
-        en: "Calling a getter like a function, `c.value()` → error, since `value` isn't a function. A getter is read like a property: `c.value`.",
+        ar: "كتابة `function deposit(amount) { … }` داخل الصنف → خطأ صياغة. الدوال داخل الصنف تُكتب بدون `function`: `deposit(amount) { … }`.",
+        en: "Writing `function deposit(amount) { … }` inside a class → syntax error. Methods are written without `function`: `deposit(amount) { … }`.",
       },
     ],
   },
@@ -294,16 +294,16 @@ export const jsDeep: Record<string, Deep> = {
     ],
     mistakes: [
       {
-        ar: "رمي نص بدل كائن خطأ مثل `throw \"bad age\"` → لا يوجد `error.message` ولا معلومات عن مكان الخطأ. استخدم `throw new Error(\"bad age\")`.",
-        en: "Throwing a plain string, like `throw \"bad age\"` → there's no `error.message` and no stack trace. Use `throw new Error(\"bad age\")`.",
+        ar: "وضع كل البرنامج داخل `try` واحد كبير → لا تعرف أي سطر فشل. ضع داخل `try` فقط الكود الذي قد يفشل.",
+        en: "Wrapping the whole program in one big `try` → you can't tell which line failed. Put only the code that might fail inside `try`.",
       },
       {
         ar: "ترك `catch` فارغًا `catch (e) { }` → الخطأ يختفي بصمت ولا تعرف لماذا لا يعمل البرنامج. على الأقل اطبعه بـ `console.error(e)` أو أظهر رسالة للمستخدم.",
         en: "Leaving `catch` empty, `catch (e) { }` → the error vanishes silently and you won't know why things break. At least log it with `console.error(e)` or show the user a message.",
       },
       {
-        ar: "التحقق من الرقم بـ `age === NaN` → النتيجة `false` دائمًا لأن `NaN` لا يساوي نفسه. استخدم `Number.isNaN(age)`.",
-        en: "Checking a number with `age === NaN` → always `false`, since `NaN` isn't equal to itself. Use `Number.isNaN(age)`.",
+        ar: "استعمال متغير عرّفته داخل `try` بعد انتهائه مثل `user.name` خارج الأقواس → غير معرّف هناك. استعمله داخل `try` أو عرّفه بـ `let` قبلها.",
+        en: "Using a variable declared inside `try` after it ends, like `user.name` outside the braces → it isn't defined there. Use it inside `try`, or declare it with `let` before.",
       },
     ],
   },

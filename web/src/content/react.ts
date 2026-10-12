@@ -1,9 +1,8 @@
+import { printed } from "./check";
 import type { Exam, Lesson } from "./types";
 
 const text = (el: Element | null) => (el?.textContent ?? "").trim();
 
-/** A small JSON "API" as a data URL, so fetch works offline and in the sandbox. */
-const POSTS_URL = `data:application/json,${encodeURIComponent(JSON.stringify([{ id: 1, title: "Learn React" }, { id: 2, title: "Build a portfolio" }, { id: 3, title: "Ship to Vercel" }]))}`;
 
 /** React lessons run real React 18 in the preview; checks read the rendered page. */
 export const reactLessons: Lesson[] = [
@@ -46,26 +45,26 @@ export const reactLessons: Lesson[] = [
     body: [
       { icon: "🧬", ar: "**JSX** يشبه HTML لكنه داخل JavaScript. ضع أي تعبير بين `{ }`: `<h1>Hi {name}</h1>` أو `<p>{2 + 3}</p>`.", en: "**JSX** looks like HTML but lives in JavaScript. Put any expression in `{ }`: `<h1>Hi {name}</h1>` or `<p>{2 + 3}</p>`." },
       { icon: "🏷️", ar: "فروق مهمة: `className` بدل `class`، وكل وسم يجب إغلاقه حتى `<img />`، و `style` يأخذ كائنًا: `style={{ color: \"red\" }}`.", en: "Key differences: `className` instead of `class`, every tag must close even `<img />`, and `style` takes an object: `style={{ color: \"red\" }}`." },
-      { icon: "❓", ar: "العرض الشرطي: `{isOnline && <span>🟢</span>}` يظهر فقط إذا كان الشرط صحيحًا، و `{x ? <A /> : <B />}` يختار بين اثنين.", en: "Conditional rendering: `{isOnline && <span>🟢</span>}` shows only when true, and `{x ? <A /> : <B />}` picks one of two." },
+      { icon: "🧩", ar: "الدالة تُرجع **عنصرًا واحدًا يغلّف الباقي**، لذلك نضع `<h1>` و `<p>` داخل `<div>` واحد. والقوسان `( )` بعد `return` يسمحان بكتابة JSX على عدة أسطر.", en: "The function returns **one element that wraps the rest**, so `<h1>` and `<p>` go inside one `<div>`. The `( )` after `return` lets JSX span several lines." },
     ],
     example: {
-      code: 'const user = { name: "Sara", online: true };\n\nfunction App() {\n  return (\n    <div className="card">\n      <h1>Hi {user.name}</h1>\n      {user.online && <span>🟢 Online</span>}\n      <p>{user.online ? "Say hello!" : "Away"}</p>\n    </div>\n  );\n}',
-      note: { ar: "متغيرات داخل JSX، وعرض شرطي.", en: "Variables in JSX, and conditional rendering." },
+      code: 'const user = { name: "Sara", city: "Tunis" };\n\nfunction App() {\n  return (\n    <div className="card">\n      <h1>Hi {user.name}</h1>\n      <p>From {user.city}, {2 + 3} lessons done</p>\n    </div>\n  );\n}',
+      note: { ar: "قيم من كائن داخل JSX بين `{ }`.", en: "Values from an object inside JSX, in `{ }`." },
     },
     files: ["js", "css"],
-    starter: { js: 'const course = { title: "React", lessons: 8, isNew: true };\n\nfunction App() {\n  \n}\n', css: ".card {\n  padding: 16px;\n  border-radius: 16px;\n  background: #eef;\n}\n" },
+    starter: { js: 'const course = { title: "React", lessons: 8 };\n\nfunction App() {\n  \n}\n', css: ".card {\n  padding: 16px;\n  border-radius: 16px;\n  background: #eef;\n}\n" },
     solution: {
-      js: 'const course = { title: "React", lessons: 8, isNew: true };\n\nfunction App() {\n  return (\n    <div className="card">\n      <h1>{course.title}</h1>\n      <p>{course.lessons} lessons</p>\n      {course.isNew && <span>NEW</span>}\n    </div>\n  );\n}\n',
+      js: 'const course = { title: "React", lessons: 8 };\n\nfunction App() {\n  return (\n    <div className="card">\n      <h1>{course.title}</h1>\n      <p>{course.lessons} lessons</p>\n    </div>\n  );\n}\n',
       css: ".card {\n  padding: 16px;\n  border-radius: 16px;\n  background: #eef;\n}\n",
     },
     tasks: [
-      { id: "class", label: { ar: "غلّف المحتوى بـ `<div className=\"card\">`", en: "Wrap the content in `<div className=\"card\">`" }, test: ({ doc }) => !!doc.querySelector("div.card") },
-      { id: "expr", label: { ar: "اعرض `course.title` في `<h1>` و `course.lessons` في `<p>`", en: "Show `course.title` in an `<h1>` and `course.lessons` in a `<p>`" }, test: ({ doc }) => /\bReact\b/.test(text(doc.querySelector(".card h1"))) && /8/.test(text(doc.querySelector(".card p"))) },
-      { id: "cond", label: { ar: "اعرض `<span>NEW</span>` فقط إذا كان `course.isNew`", en: "Show `<span>NEW</span>` only when `course.isNew`" }, test: ({ doc, files }) => /isNew\s*(&&|\?)/.test(files.js ?? "") && text(doc.querySelector(".card span")) === "NEW" },
+      { id: "class", label: { ar: "اجعل `App` تُرجع `<div className=\"card\">`", en: "Make `App` return a `<div className=\"card\">`" }, test: ({ doc }) => !!doc.querySelector("div.card") },
+      { id: "title", label: { ar: "داخله اعرض `{course.title}` في `<h1>`", en: "Inside it, show `{course.title}` in an `<h1>`" }, test: ({ doc, files }) => /course\.title/.test(files.js ?? "") && /\bReact\b/.test(text(doc.querySelector(".card h1"))) },
+      { id: "lessons", label: { ar: "وتحته اعرض `{course.lessons}` في `<p>`", en: "Below it, show `{course.lessons}` in a `<p>`" }, test: ({ doc, files }) => /course\.lessons/.test(files.js ?? "") && /8/.test(text(doc.querySelector(".card p"))) },
     ],
     hints: [
-      { ar: '`<div className="card"><h1>{course.title}</h1><p>{course.lessons} lessons</p></div>`', en: '`<div className="card"><h1>{course.title}</h1><p>{course.lessons} lessons</p></div>`' },
-      { ar: "`{course.isNew && <span>NEW</span>}`", en: "`{course.isNew && <span>NEW</span>}`" },
+      { ar: '`return ( <div className="card"> … </div> );`', en: '`return ( <div className="card"> … </div> );`' },
+      { ar: '`<h1>{course.title}</h1>` ثم `<p>{course.lessons} lessons</p>`', en: '`<h1>{course.title}</h1>` then `<p>{course.lessons} lessons</p>`' },
     ],
     xp: 30,
   },
@@ -196,31 +195,30 @@ export const reactLessons: Lesson[] = [
   {
     slug: "effects",
     runtime: "react",
-    title: { ar: "التأثيرات وجلب البيانات: useEffect", en: "Effects and data: useEffect" },
+    title: { ar: "التأثيرات: useEffect", en: "Effects: useEffect" },
     body: [
-      { icon: "🔌", ar: "`useEffect` لتنفيذ شيء **بعد** عرض المكوّن: جلب بيانات، مؤقت، الاشتراك في حدث.", en: "`useEffect` runs something **after** the component renders: fetching data, a timer, subscribing to an event." },
-      { icon: "📋", ar: "المصفوفة في آخره تحدد متى يعمل: `[]` مرة واحدة عند الظهور، و `[userId]` كلما تغيّر `userId`.", en: "The array at the end says when it runs: `[]` once on mount, `[userId]` every time `userId` changes." },
-      { icon: "⏳", ar: "النمط المعتاد: حالة للبيانات وحالة للتحميل. اعرض «جارٍ التحميل…» حتى تصل البيانات، ثم اعرضها.", en: "The usual pattern: one state for data and one for loading. Show \"Loading…\" until the data arrives, then render it." },
+      { icon: "🔌", ar: "`useEffect` ينفّذ كودًا **بعد** أن يظهر المكوّن على الشاشة. نستعمله لأشياء خارج العرض نفسه: طباعة، مؤقت، تغيير عنوان التبويب، أو جلب بيانات (الدرس القادم).", en: "`useEffect` runs code **after** the component shows on screen. Use it for things outside the rendering itself: logging, a timer, the tab title, or fetching data (coming soon)." },
+      { icon: "🧾", ar: "تكتبه هكذا: `useEffect(() => { … }, [count]);`. الجزء الأول ما تريد تنفيذه، والمصفوفة في آخره تقول **متى** يُعاد.", en: "Write it like this: `useEffect(() => { … }, [count]);`. The first part is what to run, and the array at the end says **when** to run it again." },
+      { icon: "📋", ar: "`[]` فارغة: مرة واحدة عند الظهور فقط. `[count]`: عند الظهور ثم كلما تغيّر `count`.", en: "An empty `[]`: once, when it first shows. `[count]`: when it shows, then every time `count` changes." },
     ],
     example: {
-      code: `import { useEffect, useState } from "react";\n\nconst POSTS_URL = "${POSTS_URL}";\n\nexport default function App() {\n  const [posts, setPosts] = useState([]);\n  useEffect(() => {\n    async function load() {\n      const res = await fetch(POSTS_URL);\n      setPosts(await res.json());\n    }\n    load();\n  }, []);\n  return <ul>{posts.map((p) => <li key={p.id}>{p.title}</li>)}</ul>;\n}`,
-      note: { ar: "جلب المقالات مرة واحدة عند الظهور، ثم عرضها.", en: "Fetch posts once on mount, then show them." },
+      code: 'import { useEffect, useState } from "react";\n\nexport default function App() {\n  const [name, setName] = useState("Sara");\n\n  useEffect(() => {\n    document.title = `Hi ${name}`;\n  }, [name]);\n\n  return <button onClick={() => setName("Omar")}>Switch</button>;\n}',
+      note: { ar: "عنوان التبويب يتبع `name` كلما تغيّر.", en: "The tab title follows `name` whenever it changes." },
     },
     files: ["js"],
-    starter: { js: `import { useEffect, useState } from "react";\n\nconst POSTS_URL = "${POSTS_URL}";\n\nexport default function App() {\n  \n}\n` },
-    solution: {
-      js: `import { useEffect, useState } from "react";\n\nconst POSTS_URL = "${POSTS_URL}";\n\nexport default function App() {\n  const [posts, setPosts] = useState([]);\n  const [loading, setLoading] = useState(true);\n\n  useEffect(() => {\n    async function load() {\n      const res = await fetch(POSTS_URL);\n      setPosts(await res.json());\n      setLoading(false);\n    }\n    load();\n  }, []);\n\n  if (loading) return <p>Loading…</p>;\n  return (\n    <ul>\n      {posts.map((p) => (\n        <li key={p.id}>{p.title}</li>\n      ))}\n    </ul>\n  );\n}\n`,
-    },
+    starter: { js: 'import { useEffect, useState } from "react";\n\nexport default function App() {\n  const [count, setCount] = useState(0);\n\n  return (\n    <div>\n      <p>Clicks: {count}</p>\n      <button onClick={() => setCount(count + 1)}>Add</button>\n    </div>\n  );\n}\n' },
+    solution: { js: 'import { useEffect, useState } from "react";\n\nexport default function App() {\n  const [count, setCount] = useState(0);\n\n  useEffect(() => {\n    console.log(`Count: ${count}`);\n  }, [count]);\n\n  return (\n    <div>\n      <p>Clicks: {count}</p>\n      <button onClick={() => setCount(count + 1)}>Add</button>\n    </div>\n  );\n}\n' },
+    settle: 900,
+    harness: 'setTimeout(function () { var b = Array.prototype.find.call(document.querySelectorAll("button"), function (x) { return /add/i.test(x.textContent); }); console.log("__clicked__"); if (b) b.click(); }, 300);',
     tasks: [
-      { id: "effect", label: { ar: "اجلب `POSTS_URL` داخل `useEffect` مع `[]`", en: "Fetch `POSTS_URL` inside `useEffect` with `[]`" }, test: ({ files }) => /useEffect\(/.test(files.js ?? "") && /fetch\(\s*POSTS_URL/.test(files.js ?? "") && /useEffect\([\s\S]*?,\s*\[\s*\]\s*\)/.test(files.js ?? "") },
-      { id: "loading", label: { ar: "اعرض «Loading…» أثناء التحميل بحالة `loading`", en: "Show \"Loading…\" while loading, with a `loading` state" }, test: ({ files }) => /useState\(\s*true\s*\)/.test(files.js ?? "") && /Loading/.test(files.js ?? "") },
-      { id: "list", label: { ar: "اعرض العناوين الثلاثة في `<li>`", en: "Show the three titles in `<li>` items" }, test: ({ doc }) => doc.querySelectorAll("li").length === 3 },
+      { id: "effect", label: { ar: "أضف `useEffect` يطبع `Count: 0` عند ظهور الصفحة", en: "Add a `useEffect` that prints `Count: 0` when the page shows" }, test: ({ files, logs }) => /useEffect\(/.test(files.js ?? "") && printed(logs, "Count: 0") },
+      { id: "deps", label: { ar: "اجعل مصفوفته `[count]` فيطبع `Count: 1` بعد الضغط على `Add`", en: "Give it `[count]` so it prints `Count: 1` after clicking `Add`" }, test: ({ logs }) => { const i = logs.findIndex((l) => l === "__clicked__"); return i >= 0 && printed(logs.slice(i), "Count: 1"); } },
     ],
     hints: [
-      { ar: "`useEffect(() => { async function load() { … } load(); }, []);`", en: "`useEffect(() => { async function load() { … } load(); }, []);`" },
-      { ar: "`if (loading) return <p>Loading…</p>;` ثم القائمة", en: "`if (loading) return <p>Loading…</p>;` then the list" },
+      { ar: "قبل `return`: `useEffect(() => { console.log(`Count: ${count}`); }, [count]);`", en: "Before `return`: `useEffect(() => { console.log(`Count: ${count}`); }, [count]);`" },
+      { ar: "مع `[]` يطبع مرة واحدة فقط؛ ضع `count` داخل المصفوفة ليُعاد عند كل تغيير.", en: "With `[]` it prints only once; put `count` in the array so it runs again on every change." },
     ],
-    xp: 40,
+    xp: 35,
   },
   {
     slug: "nextjs",

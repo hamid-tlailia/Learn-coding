@@ -61,7 +61,7 @@ Each task has a `test` function that receives the parsed HTML document and the l
 Start here (how the web works, thinking like a programmer, tools) → HTML → CSS → JavaScript → Git →
 React.js (+ Next.js) → Backend → Mobile (React Native / Expo) → Mastery.
 
-87 lessons in 9 stages, all available. Every stage after Start ends with an exam, and the
+96 lessons in 9 stages, all available. Every stage after Start ends with an exam, and the
 certificate stages also end with a project:
 
 | Stage | Lessons | Certificate |

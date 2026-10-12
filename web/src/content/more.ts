@@ -319,11 +319,11 @@ export const mobileMore: Lesson[] = [
   {
     slug: "rn-fetch",
     runtime: "native",
-    title: { ar: "جلب البيانات في التطبيق: التحميل والأخطاء", en: "Fetching data in the app: loading and errors" },
+    title: { ar: "جلب البيانات في التطبيق: انتظر ثم اعرض", en: "Fetching data in the app: wait, then show" },
     body: [
       { icon: "🌐", ar: "معظم التطبيقات تعرض بيانات من خادم. في React Native نستخدم نفس `fetch` الذي تعرفه، داخل `useEffect`.", en: "Most apps show data from a server. In React Native we use the same `fetch` you know, inside `useEffect`." },
       { icon: "⏳", ar: "الشبكة على الهاتف قد تكون بطيئة، فاعرض **حالة تحميل**: `const [loading, setLoading] = useState(true);` و `<ActivityIndicator />` (دائرة تدور) حتى تصل البيانات.", en: "Phone networks can be slow, so show a **loading state**: `const [loading, setLoading] = useState(true);` and an `<ActivityIndicator />` (a spinner) until the data arrives." },
-      { icon: "🧯", ar: "وقد تفشل الشبكة: التقط الخطأ بـ `try/catch` واعرض رسالة، ثم أوقف التحميل في `finally`.", en: "And the network can fail: catch the error with `try/catch` and show a message, then stop loading in `finally`." },
+      { icon: "📋", ar: "عند وصول البيانات: `setPlaces(...)` ثم `setLoading(false)`، فيختفي المؤشر وتظهر القائمة في `<FlatList>` كما تعلمت.", en: "When the data arrives: `setPlaces(...)`, then `setLoading(false)`, so the spinner goes away and the list shows in a `<FlatList>` as you learned." },
     ],
     example: {
       code: 'import { View, Text, ActivityIndicator } from "react-native";\n\nexport default function App() {\n  const [loading, setLoading] = useState(true);\n  useEffect(() => {\n    const id = setTimeout(() => setLoading(false), 1500);\n    return () => clearTimeout(id);\n  }, []);\n  return (\n    <View style={{ padding: 24 }}>\n      {loading ? <ActivityIndicator size="large" /> : <Text>Ready ✅</Text>}\n    </View>\n  );\n}',
@@ -332,7 +332,7 @@ export const mobileMore: Lesson[] = [
     files: ["js"],
     starter: { js: `import { View, Text, FlatList, ActivityIndicator } from "react-native";\n\nconst PLACES_URL = "${PLACES_URL}";\n\nexport default function App() {\n  \n}\n` },
     solution: {
-      js: `import { View, Text, FlatList, ActivityIndicator } from "react-native";\n\nconst PLACES_URL = "${PLACES_URL}";\n\nexport default function App() {\n  const [places, setPlaces] = useState([]);\n  const [loading, setLoading] = useState(true);\n  const [error, setError] = useState("");\n\n  useEffect(() => {\n    async function load() {\n      try {\n        const res = await fetch(PLACES_URL);\n        setPlaces(await res.json());\n      } catch (e) {\n        setError("Could not load places");\n      } finally {\n        setLoading(false);\n      }\n    }\n    load();\n  }, []);\n\n  if (loading) return <ActivityIndicator size="large" />;\n  if (error) return <Text>{error}</Text>;\n\n  return (\n    <FlatList\n      data={places}\n      keyExtractor={(item) => String(item.id)}\n      renderItem={({ item }) => <Text style={{ padding: 12, fontSize: 18 }}>{item.name}</Text>}\n    />\n  );\n}\n`,
+      js: `import { View, Text, FlatList, ActivityIndicator } from "react-native";\n\nconst PLACES_URL = "${PLACES_URL}";\n\nexport default function App() {\n  const [places, setPlaces] = useState([]);\n  const [loading, setLoading] = useState(true);\n\n  useEffect(() => {\n    async function load() {\n      const res = await fetch(PLACES_URL);\n      setPlaces(await res.json());\n      setLoading(false);\n    }\n    load();\n  }, []);\n\n  if (loading) return <ActivityIndicator size="large" />;\n\n  return (\n    <FlatList\n      data={places}\n      keyExtractor={(item) => String(item.id)}\n      renderItem={({ item }) => <Text style={{ padding: 12, fontSize: 18 }}>{item.name}</Text>}\n    />\n  );\n}\n`,
     },
     settle: 1200,
     harness: `(function () {
@@ -347,15 +347,15 @@ export const mobileMore: Lesson[] = [
     tasks: [
       { id: "spinner", label: { ar: "اعرض `<ActivityIndicator />` أثناء التحميل", en: "Show an `<ActivityIndicator />` while loading" }, test: ({ logs, files }) => /ActivityIndicator/.test(files.js ?? "") && (c(logs, "spinner", true) || /loading\s*\?|if\s*\(\s*loading\s*\)/.test(files.js ?? "")) },
       { id: "fetch", label: { ar: "اجلب `PLACES_URL` بـ `fetch` داخل `useEffect`", en: "Fetch `PLACES_URL` with `fetch` inside `useEffect`" }, test: ({ files }) => /useEffect\([\s\S]*fetch\(\s*PLACES_URL\s*\)/.test(files.js ?? "") },
-      { id: "list", label: { ar: "اعرض أسماء المدن في `<FlatList>`", en: "Show the city names in a `<FlatList>`" }, test: ({ logs }) => c(logs, "list", true) },
-      { id: "errors", label: { ar: "تعامل مع الخطأ بـ `try/catch` وأوقف التحميل بعدها", en: "Handle errors with `try/catch` and stop loading afterwards" }, test: ({ logs, files }) => /try\s*\{[\s\S]*catch\s*\(/.test(files.js ?? "") && c(logs, "done", true) },
+      { id: "list", label: { ar: "بعد الوصول أوقف التحميل واعرض أسماء المدن في `<FlatList>`", en: "When it arrives, stop loading and show the city names in a `<FlatList>`" }, test: ({ logs }) => c(logs, "list", true) && c(logs, "done", true) },
     ],
     hints: [
       { ar: "`const [loading, setLoading] = useState(true);` و `if (loading) return <ActivityIndicator size=\"large\" />;`", en: "`const [loading, setLoading] = useState(true);` and `if (loading) return <ActivityIndicator size=\"large\" />;`" },
-      { ar: "داخل `useEffect`: `try { const res = await fetch(PLACES_URL); setPlaces(await res.json()); } catch (e) { … } finally { setLoading(false); }`", en: "Inside `useEffect`: `try { const res = await fetch(PLACES_URL); setPlaces(await res.json()); } catch (e) { … } finally { setLoading(false); }`" },
+      { ar: "داخل `useEffect`: `async function load() { const res = await fetch(PLACES_URL); setPlaces(await res.json()); setLoading(false); } load();`", en: "Inside `useEffect`: `async function load() { const res = await fetch(PLACES_URL); setPlaces(await res.json()); setLoading(false); } load();`" },
     ],
     deep: {
       more: [
+        { icon: "🧯", ar: "الشبكة على الهاتف قد تنقطع. في التطبيق الحقيقي ضع الجلب داخل `try { … } catch { setError(\"…\") } finally { setLoading(false) }` واعرض رسالة بدل شاشة فارغة.", en: "Phone networks drop. In a real app wrap the fetch in `try { … } catch { setError(\"…\") } finally { setLoading(false) }` and show a message instead of a blank screen." },
         { icon: "🔁", ar: "أضف إمكانية **السحب للتحديث**: `FlatList` يقبل `refreshing={loading}` و `onRefresh={load}`، وهي حركة يتوقعها كل مستخدم هاتف.", en: "Add **pull to refresh**: `FlatList` accepts `refreshing={loading}` and `onRefresh={load}`, a gesture every phone user expects." },
         { icon: "🏠", ar: "على المحاكي، `localhost` يعني الهاتف نفسه وليس حاسوبك. لخادمك المحلي استخدم عنوان IP حاسوبك في الشبكة، مثل `http://192.168.1.5:3000`.", en: "On a device or emulator, `localhost` means the phone itself, not your computer. For your local server use your computer's network IP, like `http://192.168.1.5:3000`." },
         { icon: "🧰", ar: "في التطبيقات الكبيرة يستخدم المحترفون مكتبة **TanStack Query** لإدارة التحميل والتخزين المؤقت وإعادة المحاولة تلقائيًا بدل كتابتها كل مرة.", en: "In bigger apps, pros use **TanStack Query** to handle loading, caching and retries automatically instead of hand-writing them each time." },

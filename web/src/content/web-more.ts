@@ -100,7 +100,7 @@ export const splitJoin: Lesson = {
   xp: 25,
 };
 
-const STORAGE_HTML = '<h1>My settings</h1>\n<p id="visits">Visits: 0</p>\n<button id="theme">Toggle theme</button>\n';
+const STORAGE_HTML = '<h1>My page</h1>\n<p id="visits">Visits: 0</p>\n';
 
 export const webStorage: Lesson = {
   slug: "web-storage",
@@ -120,19 +120,18 @@ export const webStorage: Lesson = {
   files: ["js", "html"],
   starter: { js: "", html: STORAGE_HTML },
   solution: {
-    js: 'const visits = Number(localStorage.getItem("visits") ?? 0) + 1;\nlocalStorage.setItem("visits", String(visits));\ndocument.querySelector("#visits").textContent = `Visits: ${visits}`;\n\nconst saved = localStorage.getItem("theme");\nif (saved === "dark") document.body.classList.add("dark");\n\ndocument.querySelector("#theme").addEventListener("click", () => {\n  document.body.classList.toggle("dark");\n  localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");\n});\n',
+    js: 'const visits = Number(localStorage.getItem("visits") ?? 0) + 1;\nlocalStorage.setItem("visits", String(visits));\ndocument.querySelector("#visits").textContent = `Visits: ${visits}`;\n',
     html: STORAGE_HTML,
   },
-  harness: 'console.log("__c__ visits " + localStorage.getItem("visits")); console.log("__c__ shown " + (document.querySelector("#visits") || {}).textContent); var t = document.querySelector("#theme"); if (t) t.click(); console.log("__c__ theme " + localStorage.getItem("theme") + " " + document.body.classList.contains("dark")); if (t) t.click(); console.log("__c__ theme2 " + localStorage.getItem("theme"));',
+  harness: 'console.log("__c__ visits " + localStorage.getItem("visits")); console.log("__c__ shown " + (document.querySelector("#visits") || {}).textContent);',
   tasks: [
-    { id: "count", label: { ar: "اقرأ `visits` وزِده واحدًا واحفظه بـ `setItem`", en: "Read `visits`, add one and save it with `setItem`" }, test: ({ logs }) => c(logs, "visits", 1) },
+    { id: "read", label: { ar: "اقرأ `visits` بـ `getItem` وحوّله إلى رقم بـ `Number`، ثم زِده واحدًا", en: "Read `visits` with `getItem`, turn it into a number with `Number`, then add one" }, test: ({ files }) => /getItem\(\s*["'`]visits["'`]\s*\)/.test(files.js ?? "") && /Number\(|parseInt\(|\+\s*localStorage/.test(files.js ?? "") },
+    { id: "count", label: { ar: "احفظ العدد الجديد بـ `setItem(\"visits\", ...)`", en: "Save the new count with `setItem(\"visits\", ...)`" }, test: ({ logs }) => c(logs, "visits", 1) },
     { id: "show", label: { ar: "اعرضه في `#visits` بالشكل `Visits: 1`", en: "Show it in `#visits` as `Visits: 1`" }, test: ({ logs }) => c(logs, "shown", "Visits: 1") },
-    { id: "theme", label: { ar: "زر `#theme` يبدّل `dark` على `<body>` ويحفظ `dark` أو `light`", en: "`#theme` toggles `dark` on `<body>` and saves `dark` or `light`" }, test: ({ logs }) => c(logs, "theme", "dark true") && c(logs, "theme2", "light") },
-    { id: "load", label: { ar: "عند البداية اقرأ الثيم المحفوظ وطبّقه", en: "On start, read the saved theme and apply it" }, test: ({ files }) => /getItem\(\s*(["'`]theme["'`]|\w+)\s*\)/.test(files.js ?? "") && /theme/.test(files.js ?? "") },
   ],
   hints: [
-    { ar: '`const visits = Number(localStorage.getItem("visits") ?? 0) + 1; localStorage.setItem("visits", String(visits));`', en: '`const visits = Number(localStorage.getItem("visits") ?? 0) + 1; localStorage.setItem("visits", String(visits));`' },
-    { ar: '`localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");`', en: '`localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");`' },
+    { ar: '`const visits = Number(localStorage.getItem("visits") ?? 0) + 1;`', en: '`const visits = Number(localStorage.getItem("visits") ?? 0) + 1;`' },
+    { ar: '`localStorage.setItem("visits", String(visits));` ثم `document.querySelector("#visits").textContent = `Visits: ${visits}`;`', en: '`localStorage.setItem("visits", String(visits));` then `document.querySelector("#visits").textContent = `Visits: ${visits}`;`' },
   ],
   deep: {
     more: [
@@ -190,11 +189,11 @@ const PEOPLE_URL = `data:application/json,${encodeURIComponent(JSON.stringify([{
 export const dataLoading: Lesson = {
   slug: "data-loading",
   runtime: "react",
-  title: { ar: "تحميل البيانات: الانتظار والأخطاء", en: "Loading data: waiting and errors" },
+  title: { ar: "تحميل البيانات: انتظر ثم اعرض", en: "Loading data: wait, then show" },
   body: [
-    { icon: "🌐", ar: "كل واجهة تجلب بيانات تمر بثلاث حالات: **تحميل**، **نجاح**، أو **خطأ**. المستخدم يجب أن يعرف دائمًا أين هو، لا شاشة فارغة.", en: "Every interface that fetches data goes through three states: **loading**, **success** or **error**. The user should always know which, never stare at a blank screen." },
-    { icon: "🗃️", ar: "ثلاث حالات بـ `useState`: `const [users, setUsers] = useState([]);` و `const [loading, setLoading] = useState(true);` و `const [error, setError] = useState(\"\");`.", en: "Three pieces of state with `useState`: `const [users, setUsers] = useState([]);`, `const [loading, setLoading] = useState(true);` and `const [error, setError] = useState(\"\");`." },
-    { icon: "🧯", ar: "داخل `useEffect`: `try { … } catch { setError(…) } finally { setLoading(false) }`. ثم اعرض: `if (loading) return <p>Loading…</p>;` و `if (error) return <p>{error}</p>;`.", en: "Inside `useEffect`: `try { … } catch { setError(…) } finally { setLoading(false) }`. Then render: `if (loading) return <p>Loading…</p>;` and `if (error) return <p>{error}</p>;`." },
+    { icon: "🌐", ar: "الآن نجمع `useEffect` و `fetch`: نجلب البيانات **مرة واحدة** عند ظهور المكوّن، لذلك نستعمل `[]` فارغة.", en: "Now we combine `useEffect` and `fetch`: fetch the data **once** when the component shows, so use an empty `[]`." },
+    { icon: "🗃️", ar: "حالتان بـ `useState`: `const [people, setPeople] = useState([]);` للبيانات، و `const [loading, setLoading] = useState(true);` لنعرف هل ما زلنا ننتظر.", en: "Two pieces of state with `useState`: `const [people, setPeople] = useState([]);` for the data, and `const [loading, setLoading] = useState(true);` to know if we're still waiting." },
+    { icon: "⏳", ar: "دالة `useEffect` نفسها لا تكون `async`، فنعرّف داخلها دالة `async function load() { … }` ونستدعيها. وبعد وصول البيانات: `setPeople(...)` ثم `setLoading(false)`. وفي العرض: `if (loading) return <p>Loading…</p>;`.", en: "The `useEffect` callback itself can't be `async`, so define `async function load() { … }` inside it and call it. When the data arrives: `setPeople(...)`, then `setLoading(false)`. In the render: `if (loading) return <p>Loading…</p>;`." },
   ],
   example: {
     code: 'function App() {\n  const [loading, setLoading] = useState(true);\n  useEffect(() => {\n    const id = setTimeout(() => setLoading(false), 1200);\n    return () => clearTimeout(id);\n  }, []);\n  if (loading) return <p>⏳ Loading…</p>;\n  return <h2>Ready ✅</h2>;\n}',
@@ -203,7 +202,7 @@ export const dataLoading: Lesson = {
   files: ["js"],
   starter: { js: `const PEOPLE_URL = "${PEOPLE_URL}";\n\nexport default function App() {\n  \n}\n` },
   solution: {
-    js: `const PEOPLE_URL = "${PEOPLE_URL}";\n\nexport default function App() {\n  const [people, setPeople] = useState([]);\n  const [loading, setLoading] = useState(true);\n  const [error, setError] = useState("");\n\n  useEffect(() => {\n    async function load() {\n      try {\n        const res = await fetch(PEOPLE_URL);\n        setPeople(await res.json());\n      } catch (e) {\n        setError("Could not load people");\n      } finally {\n        setLoading(false);\n      }\n    }\n    load();\n  }, []);\n\n  if (loading) return <p>Loading…</p>;\n  if (error) return <p>{error}</p>;\n\n  return (\n    <ul>\n      {people.map((p) => (\n        <li key={p.id}>{p.name}</li>\n      ))}\n    </ul>\n  );\n}\n`,
+    js: `const PEOPLE_URL = "${PEOPLE_URL}";\n\nexport default function App() {\n  const [people, setPeople] = useState([]);\n  const [loading, setLoading] = useState(true);\n\n  useEffect(() => {\n    async function load() {\n      const res = await fetch(PEOPLE_URL);\n      setPeople(await res.json());\n      setLoading(false);\n    }\n    load();\n  }, []);\n\n  if (loading) return <p>Loading…</p>;\n\n  return (\n    <ul>\n      {people.map((p) => (\n        <li key={p.id}>{p.name}</li>\n      ))}\n    </ul>\n  );\n}\n`,
   },
   settle: 1200,
   harness: `(function () {
@@ -216,18 +215,18 @@ export const dataLoading: Lesson = {
     }, 500);
   })();`,
   tasks: [
-    { id: "loading", label: { ar: "اعرض `Loading…` أثناء الانتظار", en: "Show `Loading…` while waiting" }, test: ({ logs, files }) => c(logs, "loading", true) || /if\s*\(\s*loading\s*\)/.test(files.js ?? "") },
-    { id: "fetch", label: { ar: "اجلب `PEOPLE_URL` داخل `useEffect`", en: "Fetch `PEOPLE_URL` inside `useEffect`" }, test: ({ files }) => /useEffect\([\s\S]*fetch\(\s*PEOPLE_URL\s*\)/.test(files.js ?? "") },
-    { id: "list", label: { ar: "اعرض الأسماء في `<li>` لكل شخص", en: "Show the names in an `<li>` per person" }, test: ({ logs }) => c(logs, "list", true) },
-    { id: "error", label: { ar: "حالة خطأ بـ `try/catch` (مثل `setError`) وأوقف التحميل في النهاية", en: "An error state set in `try/catch` (e.g. `setError`), and stop loading at the end" }, test: ({ logs, files }) => /try\s*\{[\s\S]*catch/.test(files.js ?? "") && /catch\s*(\([^)]*\))?\s*\{[\s\S]*?set\w+\(/.test(files.js ?? "") && c(logs, "done", true) },
+    { id: "loading", label: { ar: "حالة `loading` تبدأ `true`، واعرض `Loading…` ما دامت كذلك", en: "A `loading` state starting at `true`, and show `Loading…` while it is" }, test: ({ logs, files }) => c(logs, "loading", true) || (/useState\(\s*true\s*\)/.test(files.js ?? "") && /if\s*\(\s*loading\s*\)/.test(files.js ?? "")) },
+    { id: "fetch", label: { ar: "اجلب `PEOPLE_URL` داخل `useEffect` مع `[]`", en: "Fetch `PEOPLE_URL` inside `useEffect` with `[]`" }, test: ({ files }) => /useEffect\([\s\S]*fetch\(\s*PEOPLE_URL\s*\)/.test(files.js ?? "") },
+    { id: "list", label: { ar: "بعد الوصول أوقف التحميل واعرض كل اسم في `<li>`", en: "When it arrives, stop loading and show each name in an `<li>`" }, test: ({ logs }) => c(logs, "list", true) && c(logs, "done", true) },
   ],
   hints: [
     { ar: '`const [loading, setLoading] = useState(true);` و `if (loading) return <p>Loading…</p>;`', en: '`const [loading, setLoading] = useState(true);` and `if (loading) return <p>Loading…</p>;`' },
-    { ar: "`try { const res = await fetch(PEOPLE_URL); setPeople(await res.json()); } catch (e) { setError(\"…\"); } finally { setLoading(false); }`", en: "`try { const res = await fetch(PEOPLE_URL); setPeople(await res.json()); } catch (e) { setError(\"…\"); } finally { setLoading(false); }`" },
+    { ar: "`useEffect(() => { async function load() { const res = await fetch(PEOPLE_URL); setPeople(await res.json()); setLoading(false); } load(); }, []);`", en: "`useEffect(() => { async function load() { const res = await fetch(PEOPLE_URL); setPeople(await res.json()); setLoading(false); } load(); }, []);`" },
   ],
   deep: {
     more: [
       { icon: "📡", ar: "`fetch` لا يرمي خطأ عند `404` أو `500`؛ يرمي فقط إذا انقطعت الشبكة. تحقق بنفسك: `if (!res.ok) throw new Error(res.status);`.", en: "`fetch` doesn't throw on `404` or `500`; it only throws when the network fails. Check yourself: `if (!res.ok) throw new Error(res.status);`." },
+      { icon: "🧯", ar: "الخطوة التالية في المشاريع الحقيقية: حالة **خطأ**. ضع الجلب داخل `try { … } catch { setError(\"…\") } finally { setLoading(false) }` واعرض `if (error) return <p>{error}</p>;`.", en: "The next step in real projects: an **error** state. Wrap the fetch in `try { … } catch { setError(\"…\") } finally { setLoading(false) }` and render `if (error) return <p>{error}</p>;`." },
       { icon: "🦴", ar: "بدل كلمة \"Loading\" يستخدم المحترفون **هياكل عظمية** (skeletons): مستطيلات رمادية بشكل المحتوى، فيبدو التحميل أسرع.", en: "Instead of the word \"Loading\", pros use **skeletons**: grey shapes of the content, which make loading feel faster." },
       { icon: "🧰", ar: "في التطبيقات الكبيرة، **TanStack Query** أو `use()` مع Suspense في React 19 يديران التحميل والتخزين المؤقت وإعادة المحاولة عنك.", en: "In bigger apps, **TanStack Query**, or `use()` with Suspense in React 19, handle loading, caching and retries for you." },
     ],
@@ -295,40 +294,37 @@ export const routing: Lesson = {
 const SQL_START =
   'const Database = require("better-sqlite3");\nconst db = new Database(":memory:");\n\ndb.exec(`\n  CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT NOT NULL, city TEXT, age INTEGER);\n  INSERT INTO users (name, city, age) VALUES\n    (\'Sara\', \'Tunis\', 24), (\'Omar\', \'Cairo\', 17), (\'Lina\', \'Rabat\', 31), (\'Adam\', \'Tunis\', 19);\n`);\n\n';
 
+const SQL_HARNESS = (body: string) => `try { ${body} } catch (e) { console.log("__q__ error " + (e && e.message)); }`;
+/** No value glued into SQL text with + or \${}. */
+const safeSql = (js: string) => !/prepare\(\s*`[^`]*\$\{/.test(js) && !/prepare\([^)]*\+/.test(js);
+
 export const sqlPractice: Lesson = {
   slug: "sql-practice",
   runtime: "server",
-  title: { ar: "SQL عمليًا: استعلامات حقيقية", en: "SQL in practice: real queries" },
+  title: { ar: "SQL عمليًا: القراءة بـ SELECT", en: "SQL in practice: reading with SELECT" },
   body: [
-    { icon: "🗄️", ar: "هنا قاعدة بيانات **SQLite حقيقية** تعمل داخل التطبيق. نستخدمها من Node.js بمكتبة `better-sqlite3`، وهي نفس الطريقة في المشاريع الحقيقية الصغيرة.", en: "Here's a **real SQLite** database running inside the app. We use it from Node.js with the `better-sqlite3` library, exactly as small real projects do." },
-    { icon: "🔎", ar: "القراءة: `db.prepare(\"SELECT name FROM users WHERE age >= ? ORDER BY name\").all(18)` تُرجع مصفوفة صفوف. و `.get(…)` تُرجع صفًا واحدًا.", en: "Reading: `db.prepare(\"SELECT name FROM users WHERE age >= ? ORDER BY name\").all(18)` returns an array of rows. `.get(…)` returns a single row." },
-    { icon: "✍️", ar: "الكتابة: `db.prepare(\"INSERT INTO users (name, city, age) VALUES (?, ?, ?)\").run(name, city, age)` وتُرجع `lastInsertRowid` رقم الصف الجديد.", en: "Writing: `db.prepare(\"INSERT INTO users (name, city, age) VALUES (?, ?, ?)\").run(name, city, age)`, which returns `lastInsertRowid`, the new row's id." },
-    { icon: "🛡️", ar: "علامات `?` هي **المعاملات**: القاعدة تضع القيم بأمان. لا تلصق مدخلات المستخدم داخل نص SQL أبدًا، وإلا فتحت الباب لـ **SQL injection**.", en: "The `?` marks are **parameters**: the database inserts values safely. Never paste user input into the SQL text, or you open the door to **SQL injection**." },
-    { icon: "📊", ar: "للتجميع: `SELECT city, COUNT(*) AS total FROM users GROUP BY city ORDER BY city` يعطي عدد المستخدمين في كل مدينة.", en: "For grouping: `SELECT city, COUNT(*) AS total FROM users GROUP BY city ORDER BY city` counts users per city." },
+    { icon: "🗄️", ar: "هنا قاعدة بيانات **SQLite حقيقية** تعمل داخل التطبيق، وفيها جدول `users` جاهز بأربعة أشخاص. نستخدمها من Node.js بمكتبة `better-sqlite3`، كما في المشاريع الصغيرة الحقيقية.", en: "Here's a **real SQLite** database running inside the app, with a ready `users` table of four people. We use it from Node.js with the `better-sqlite3` library, as small real projects do." },
+    { icon: "🔎", ar: "القراءة خطوتان: `db.prepare(\"SELECT …\")` يجهّز الاستعلام، ثم `.all(…)` تُرجع **مصفوفة صفوف**، كل صف كائن مثل `{ name: \"Sara\" }`.", en: "Reading takes two steps: `db.prepare(\"SELECT …\")` prepares the query, then `.all(…)` returns an **array of rows**, each an object like `{ name: \"Sara\" }`." },
+    { icon: "🛡️", ar: "علامة `?` مكان القيمة، والقيمة تُمرَّر داخل `.all(18)`. هكذا تضعها القاعدة بأمان. `WHERE age >= ?` يختار، و `ORDER BY name` يرتّب أبجديًا.", en: "A `?` stands for the value, which you pass in `.all(18)`. That way the database inserts it safely. `WHERE age >= ?` picks rows, and `ORDER BY name` sorts them alphabetically." },
   ],
   example: {
-    code: SQL_START + 'const young = db.prepare("SELECT name, age FROM users WHERE age < ?").all(20);\nconsole.log(young);\n\nconst sara = db.prepare("SELECT * FROM users WHERE name = ?").get("Sara");\nconsole.log(sara.city);',
-    note: { ar: "استعلامان على جدول المستخدمين.", en: "Two queries on the users table." },
+    code: SQL_START + 'const rows = db.prepare("SELECT name, age FROM users WHERE age < ?").all(20);\nconsole.log(rows);\nconsole.log(rows.map((row) => row.name));',
+    note: { ar: "الصفوف كاملة، ثم الأسماء فقط بـ map.", en: "The full rows, then just the names with map." },
   },
   files: ["js"],
-  starter: { js: SQL_START + "// 1) adults(): names of users aged 18+, sorted by name\n\n// 2) addUser(name, city, age): insert safely with ? and return the new id\n\n// 3) countByCity(): [{ city, total }] using GROUP BY, sorted by city\n" },
+  starter: { js: SQL_START + "// adults(): names of users aged 18 or more, sorted by name\n\n" },
   solution: {
-    js:
-      SQL_START +
-      'function adults() {\n  return db.prepare("SELECT name FROM users WHERE age >= ? ORDER BY name").all(18).map((row) => row.name);\n}\n\nfunction addUser(name, city, age) {\n  const result = db.prepare("INSERT INTO users (name, city, age) VALUES (?, ?, ?)").run(name, city, age);\n  return result.lastInsertRowid;\n}\n\nfunction countByCity() {\n  return db.prepare("SELECT city, COUNT(*) AS total FROM users GROUP BY city ORDER BY city").all();\n}\n\nconsole.log(adults());\n',
+    js: SQL_START + 'function adults() {\n  const rows = db.prepare("SELECT name FROM users WHERE age >= ? ORDER BY name").all(18);\n  return rows.map((row) => row.name);\n}\n\nconsole.log(adults());\n',
   },
   settle: 2500,
-  harness:
-    'try { console.log("__q__ adults " + JSON.stringify(adults())); } catch (e) { console.log("__q__ adults error"); } try { var id = addUser("Nour", "Cairo", 22); console.log("__q__ id " + id); console.log("__q__ added " + JSON.stringify(db.prepare("SELECT name, city, age FROM users WHERE id = ?").get(id))); } catch (e) { console.log("__q__ id error"); } try { console.log("__q__ cities " + JSON.stringify(countByCity())); } catch (e) { console.log("__q__ cities error"); }',
+  harness: SQL_HARNESS('console.log("__q__ adults " + JSON.stringify(adults()));'),
   tasks: [
-    { id: "adults", label: { ar: "`adults()` تُرجع `[\"Adam\", \"Lina\", \"Sara\"]`", en: "`adults()` returns `[\"Adam\", \"Lina\", \"Sara\"]`" }, test: ({ logs }) => exact(logs, '__q__ adults ["Adam","Lina","Sara"]') },
-    { id: "insert", label: { ar: "`addUser` يضيف صفًا ويُرجع رقمه الجديد", en: "`addUser` inserts a row and returns its new id" }, test: ({ logs }) => exact(logs, "__q__ id 5") && exact(logs, '__q__ added {"name":"Nour","city":"Cairo","age":22}') },
-    { id: "group", label: { ar: "`countByCity()` يعدّ المستخدمين لكل مدينة بـ `GROUP BY`", en: "`countByCity()` counts users per city with `GROUP BY`" }, test: ({ logs }) => exact(logs, '__q__ cities [{"city":"Cairo","total":2},{"city":"Rabat","total":1},{"city":"Tunis","total":2}]') },
-    { id: "safe", label: { ar: "كل القيم عبر `?` وليس بلصقها في نص SQL", en: "Every value goes through `?`, never pasted into the SQL" }, test: ({ files }) => { const js = files.js ?? ""; return /VALUES\s*\(\s*\?\s*,\s*\?\s*,\s*\?\s*\)/i.test(js) && !/prepare\(\s*`[^`]*\$\{/.test(js) && !/prepare\([^)]*\+/.test(js); } },
+    { id: "adults", label: { ar: "اكتب دالة `adults()` تُرجع أسماء من عمرهم 18 فأكثر مرتبة: `[\"Adam\", \"Lina\", \"Sara\"]`", en: "Write a function `adults()` returning the names of users aged 18+, sorted: `[\"Adam\", \"Lina\", \"Sara\"]`" }, test: ({ logs }) => exact(logs, '__q__ adults ["Adam","Lina","Sara"]') },
+    { id: "safe", label: { ar: "مرّر 18 عبر `?` وليس داخل نص SQL", en: "Pass 18 through `?`, not inside the SQL text" }, test: ({ files }) => /age\s*>=?\s*\?/i.test(files.js ?? "") && safeSql(files.js ?? "") },
   ],
   hints: [
-    { ar: '`db.prepare("SELECT name FROM users WHERE age >= ? ORDER BY name").all(18).map((row) => row.name)`', en: '`db.prepare("SELECT name FROM users WHERE age >= ? ORDER BY name").all(18).map((row) => row.name)`' },
-    { ar: '`db.prepare("INSERT INTO users (name, city, age) VALUES (?, ?, ?)").run(name, city, age).lastInsertRowid`', en: '`db.prepare("INSERT INTO users (name, city, age) VALUES (?, ?, ?)").run(name, city, age).lastInsertRowid`' },
+    { ar: '`db.prepare("SELECT name FROM users WHERE age >= ? ORDER BY name").all(18)`', en: '`db.prepare("SELECT name FROM users WHERE age >= ? ORDER BY name").all(18)`' },
+    { ar: "الناتج صفوف، فحوّلها لأسماء: `rows.map((row) => row.name)`", en: "The result is rows, so turn them into names: `rows.map((row) => row.name)`" },
   ],
   deep: {
     more: [
@@ -342,36 +338,101 @@ export const sqlPractice: Lesson = {
       { ar: "انتظار ترتيب معيّن دون `ORDER BY` ← القاعدة لا تضمن أي ترتيب إلا إذا طلبته.", en: "Expecting a particular order without `ORDER BY` → the database guarantees no order unless you ask." },
     ],
   },
-  xp: 40,
+  xp: 35,
+};
+
+export const sqlWrite: Lesson = {
+  slug: "sql-write",
+  runtime: "server",
+  title: { ar: "SQL عمليًا: الإضافة بـ INSERT", en: "SQL in practice: adding with INSERT" },
+  body: [
+    { icon: "✍️", ar: "لإضافة صف: `INSERT INTO users (name, city, age) VALUES (?, ?, ?)`. الأعمدة بين القوسين الأولين، وعلامة `?` لكل قيمة.", en: "To add a row: `INSERT INTO users (name, city, age) VALUES (?, ?, ?)`. The columns go in the first brackets, and one `?` per value." },
+    { icon: "▶️", ar: "للكتابة نستعمل `.run(name, city, age)` بدل `.all`، والقيم تملأ علامات `?` بالترتيب.", en: "For writing, use `.run(name, city, age)` instead of `.all`; the values fill the `?` marks in order." },
+    { icon: "🆔", ar: "`.run` تُرجع كائنًا فيه `lastInsertRowid`: رقم الصف الجديد الذي أعطته القاعدة تلقائيًا.", en: "`.run` returns an object with `lastInsertRowid`: the new row's id, given by the database automatically." },
+  ],
+  example: {
+    code: SQL_START + 'const result = db.prepare("INSERT INTO users (name, city, age) VALUES (?, ?, ?)").run("Hana", "Tunis", 28);\nconsole.log(result.lastInsertRowid);',
+    note: { ar: "صف جديد، ورقمه 5 لأن الجدول فيه 4.", en: "A new row, id 5 since the table had 4." },
+  },
+  files: ["js"],
+  starter: { js: SQL_START + "// addUser(name, city, age): insert a row safely with ? and return its new id\n\n" },
+  solution: {
+    js: SQL_START + 'function addUser(name, city, age) {\n  const result = db.prepare("INSERT INTO users (name, city, age) VALUES (?, ?, ?)").run(name, city, age);\n  return result.lastInsertRowid;\n}\n\nconsole.log(addUser("Nour", "Cairo", 22));\n',
+  },
+  settle: 2500,
+  harness: SQL_HARNESS('var id = addUser("Hana", "Rabat", 28); var last = db.prepare("SELECT MAX(id) AS id FROM users").get().id; console.log("__q__ id " + (id === last)); console.log("__q__ added " + JSON.stringify(db.prepare("SELECT name, city, age FROM users WHERE id = ?").get(last)));'),
+  tasks: [
+    { id: "insert", label: { ar: "اكتب دالة `addUser(name, city, age)` تضيف صفًا بـ `INSERT`", en: "Write a function `addUser(name, city, age)` that adds a row with `INSERT`" }, test: ({ logs }) => exact(logs, '__q__ added {"name":"Hana","city":"Rabat","age":28}') },
+    { id: "id", label: { ar: "وتُرجع رقم الصف الجديد `lastInsertRowid`", en: "and returns the new row's `lastInsertRowid`" }, test: ({ logs }) => exact(logs, "__q__ id true") },
+    { id: "safe", label: { ar: "كل القيم عبر `VALUES (?, ?, ?)` وليس بلصقها في النص", en: "Every value goes through `VALUES (?, ?, ?)`, never pasted into the text" }, test: ({ files }) => /VALUES\s*\(\s*\?\s*,\s*\?\s*,\s*\?\s*\)/i.test(files.js ?? "") && safeSql(files.js ?? "") },
+  ],
+  hints: [
+    { ar: '`db.prepare("INSERT INTO users (name, city, age) VALUES (?, ?, ?)").run(name, city, age)`', en: '`db.prepare("INSERT INTO users (name, city, age) VALUES (?, ?, ?)").run(name, city, age)`' },
+    { ar: "احفظ النتيجة ثم `return result.lastInsertRowid;`", en: "Keep the result, then `return result.lastInsertRowid;`" },
+  ],
+  deep: {
+    more: [
+      { icon: "♻️", ar: "`UPDATE users SET city = ? WHERE id = ?` يغيّر صفًا، و `DELETE FROM users WHERE id = ?` يحذفه. ومعهما `.run` أيضًا، و `result.changes` يقول كم صفًا تغيّر.", en: "`UPDATE users SET city = ? WHERE id = ?` changes a row and `DELETE FROM users WHERE id = ?` removes it. Both use `.run` too, and `result.changes` says how many rows changed." },
+      { icon: "📦", ar: "لإضافة صفوف كثيرة بسرعة وأمان استخدم **transaction**: إما أن تنجح كلها أو لا يُحفظ شيء.", en: "To add many rows quickly and safely, use a **transaction**: either they all succeed or nothing is saved." },
+      { icon: "🧱", ar: "`NOT NULL` في تعريف الجدول تمنع صفًا بلا اسم، و `UNIQUE` تمنع تكرار بريد مثلًا: القاعدة نفسها تحرس بياناتك.", en: "`NOT NULL` in the table definition blocks a row without a name, and `UNIQUE` blocks a repeated email, for example: the database itself guards your data." },
+    ],
+    mistakes: [
+      { ar: "`VALUES ('\" + name + \"', …)` ← ثغرة SQL injection. استخدم `?` دائمًا.", en: "`VALUES ('\" + name + \"', …)` → an SQL injection hole. Always use `?`." },
+      { ar: "عدد علامات `?` لا يساوي عدد القيم في `.run` ← خطأ. علامة لكل قيمة وبنفس الترتيب.", en: "The number of `?` marks doesn't match the values in `.run` → error. One mark per value, in the same order." },
+      { ar: "استعمال `.all` مع `INSERT` ← `.all` للقراءة. للكتابة استعمل `.run`.", en: "Using `.all` with `INSERT` → `.all` is for reading. Use `.run` for writing." },
+    ],
+  },
+  xp: 35,
+};
+
+export const sqlGroup: Lesson = {
+  slug: "sql-group",
+  runtime: "server",
+  title: { ar: "SQL عمليًا: العدّ بـ GROUP BY", en: "SQL in practice: counting with GROUP BY" },
+  body: [
+    { icon: "📊", ar: "`COUNT(*)` يعدّ الصفوف: `SELECT COUNT(*) AS total FROM users` يعطي `{ total: 4 }`. و `AS total` يعطي النتيجة اسمًا.", en: "`COUNT(*)` counts rows: `SELECT COUNT(*) AS total FROM users` gives `{ total: 4 }`. `AS total` gives the result a name." },
+    { icon: "🧺", ar: "`GROUP BY city` يجمع الصفوف التي لها نفس المدينة في مجموعة، و `COUNT(*)` يعدّ كل مجموعة على حدة.", en: "`GROUP BY city` puts rows with the same city in one group, and `COUNT(*)` counts each group separately." },
+    { icon: "🔤", ar: "الترتيب في الآخر: `… GROUP BY city ORDER BY city`.", en: "Sorting goes last: `… GROUP BY city ORDER BY city`." },
+  ],
+  example: {
+    code: SQL_START + 'const all = db.prepare("SELECT COUNT(*) AS total FROM users").get();\nconsole.log(all.total);\n\nconst byAge = db.prepare("SELECT age >= 18 AS adult, COUNT(*) AS total FROM users GROUP BY adult").all();\nconsole.log(byAge);',
+    note: { ar: "عدد الكل، ثم العدد في كل مجموعة.", en: "The total count, then the count per group." },
+  },
+  files: ["js"],
+  starter: { js: SQL_START + 'db.prepare("INSERT INTO users (name, city, age) VALUES (?, ?, ?)").run("Nour", "Cairo", 22);\n\n// countByCity(): [{ city, total }] using GROUP BY, sorted by city\n\n' },
+  solution: {
+    js: SQL_START + 'db.prepare("INSERT INTO users (name, city, age) VALUES (?, ?, ?)").run("Nour", "Cairo", 22);\n\nfunction countByCity() {\n  return db.prepare("SELECT city, COUNT(*) AS total FROM users GROUP BY city ORDER BY city").all();\n}\n\nconsole.log(countByCity());\n',
+  },
+  settle: 2500,
+  harness: SQL_HARNESS('console.log("__q__ cities " + JSON.stringify(countByCity()));'),
+  tasks: [
+    { id: "group", label: { ar: "اكتب دالة `countByCity()` تعدّ المستخدمين لكل مدينة بـ `COUNT(*)` و `GROUP BY city`", en: "Write a function `countByCity()` that counts users per city with `COUNT(*)` and `GROUP BY city`" }, test: ({ files, logs }) => /GROUP\s+BY\s+city/i.test(files.js ?? "") && logs.some((l) => /^__q__ cities \[\{.*"total":\d/.test(l)) },
+    { id: "shape", label: { ar: "النتيجة مرتبة بالمدينة: `[{ city: \"Cairo\", total: 2 }, …]`", en: "The result is sorted by city: `[{ city: \"Cairo\", total: 2 }, …]`" }, test: ({ logs }) => exact(logs, '__q__ cities [{"city":"Cairo","total":2},{"city":"Rabat","total":1},{"city":"Tunis","total":2}]') },
+  ],
+  hints: [
+    { ar: '`db.prepare("SELECT city, COUNT(*) AS total FROM users GROUP BY city ORDER BY city").all()`', en: '`db.prepare("SELECT city, COUNT(*) AS total FROM users GROUP BY city ORDER BY city").all()`' },
+    { ar: "اسم العمود يجب أن يكون `total`، لذلك اكتب `COUNT(*) AS total`.", en: "The column must be named `total`, so write `COUNT(*) AS total`." },
+  ],
+  deep: {
+    more: [
+      { icon: "➕", ar: "دوال تجميع أخرى: `SUM(price)` للمجموع، `AVG(age)` للمتوسط، `MAX` و `MIN` للأكبر والأصغر.", en: "Other aggregate functions: `SUM(price)` for a total, `AVG(age)` for an average, `MAX` and `MIN` for the largest and smallest." },
+      { icon: "🧹", ar: "`HAVING` يصفّي المجموعات بعد العدّ: `… GROUP BY city HAVING COUNT(*) > 1` يُظهر المدن التي فيها أكثر من شخص.", en: "`HAVING` filters groups after counting: `… GROUP BY city HAVING COUNT(*) > 1` shows cities with more than one person." },
+      { icon: "📈", ar: "هذه الاستعلامات قلب لوحات الإحصاءات: عدد الطلبات كل يوم، المبيعات لكل منتج، المستخدمون لكل بلد.", en: "These queries power dashboards: orders per day, sales per product, users per country." },
+    ],
+    mistakes: [
+      { ar: "اختيار عمود ليس في `GROUP BY` مثل `SELECT name, city, COUNT(*) … GROUP BY city` ← القيمة عشوائية. اختر أعمدة المجموعة والدوال فقط.", en: "Selecting a column not in `GROUP BY`, like `SELECT name, city, COUNT(*) … GROUP BY city` → the value is arbitrary. Select only grouped columns and aggregates." },
+      { ar: "وضع `ORDER BY` قبل `GROUP BY` ← خطأ صياغة. الترتيب: `SELECT … FROM … WHERE … GROUP BY … ORDER BY …`.", en: "Putting `ORDER BY` before `GROUP BY` → syntax error. The order is `SELECT … FROM … WHERE … GROUP BY … ORDER BY …`." },
+      { ar: "استعمال `WHERE COUNT(*) > 1` ← `WHERE` يعمل قبل العدّ. استخدم `HAVING`.", en: "Writing `WHERE COUNT(*) > 1` → `WHERE` runs before counting. Use `HAVING`." },
+    ],
+  },
+  xp: 35,
 };
 
 const AUTH_START =
   'const express = require("express");\nconst bcrypt = require("bcryptjs");\nconst jwt = require("jsonwebtoken");\n\nconst app = express();\napp.use(express.json());\n\nconst SECRET = "dev-only-secret"; // in production: process.env.JWT_SECRET\nconst users = [];\n\n';
 
-export const authPractice: Lesson = {
-  slug: "auth-practice",
-  runtime: "server",
-  title: { ar: "تسجيل الدخول عمليًا: تشفير ورموز", en: "Login in practice: hashing and tokens" },
-  body: [
-    { icon: "🔐", ar: "سنبني نظام دخول حقيقيًا: تسجيل، دخول، وصفحة محمية. نفس المكتبات المستخدمة في المشاريع: `bcryptjs` لتجزئة كلمات السر و `jsonwebtoken` للرموز.", en: "We'll build a real login system: sign-up, login and a protected page, with the libraries real projects use: `bcryptjs` to hash passwords and `jsonwebtoken` for tokens." },
-    { icon: "🧂", ar: "**لا تحفظ كلمة السر أبدًا كما هي.** خزّن تجزئتها: `const passwordHash = await bcrypt.hash(password, 10);`. وعند الدخول قارن: `await bcrypt.compare(password, user.passwordHash)`.", en: "**Never store a password as is.** Store its hash: `const passwordHash = await bcrypt.hash(password, 10);`. At login, compare: `await bcrypt.compare(password, user.passwordHash)`." },
-    { icon: "🎟️", ar: "بعد الدخول الناجح أعطِ المستخدم **رمزًا** (JWT): `jwt.sign({ email }, SECRET, { expiresIn: \"1h\" })`. يرسله مع كل طلب في الترويسة `Authorization: Bearer <token>`.", en: "After a successful login, give the user a **token** (JWT): `jwt.sign({ email }, SECRET, { expiresIn: \"1h\" })`. They send it with each request in the `Authorization: Bearer <token>` header." },
-    { icon: "🚧", ar: "**الوسيط** (middleware) يحرس المسارات: يقرأ الرمز ويتحقق منه بـ `jwt.verify`، ثم `next()` إذا كان صالحًا، أو `401` إذا لم يكن. نضعه قبل المعالج: `app.get(\"/me\", requireAuth, handler)`.", en: "**Middleware** guards routes: it reads the token, checks it with `jwt.verify`, then calls `next()` if valid or answers `401` if not. It goes before the handler: `app.get(\"/me\", requireAuth, handler)`." },
-  ],
-  example: {
-    code: 'function requireAuth(req, res, next) {\n  const header = req.headers.authorization ?? "";\n  const token = header.replace("Bearer ", "");\n  try {\n    req.user = jwt.verify(token, SECRET);\n    next();\n  } catch {\n    res.status(401).json({ error: "Please log in" });\n  }\n}\n\napp.get("/me", requireAuth, (req, res) => {\n  res.json({ email: req.user.email });\n});',
-    note: { ar: "وسيط يحمي المسار `/me`.", en: "Middleware protecting the `/me` route." },
-    lang: "none",
-  },
-  files: ["js"],
-  starter: { js: AUTH_START + "// POST /register  { email, password }\n// POST /login     { email, password }  →  { token }\n// GET  /me        (protected by a requireAuth middleware)\n\napp.listen(3000);\n" },
-  solution: {
-    js:
-      AUTH_START +
-      'app.post("/register", async (req, res) => {\n  const { email, password } = req.body;\n  if (!email || !password || password.length < 8) {\n    return res.status(400).json({ error: "Email and a password of 8+ characters are required" });\n  }\n  if (users.some((u) => u.email === email)) {\n    return res.status(409).json({ error: "Email already registered" });\n  }\n  const passwordHash = await bcrypt.hash(password, 10);\n  users.push({ email, passwordHash });\n  res.status(201).json({ email });\n});\n\napp.post("/login", async (req, res) => {\n  const { email, password } = req.body;\n  const user = users.find((u) => u.email === email);\n  if (!user || !(await bcrypt.compare(password, user.passwordHash))) {\n    return res.status(401).json({ error: "Wrong email or password" });\n  }\n  const token = jwt.sign({ email }, SECRET, { expiresIn: "1h" });\n  res.json({ token });\n});\n\nfunction requireAuth(req, res, next) {\n  const token = (req.headers.authorization ?? "").replace("Bearer ", "");\n  try {\n    req.user = jwt.verify(token, SECRET);\n    next();\n  } catch {\n    res.status(401).json({ error: "Please log in" });\n  }\n}\n\napp.get("/me", requireAuth, (req, res) => {\n  res.json({ email: req.user.email });\n});\n\napp.listen(3000);\n',
-  },
-  settle: 1500,
-  harness: `(async function () {
+const AUTH_HARNESS =
+`(async function () {
     if (typeof app === "undefined") { console.log("__a__ app false"); return; }
     var log = function (name, r) { console.log("__a__ " + name + " " + r.status + " " + JSON.stringify(r.body === undefined ? null : r.body)); };
     log("short", await app.request("POST", "/register", { email: "sara@mail.com", password: "123" }));
@@ -386,31 +447,138 @@ export const authPractice: Lesson = {
     var stored = typeof users !== "undefined" && users[0] ? JSON.stringify(users[0]) : "";
     console.log("__a__ stored " + (stored.indexOf("secret123") < 0 && /\\$2[aby]?\\$/.test(stored)));
     console.log("__a__ leak " + (JSON.stringify(reg.body).indexOf("secret123") >= 0 || JSON.stringify(reg.body).indexOf("$2") >= 0));
-  })();`,
+  })();`;
+/** The pieces of the auth server, built up over three lessons. */
+const REGISTER = 'app.post("/register", async (req, res) => {\n  const { email, password } = req.body;\n  if (!email || !password || password.length < 8) {\n    return res.status(400).json({ error: "Email and a password of 8+ characters are required" });\n  }\n  if (users.some((u) => u.email === email)) {\n    return res.status(409).json({ error: "Email already registered" });\n  }\n  const passwordHash = await bcrypt.hash(password, 10);\n  users.push({ email, passwordHash });\n  res.status(201).json({ email });\n});\n\n';
+const LOGIN = 'app.post("/login", async (req, res) => {\n  const { email, password } = req.body;\n  const user = users.find((u) => u.email === email);\n  if (!user || !(await bcrypt.compare(password, user.passwordHash))) {\n    return res.status(401).json({ error: "Wrong email or password" });\n  }\n  const token = jwt.sign({ email }, SECRET, { expiresIn: "1h" });\n  res.json({ token });\n});\n\n';
+const ME = 'function requireAuth(req, res, next) {\n  const token = (req.headers.authorization ?? "").replace("Bearer ", "");\n  try {\n    req.user = jwt.verify(token, SECRET);\n    next();\n  } catch {\n    res.status(401).json({ error: "Please log in" });\n  }\n}\n\napp.get("/me", requireAuth, (req, res) => {\n  res.json({ email: req.user.email });\n});\n\n';
+const LISTEN = "app.listen(3000);\n";
+
+export const authRegister: Lesson = {
+  slug: "auth-register",
+  runtime: "server",
+  title: { ar: "تسجيل حساب: تجزئة كلمة السر", en: "Signing up: hashing the password" },
+  body: [
+    { icon: "🔐", ar: "سنبني نظام دخول حقيقيًا على ثلاث خطوات: **التسجيل** (هذا الدرس)، ثم الدخول، ثم صفحة محمية. ونستعمل نفس مكتبات المشاريع الحقيقية.", en: "We'll build a real login system in three steps: **sign-up** (this lesson), then login, then a protected page, with the same libraries real projects use." },
+    { icon: "🚦", ar: "تحقق أولًا ثم أجب: كلمة سر أقصر من 8 ← `400`، بريد مسجّل من قبل ← `409` (تعارض)، وإلا أضف المستخدم وأجب `201` (أُنشئ).", en: "Check first, then answer: a password under 8 characters → `400`, an email already registered → `409` (conflict), otherwise add the user and answer `201` (created)." },
+    { icon: "🧂", ar: "**لا تحفظ كلمة السر كما هي أبدًا.** خزّن تجزئتها: `const passwordHash = await bcrypt.hash(password, 10);` ثم `users.push({ email, passwordHash });`. ولأن فيها `await` يكون المعالج `async`.", en: "**Never store a password as is.** Store its hash: `const passwordHash = await bcrypt.hash(password, 10);` then `users.push({ email, passwordHash });`. Since it uses `await`, the handler is `async`." },
+  ],
+  example: {
+    code: 'const bcrypt = require("bcryptjs");\n\nasync function demo() {\n  const hash = await bcrypt.hash("secret123", 10);\n  console.log(hash);  // $2a$10$… never the real password\n}\n\ndemo();',
+    note: { ar: "التجزئة نص طويل لا يكشف كلمة السر.", en: "The hash is a long text that doesn't reveal the password." },
+    lang: "none",
+  },
+  files: ["js"],
+  starter: { js: AUTH_START + "// POST /register  { email, password }\n\n" + LISTEN },
+  solution: { js: AUTH_START + REGISTER + LISTEN },
+  settle: 1500,
+  harness: AUTH_HARNESS,
   tasks: [
-    { id: "register", label: { ar: "`POST /register` يرفض كلمة سر أقل من 8 (`400`) والبريد المكرر (`409`)، ويُرجع `201`", en: "`POST /register` rejects passwords under 8 (`400`) and a taken email (`409`), else `201`" }, test: ({ logs }) => logs.some((l) => l.startsWith("__a__ short 400")) && logs.some((l) => l.startsWith("__a__ register 201")) && logs.some((l) => l.startsWith("__a__ dupe 409")) },
-    { id: "hash", label: { ar: "كلمة السر تُحفظ مجزّأة بـ `bcrypt.hash` ولا تُرجع أبدًا", en: "The password is stored hashed with `bcrypt.hash` and never returned" }, test: ({ logs }) => exact(logs, "__a__ stored true") && exact(logs, "__a__ leak false") },
-    { id: "login", label: { ar: "`POST /login`: كلمة سر خاطئة `401`، وصحيحة تُرجع `token`", en: "`POST /login`: a wrong password gives `401`, a right one returns a `token`" }, test: ({ logs }) => logs.some((l) => l.startsWith("__a__ wrong 401")) && exact(logs, "__a__ login 200 true") },
-    { id: "protect", label: { ar: "`GET /me` محمي بوسيط: بدون رمز `401`، ومع الرمز يُرجع البريد", en: "`GET /me` is guarded by middleware: `401` without a token, the email with one" }, test: ({ logs }) => logs.some((l) => l.startsWith("__a__ anon 401")) && exact(logs, '__a__ me 200 {"email":"sara@mail.com"}') },
+    { id: "short", label: { ar: "`POST /register` يُرجع `400` لكلمة سر أقصر من 8", en: "`POST /register` answers `400` for a password under 8 characters" }, test: ({ logs }) => logs.some((l) => l.startsWith("__a__ short 400")) },
+    { id: "created", label: { ar: "تسجيل صحيح يُرجع `201`، وتكرار البريد يُرجع `409`", en: "A valid sign-up answers `201`, and a repeated email `409`" }, test: ({ logs }) => logs.some((l) => l.startsWith("__a__ register 201")) && logs.some((l) => l.startsWith("__a__ dupe 409")) },
+    { id: "hash", label: { ar: "احفظ تجزئة كلمة السر بـ `bcrypt.hash` في `users`، ولا تُرجعها في الرد", en: "Store the password's hash from `bcrypt.hash` in `users`, and never send it back" }, test: ({ logs }) => exact(logs, "__a__ stored true") && exact(logs, "__a__ leak false") },
   ],
   hints: [
-    { ar: "`const passwordHash = await bcrypt.hash(password, 10); users.push({ email, passwordHash });` والمعالج يجب أن يكون `async`.", en: "`const passwordHash = await bcrypt.hash(password, 10); users.push({ email, passwordHash });` and the handler must be `async`." },
-    { ar: '`if (!user || !(await bcrypt.compare(password, user.passwordHash))) return res.status(401).json({ … });` ثم `jwt.sign({ email }, SECRET, { expiresIn: "1h" })`.', en: '`if (!user || !(await bcrypt.compare(password, user.passwordHash))) return res.status(401).json({ … });` then `jwt.sign({ email }, SECRET, { expiresIn: "1h" })`.' },
-    { ar: '`function requireAuth(req, res, next) { try { req.user = jwt.verify(token, SECRET); next(); } catch { res.status(401).json({ … }); } }`', en: '`function requireAuth(req, res, next) { try { req.user = jwt.verify(token, SECRET); next(); } catch { res.status(401).json({ … }); } }`' },
+    { ar: '`if (!password || password.length < 8) return res.status(400).json({ error: "…" });` و `if (users.some((u) => u.email === email)) return res.status(409).json({ … });`', en: '`if (!password || password.length < 8) return res.status(400).json({ error: "…" });` and `if (users.some((u) => u.email === email)) return res.status(409).json({ … });`' },
+    { ar: "`const passwordHash = await bcrypt.hash(password, 10); users.push({ email, passwordHash }); res.status(201).json({ email });`", en: "`const passwordHash = await bcrypt.hash(password, 10); users.push({ email, passwordHash }); res.status(201).json({ email });`" },
   ],
   deep: {
     more: [
-      { icon: "🧂", ar: "`bcrypt` يضيف **ملحًا** عشوائيًا لكل كلمة سر، فكلمتا سر متطابقتان تعطيان تجزئتين مختلفتين. ورقم `10` هو التكلفة: أبطأ قليلًا للمهاجم بآلاف المرات.", en: "`bcrypt` adds a random **salt** to each password, so two identical passwords hash differently. The `10` is the cost: slightly slower for you, thousands of times slower for an attacker." },
-      { icon: "🔏", ar: "الـ JWT **موقّع وليس مشفّرًا**: أي أحد يقرأ محتواه، لكن لا أحد يعدّله دون المفتاح السري. لا تضع فيه معلومات سرية، واجعل مدته قصيرة.", en: "A JWT is **signed, not encrypted**: anyone can read it, but nobody can change it without the secret key. Don't put secrets in it, and keep it short-lived." },
-      { icon: "🍪", ar: "في المتصفح، الأفضل حفظ الرمز في كوكي `HttpOnly; Secure; SameSite` بدل localStorage، فلا يصل إليه JavaScript الضار. وخدمات مثل Auth.js و Clerk تبني كل هذا لك.", en: "In browsers, keep the token in an `HttpOnly; Secure; SameSite` cookie instead of localStorage so malicious JavaScript can't reach it. Services like Auth.js and Clerk build all of this for you." },
+      { icon: "🧂", ar: "`bcrypt` يضيف **ملحًا** عشوائيًا لكل كلمة سر، فكلمتا سر متطابقتان تعطيان تجزئتين مختلفتين. ورقم `10` هو التكلفة: أبطأ قليلًا لك وأبطأ بآلاف المرات للمهاجم.", en: "`bcrypt` adds a random **salt** to each password, so two identical passwords hash differently. The `10` is the cost: slightly slower for you, thousands of times slower for an attacker." },
+      { icon: "🔁", ar: "التجزئة **باتجاه واحد**: لا يمكن إرجاعها لكلمة السر. لذلك لا يستطيع أي موقع جيد أن يرسل لك كلمة سرك القديمة، بل رابطًا لتغييرها.", en: "Hashing is **one-way**: it can't be turned back into the password. That's why a good site can never send you your old password, only a link to reset it." },
+      { icon: "🗃️", ar: "هنا المستخدمون في مصفوفة للتبسيط. في مشروع حقيقي يكونون في جدول قاعدة بيانات مع `UNIQUE` على البريد.", en: "Users live in an array here to keep it simple. In a real project they're in a database table with `UNIQUE` on the email." },
     ],
     mistakes: [
-      { ar: "رسالتا خطأ مختلفتان: \"البريد غير موجود\" و \"كلمة السر خاطئة\" تكشفان للمهاجم أي البريدات مسجلة ← استخدم رسالة واحدة عامة.", en: "Two different errors, \"email not found\" and \"wrong password\", tell attackers which emails exist → use one general message." },
-      { ar: "نسيان `await` قبل `bcrypt.compare` فيكون الشرط دائمًا صحيحًا (Promise) ← انتظر النتيجة دائمًا.", en: "Forgetting `await` before `bcrypt.compare`, so the check is always truthy (a Promise) → always await the result." },
+      { ar: "نسيان `await` قبل `bcrypt.hash` ← تحفظ Promise بدل التجزئة.", en: "Forgetting `await` before `bcrypt.hash` → you store a Promise instead of the hash." },
+      { ar: "إرجاع المستخدم كاملًا `res.json(user)` ← تكشف التجزئة. أرجع البريد فقط.", en: "Returning the whole user, `res.json(user)` → leaks the hash. Return just the email." },
+      { ar: "نسيان `return` قبل `res.status(400)` ← يكمل الكود ويحاول الرد مرتين.", en: "Forgetting `return` before `res.status(400)` → the code carries on and tries to answer twice." },
+    ],
+  },
+  xp: 35,
+};
+
+export const authLogin: Lesson = {
+  slug: "auth-login",
+  runtime: "server",
+  title: { ar: "تسجيل الدخول: مقارنة ورمز", en: "Logging in: compare and token" },
+  body: [
+    { icon: "🔑", ar: "التسجيل جاهز في المحرر. الآن الدخول: ابحث عن المستخدم بالبريد، ثم قارن كلمة السر بالتجزئة: `await bcrypt.compare(password, user.passwordHash)` تُرجع `true` أو `false`.", en: "Sign-up is ready in the editor. Now login: find the user by email, then compare the password with the hash: `await bcrypt.compare(password, user.passwordHash)` returns `true` or `false`." },
+    { icon: "🚫", ar: "إذا لم يوجد المستخدم أو كانت كلمة السر خاطئة أجب `401` برسالة **واحدة عامة** مثل \"Wrong email or password\".", en: "If the user isn't found or the password is wrong, answer `401` with **one general** message like \"Wrong email or password\"." },
+    { icon: "🎟️", ar: "إذا نجح أعطه **رمزًا** (JWT): `const token = jwt.sign({ email }, SECRET, { expiresIn: \"1h\" });` ثم `res.json({ token });`. سيرسله مع طلباته القادمة.", en: "On success, give them a **token** (JWT): `const token = jwt.sign({ email }, SECRET, { expiresIn: \"1h\" });` then `res.json({ token });`. They'll send it with their next requests." },
+  ],
+  example: {
+    code: 'const ok = await bcrypt.compare("secret123", user.passwordHash);\nif (!ok) {\n  return res.status(401).json({ error: "Wrong email or password" });\n}\nconst token = jwt.sign({ email: user.email }, SECRET, { expiresIn: "1h" });',
+    note: { ar: "مقارنة ثم رمز.", en: "Compare, then sign a token." },
+    lang: "none",
+  },
+  files: ["js"],
+  starter: { js: AUTH_START + REGISTER + "// POST /login  { email, password }  →  { token }\n\n" + LISTEN },
+  solution: { js: AUTH_START + REGISTER + LOGIN + LISTEN },
+  settle: 1500,
+  harness: AUTH_HARNESS,
+  tasks: [
+    { id: "wrong", label: { ar: "`POST /login` بكلمة سر خاطئة يُرجع `401`", en: "`POST /login` with a wrong password answers `401`" }, test: ({ logs }) => logs.some((l) => l.startsWith("__a__ wrong 401")) },
+    { id: "token", label: { ar: "بكلمة السر الصحيحة يُرجع `{ token }` من `jwt.sign`", en: "With the right password it answers `{ token }` from `jwt.sign`" }, test: ({ logs }) => exact(logs, "__a__ login 200 true") },
+  ],
+  hints: [
+    { ar: "`const user = users.find((u) => u.email === email);` ثم `if (!user || !(await bcrypt.compare(password, user.passwordHash))) return res.status(401).json({ … });`", en: "`const user = users.find((u) => u.email === email);` then `if (!user || !(await bcrypt.compare(password, user.passwordHash))) return res.status(401).json({ … });`" },
+    { ar: '`const token = jwt.sign({ email }, SECRET, { expiresIn: "1h" }); res.json({ token });`', en: '`const token = jwt.sign({ email }, SECRET, { expiresIn: "1h" }); res.json({ token });`' },
+  ],
+  deep: {
+    more: [
+      { icon: "🔏", ar: "الـ JWT **موقّع وليس مشفّرًا**: أي أحد يقرأ محتواه، لكن لا أحد يعدّله دون المفتاح السري. لا تضع فيه معلومات سرية، واجعل مدته قصيرة.", en: "A JWT is **signed, not encrypted**: anyone can read it, but nobody can change it without the secret key. Don't put secrets in it, and keep it short-lived." },
+      { icon: "🧱", ar: "الرمز ثلاثة أجزاء مفصولة بنقاط: الترويسة، المحتوى (`{ email }`)، والتوقيع. جرّب لصق رمز في موقع jwt.io لترى محتواه.", en: "A token has three parts separated by dots: header, payload (`{ email }`) and signature. Paste one into jwt.io to see its contents." },
+      { icon: "⏱️", ar: "حدّ المحاولات (rate limiting) يمنع تخمين كلمات السر: بعد 5 محاولات فاشلة مثلًا انتظر دقيقة.", en: "Rate limiting stops password guessing: after, say, 5 failed attempts, wait a minute." },
+    ],
+    mistakes: [
+      { ar: "رسالتان مختلفتان \"البريد غير موجود\" و \"كلمة السر خاطئة\" ← تكشفان للمهاجم أي البريدات مسجلة. استخدم رسالة واحدة.", en: "Two different errors, \"email not found\" and \"wrong password\" → tell attackers which emails exist. Use one message." },
+      { ar: "نسيان `await` قبل `bcrypt.compare` فيكون الشرط دائمًا صحيحًا (Promise) ← انتظر النتيجة.", en: "Forgetting `await` before `bcrypt.compare`, so the check is always truthy (a Promise) → await the result." },
+      { ar: "مقارنة `password === user.passwordHash` ← لن تتطابق أبدًا. استعمل `bcrypt.compare`.", en: "Comparing `password === user.passwordHash` → never matches. Use `bcrypt.compare`." },
+    ],
+  },
+  xp: 35,
+};
+
+export const authPractice: Lesson = {
+  slug: "auth-practice",
+  runtime: "server",
+  title: { ar: "صفحة محمية: الوسيط middleware", en: "A protected page: middleware" },
+  body: [
+    { icon: "🎟️", ar: "التسجيل والدخول جاهزان في المحرر. المستخدم يرسل رمزه مع كل طلب في الترويسة `Authorization: Bearer <token>`.", en: "Sign-up and login are ready in the editor. The user sends their token with each request in the `Authorization: Bearer <token>` header." },
+    { icon: "🚧", ar: "**الوسيط** (middleware) دالة تعمل قبل المعالج: `function requireAuth(req, res, next) { … }`. تقرأ الرمز وتتحقق منه بـ `jwt.verify(token, SECRET)`، ثم `next()` إذا كان صالحًا، أو `401` إذا لم يكن.", en: "**Middleware** is a function that runs before the handler: `function requireAuth(req, res, next) { … }`. It reads the token, checks it with `jwt.verify(token, SECRET)`, then calls `next()` if valid or answers `401` if not." },
+    { icon: "🧷", ar: "`jwt.verify` **يرمي خطأ** إذا كان الرمز خاطئًا، فضعه داخل `try/catch`. ونضع الوسيط قبل المعالج: `app.get(\"/me\", requireAuth, handler)`.", en: "`jwt.verify` **throws** when the token is bad, so put it inside `try/catch`. The middleware goes before the handler: `app.get(\"/me\", requireAuth, handler)`." },
+  ],
+  example: {
+    code: 'function requireAuth(req, res, next) {\n  const header = req.headers.authorization ?? "";\n  const token = header.replace("Bearer ", "");\n  try {\n    req.user = jwt.verify(token, SECRET);\n    next();\n  } catch {\n    res.status(401).json({ error: "Please log in" });\n  }\n}',
+    note: { ar: "وسيط يسمح بالمرور فقط مع رمز صالح.", en: "Middleware that only lets a valid token through." },
+    lang: "none",
+  },
+  files: ["js"],
+  starter: { js: AUTH_START + REGISTER + LOGIN + "// GET /me  (protected by a requireAuth middleware)  →  { email }\n\n" + LISTEN },
+  solution: { js: AUTH_START + REGISTER + LOGIN + ME + LISTEN },
+  settle: 1500,
+  harness: AUTH_HARNESS,
+  tasks: [
+    { id: "anon", label: { ar: "اكتب وسيطًا `requireAuth`: `GET /me` بدون رمز يُرجع `401`", en: "Write a `requireAuth` middleware: `GET /me` without a token answers `401`" }, test: ({ logs }) => logs.some((l) => l.startsWith("__a__ anon 401")) },
+    { id: "me", label: { ar: "ومع رمز صالح يُرجع `{ email }` صاحب الرمز", en: "With a valid token it answers `{ email }` of the token's owner" }, test: ({ logs }) => exact(logs, '__a__ me 200 {"email":"sara@mail.com"}') },
+  ],
+  hints: [
+    { ar: '`const token = (req.headers.authorization ?? "").replace("Bearer ", "");` ثم `try { req.user = jwt.verify(token, SECRET); next(); } catch { res.status(401).json({ … }); }`', en: '`const token = (req.headers.authorization ?? "").replace("Bearer ", "");` then `try { req.user = jwt.verify(token, SECRET); next(); } catch { res.status(401).json({ … }); }`' },
+    { ar: "`app.get(\"/me\", requireAuth, (req, res) => { res.json({ email: req.user.email }); });`", en: "`app.get(\"/me\", requireAuth, (req, res) => { res.json({ email: req.user.email }); });`" },
+  ],
+  deep: {
+    more: [
+      { icon: "🔗", ar: "يمكن وضع الوسيط على كل المسارات مرة واحدة: `app.use(\"/api/private\", requireAuth);` فيحمي كل ما يبدأ بهذا المسار.", en: "You can put middleware on many routes at once: `app.use(\"/api/private\", requireAuth);` guards everything under that path." },
+      { icon: "🍪", ar: "في المتصفح، الأفضل حفظ الرمز في كوكي `HttpOnly; Secure; SameSite` بدل localStorage، فلا يصل إليه JavaScript الضار. وخدمات مثل Auth.js و Clerk تبني كل هذا لك.", en: "In browsers, keep the token in an `HttpOnly; Secure; SameSite` cookie instead of localStorage so malicious JavaScript can't reach it. Services like Auth.js and Clerk build all of this for you." },
+      { icon: "🛂", ar: "`401` يعني «لم تسجّل دخولك»، و `403` يعني «سجّلت لكن ليس لك إذن» مثل مستخدم عادي يطلب صفحة المدير.", en: "`401` means \"you're not logged in\", and `403` means \"you are, but you're not allowed\", like a regular user asking for an admin page." },
+    ],
+    mistakes: [
+      { ar: "نسيان `next()` في الوسيط ← الطلب يعلق للأبد دون رد.", en: "Forgetting `next()` in the middleware → the request hangs forever with no answer." },
+      { ar: "`jwt.verify` بدون `try/catch` ← رمز خاطئ يرمي خطأ يوقف الخادم بدل أن يُرجع `401`.", en: "`jwt.verify` without `try/catch` → a bad token throws and breaks the request instead of answering `401`." },
       { ar: "كتابة المفتاح السري داخل الكود ورفعه إلى GitHub ← ضعه في متغير بيئة `process.env.JWT_SECRET`.", en: "Hard-coding the secret key and pushing it to GitHub → keep it in an environment variable, `process.env.JWT_SECRET`." },
     ],
   },
-  xp: 40,
+  xp: 35,
 };
 
 /** Extra exam questions for these lessons. */
