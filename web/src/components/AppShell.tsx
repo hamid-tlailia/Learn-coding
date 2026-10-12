@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
 import { useEffect } from "react";
-import type { Locale } from "@/i18n/config";
+import { dirOf, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
 import { play } from "@/lib/feedback";
 import { useSettings } from "@/lib/settings";
@@ -46,6 +46,8 @@ export function AppShell({ locale, children }: { locale: Locale; children: React
   // Lessons, exams and the playground take the whole screen: no tab bar.
   const immersive = /^\/learn\/[^/]+\/[^/]+$/.test(rest) || rest === "/playground" || rest === "/challenge" || rest === "/review";
   const active = tabs.find((t) => t.href && rest.startsWith(t.href))?.key ?? (rest === "" ? "home" : null);
+  const activeIndex = tabs.findIndex((t) => t.key === active);
+  const rtl = dirOf(locale) === "rtl";
 
   const mounted = useMounted();
   const { onboarded } = useSettings();
@@ -78,7 +80,12 @@ export function AppShell({ locale, children }: { locale: Locale; children: React
           >
             <span className="relative grid h-10 w-14 place-items-center">
               {active === key && (
-                <motion.span layoutId="rail-active" className="btn-grad absolute inset-0 rounded-2xl" transition={{ type: "spring", stiffness: 500, damping: 38 }} />
+                <motion.span
+                  className="btn-grad absolute inset-0 rounded-2xl"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 38 }}
+                />
               )}
               <Icon className={`relative size-6 ${active === key ? "text-white" : ""}`} />
             </span>
@@ -96,7 +103,21 @@ export function AppShell({ locale, children }: { locale: Locale; children: React
         className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/85 px-2 pt-1.5 backdrop-blur-xl lg:hidden"
         style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 6px)" }}
       >
-        <ul className="mx-auto flex max-w-lg justify-between">
+        <ul className="relative mx-auto flex max-w-lg justify-between">
+          {/* One highlight that slides between equal-width tabs. A shared-layout animation would
+              measure positions relative to the page and fly in from below when it's scrolled. */}
+          {activeIndex >= 0 && (
+            <motion.span
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1 grid place-items-center"
+              style={{ width: `${100 / tabs.length}%`, [rtl ? "right" : "left"]: 0 }}
+              initial={false}
+              animate={{ x: `${(rtl ? -1 : 1) * activeIndex * 100}%` }}
+              transition={{ type: "spring", stiffness: 500, damping: 38 }}
+            >
+              <span className="btn-grad h-8 w-14 rounded-full" />
+            </motion.span>
+          )}
           {tabs.map(({ key, href, Icon }) => (
             <li key={key} className="flex-1">
               <Link
@@ -105,9 +126,6 @@ export function AppShell({ locale, children }: { locale: Locale; children: React
                 className={`flex flex-col items-center gap-1 py-1 text-[11px] font-bold ${active === key ? "text-accent" : "text-muted"}`}
               >
                 <motion.span whileTap={{ scale: 0.85 }} className="relative grid h-8 w-14 place-items-center">
-                  {active === key && (
-                    <motion.span layoutId="tab-active" className="btn-grad absolute inset-0 rounded-full" transition={{ type: "spring", stiffness: 500, damping: 38 }} />
-                  )}
                   <Icon className={`relative size-[22px] ${active === key ? "text-white" : ""}`} />
                 </motion.span>
                 <span className={active === key ? "text-grad" : ""}>{dict.tabs[key]}</span>
