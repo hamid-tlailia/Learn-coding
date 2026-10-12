@@ -61,7 +61,7 @@ Each task has a `test` function that receives the parsed HTML document and the l
 Start here (how the web works, thinking like a programmer, tools) → HTML → CSS → JavaScript → Git →
 React.js (+ Next.js) → Backend → Mobile (React Native / Expo) → Mastery.
 
-86 lessons in 9 stages, all available. Every stage after Start ends with an exam, and the
+87 lessons in 9 stages, all available. Every stage after Start ends with an exam, and the
 certificate stages also end with a project:
 
 | Stage | Lessons | Certificate |
@@ -69,7 +69,7 @@ certificate stages also end with a project:
 | Start | 3 (reading) | |
 | HTML | 10 | |
 | CSS | 11 | |
-| JavaScript | 16 + project (quiz app) | Web Development Fundamentals |
+| JavaScript | 17 + project (quiz app) | Web Development Fundamentals |
 | Git and GitHub | 5 (reading + quizzes) | |
 | React.js | 14 + project (shop with a cart) | Frontend Developer |
 | Backend (Node.js / Express, SQLite, auth) | 8 + project (notes API) | Backend Developer |
@@ -82,7 +82,9 @@ finishing it opens the other track, and Mastery comes last.
 How learning is reinforced:
 
 - **Go deeper**: every lesson has a card on how it works underneath and the most common mistakes (`content/deep/`).
-- **Notes**: a 📝 notebook per lesson, listed under Practice.
+- **Coach's notes** (`lib/insights.ts`): the app records how each lesson went (failed checks, hints, the
+  solution, quiz and review slips, fill-in-the-blank results, time), scores it, lists strengths and weak
+  lessons under Practice, and brings weak lessons back for review sooner.
 - **Spaced review** (`lib/review.ts`): each finished lesson returns after 1, 3, 7, 14 and 30 days as short
   questions (its quiz plus its fill-in-the-blank challenges); a mistake brings it back tomorrow. Reviews
   for a track stop once its certificate is issued.

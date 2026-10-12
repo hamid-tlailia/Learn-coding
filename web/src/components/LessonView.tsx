@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getStage, lessonKey, orderedStages } from "@/content/curriculum";
 import { useSettings } from "@/lib/settings";
 import type { FileKind, Files, Lesson } from "@/content/types";
@@ -12,12 +12,12 @@ import { getDictionary } from "@/i18n/dictionary";
 import { celebrate, play } from "@/lib/feedback";
 import { completeLesson, isCompleted, isLessonOpen, levelOf, useProgress } from "@/lib/progress";
 import { buildPreview, collectLogs, isInternalLog, runChecks } from "@/lib/runner";
+import { noteDone, noteFail, noteHint, noteQuizSlip, noteSolution } from "@/lib/insights";
 import { lintCode } from "@/lib/lint";
 import { RuntimePreview } from "./RuntimePreview";
 import type { Runtime } from "@/content/types";
 import { Celebration } from "./Celebration";
 import { BulbIcon, CheckIcon, CloseIcon, UndoIcon } from "./Icons";
-import { LessonNotes } from "./LessonNotes";
 import { RichText } from "./RichText";
 import { Press, useMounted } from "./ui";
 import { Workspace } from "./Workspace";
@@ -104,6 +104,7 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
   const [hintsShown, setHintsShown] = useState(0);
   const [fails, setFails] = useState(0);
   const [warnings, setWarnings] = useState<L[]>([]);
+  const openedAt = useRef(Date.now());
   const [shake, setShake] = useState(0);
   const [won, setWon] = useState<{ xp: number; levelUp: boolean } | null>(null);
   const [forcePane, setForcePane] = useState<{ pane: "side"; at: number }>();
@@ -214,6 +215,8 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
   }
 
   function win() {
+    // The app's own note on how this lesson went, before the review is scheduled from it.
+    noteDone(key, (Date.now() - openedAt.current) / 1000, new Date().toISOString().slice(0, 10));
     const before = levelOf(progress.xp).level;
     const first = completeLesson(key, lesson.xp);
     try {
@@ -261,6 +264,7 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
       setSolved((s) => ({ ...s, [q.id]: true }));
     } else {
       play("wrong");
+      noteQuizSlip(key);
       setTried((t) => ({ ...t, [q.id]: [...(t[q.id] ?? []), oi] }));
     }
   }
@@ -282,6 +286,7 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
     } else {
       const n = fails + 1;
       setFails(n);
+      noteFail(key);
       try {
         window.localStorage.setItem(failsKey(key), String(n));
       } catch {
@@ -436,7 +441,6 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
             <div dir={tdir} lang={tl} className="flex flex-col gap-4" {...noCopy}>
               <div className="flex items-center justify-between gap-2">
                 <h2 className="flex-1 font-bold">{d.task}</h2>
-                <LessonNotes lessonKey={key} title={t(lesson.title, tl)} locale={tl} />
                 {langSwitch}
               </div>
               {taskList}
@@ -500,8 +504,13 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
               </Press>
               <Press
                 onClick={() => {
-                  if (hintsShown < lesson.hints.length) setHintsShown((n) => n + 1);
-                  else if (fails >= SOLUTION_AFTER) setFiles(lesson.solution);
+                  if (hintsShown < lesson.hints.length) {
+                    setHintsShown((n) => n + 1);
+                    noteHint(key);
+                  } else if (fails >= SOLUTION_AFTER) {
+                    setFiles(lesson.solution);
+                    noteSolution(key);
+                  }
                   else play("wrong");
                   setForcePane({ pane: "side", at: Date.now() });
                 }}
@@ -554,7 +563,6 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
             </div>
           ))}
         </div>
-        <LessonNotes lessonKey={key} title={t(lesson.title, tl)} locale={tl} />
         {langSwitch}
       </div>
 

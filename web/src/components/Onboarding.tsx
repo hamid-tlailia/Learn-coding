@@ -74,9 +74,9 @@ export function Onboarding({ locale }: { locale: Locale }) {
 
   const card = (title: string, body: React.ReactNode, text?: string) => (
     <div className="flex flex-col gap-5">
-      <div>
+      <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold">{title}</h1>
-        {text && <p className="mt-1 text-muted">{text}</p>}
+        {text && <p className="text-muted">{text}</p>}
       </div>
       {body}
     </div>

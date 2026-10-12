@@ -18,46 +18,86 @@ const steps = (body: string) =>
 
 export const strings: Lesson = {
   slug: "strings",
-  title: { ar: "النصوص: تنظيف وتحويل وتقطيع", en: "Strings: clean, transform and split" },
+  title: { ar: "النصوص: تنظيف ومقارنة", en: "Strings: clean and compare" },
   body: [
-    { icon: "🧵", ar: "أغلب ما يكتبه المستخدم **نصوص**: أسماء، بريد، بحث. ونادرًا ما تصل نظيفة: مسافات زائدة، حروف كبيرة وصغيرة مختلطة. JavaScript تعطيك دوالًا جاهزة لترتيبها.", en: "Most of what users type is **text**: names, emails, searches. It rarely arrives clean: extra spaces, mixed capital and small letters. JavaScript gives you ready methods to tidy it." },
-    { icon: "🧹", ar: "`trim()` يحذف المسافات من الطرفين، و `toLowerCase()` و `toUpperCase()` يغيّران حالة الأحرف، و `includes(\"@\")` يسأل: هل النص يحتوي هذا؟", en: "`trim()` removes spaces at both ends, `toLowerCase()` and `toUpperCase()` change letter case, and `includes(\"@\")` asks: does the text contain this?" },
-    { icon: "✂️", ar: "`split(\" \")` يقطّع النص إلى مصفوفة كلمات، و `join(\"-\")` يجمعها من جديد. و `slice(0, 1)` يأخذ جزءًا منه: هنا الحرف الأول.", en: "`split(\" \")` cuts text into an array of words, and `join(\"-\")` glues them back. `slice(0, 1)` takes a piece: here, the first letter." },
-    { icon: "🔁", ar: "`replaceAll(\"a\", \"b\")` يستبدل كل ظهور. وكل هذه الدوال **تُرجع نصًا جديدًا** ولا تغيّر الأصلي: النصوص في JavaScript لا تتغير.", en: "`replaceAll(\"a\", \"b\")` replaces every match. All these methods **return a new string** and leave the original alone: strings in JavaScript never change." },
+    { icon: "🧵", ar: "أغلب ما يكتبه المستخدم **نصوص**: أسماء، بريد، بحث. ونادرًا ما تصل نظيفة: مسافات زائدة، أو حروف كبيرة وصغيرة مختلطة. JavaScript تعطيك **دوالًا جاهزة** تكتبها بعد النص ونقطة.", en: "Most of what users type is **text**: names, emails, searches. It rarely arrives clean: extra spaces, or mixed capital and small letters. JavaScript gives you **ready-made methods** you write after the text and a dot." },
+    { icon: "🧹", ar: "`trim()` يحذف المسافات من البداية والنهاية: `\"  Sara  \".trim()` يصبح `\"Sara\"`.", en: "`trim()` removes spaces at the start and end: `\"  Sara  \".trim()` becomes `\"Sara\"`." },
+    { icon: "🔠", ar: "`toUpperCase()` يجعل كل الحروف كبيرة، و `toLowerCase()` يجعلها صغيرة: `\"Sara\".toUpperCase()` يصبح `\"SARA\"`.", en: "`toUpperCase()` makes every letter capital and `toLowerCase()` makes them small: `\"Sara\".toUpperCase()` becomes `\"SARA\"`." },
+    { icon: "🔍", ar: "`includes(\"@\")` يسأل: هل النص يحتوي هذا؟ ويُرجع `true` أو `false`. و `length` (بدون أقواس) عدد الحروف: `\"Sara\".length` يساوي `4`.", en: "`includes(\"@\")` asks: does the text contain this? It returns `true` or `false`. And `length` (no parentheses) is the number of characters: `\"Sara\".length` is `4`." },
+    { icon: "🔗", ar: "يمكنك وصلها معًا: `name.trim().toUpperCase()` ينظّف ثم يكبّر. وكل دالة **تُرجع نصًا جديدًا** ولا تغيّر الأصلي، فاحفظ النتيجة في متغير.", en: "You can chain them: `name.trim().toUpperCase()` cleans, then capitalizes. Each method **returns a new string** and leaves the original alone, so keep the result in a variable." },
   ],
   example: {
-    code: 'const raw = "   hELLo   WoRLD  ";\nconst clean = raw.trim().toLowerCase();\nconsole.log(clean);                       // "hello   world"\nconst words = clean.split(" ").filter((w) => w);\nconsole.log(words);                       // ["hello", "world"]\nconsole.log(words.join("-"));            // "hello-world"\nconst word = "code";\nconsole.log(`${word.slice(0, 1).toUpperCase()}${word.slice(1)}`); // "Code"',
-    note: { ar: "تنظيف نص فوضوي خطوة بخطوة.", en: "Tidying messy text step by step." },
+    code: 'const raw = "   hELLo   ";\nconst clean = raw.trim();\nconsole.log(clean);                 // "hELLo"\nconsole.log(clean.toLowerCase());   // "hello"\nconsole.log(clean.length);          // 5\nconsole.log("a@b.co".includes("@")); // true',
+    note: { ar: "كل سطر يطبّق دالة واحدة.", en: "Each line applies one method." },
     lang: "js",
   },
   files: ["js"],
-  starter: { js: "// 1) formatName(raw)  →  \"  sARA   aLI \" becomes \"Sara Ali\"\n\n// 2) slugify(title)   →  \"Learn JS Fast\" becomes \"learn-js-fast\"\n\n// 3) initials(name)   →  \"Sara Ali\" becomes \"S.A.\"\n" },
-  solution: {
-    js: 'function formatName(raw) {\n  return raw\n    .trim()\n    .split(" ")\n    .filter((word) => word)\n    .map((word) => `${word.slice(0, 1).toUpperCase()}${word.slice(1).toLowerCase()}`)\n    .join(" ");\n}\n\nfunction slugify(title) {\n  return title.trim().toLowerCase().split(" ").filter((w) => w).join("-");\n}\n\nfunction initials(name) {\n  return name.split(" ").map((w) => `${w.slice(0, 1).toUpperCase()}.`).join("");\n}\n\nconsole.log(formatName("  sARA   aLI "));\n',
-  },
-  harness: 'try { console.log("__s__ name " + formatName("  sARA   aLI ")); console.log("__s__ name2 " + formatName("omar")); } catch (e) { console.log("__s__ name error"); } try { console.log("__s__ slug " + slugify("  Learn JS   Fast ")); } catch (e) { console.log("__s__ slug error"); } try { console.log("__s__ ini " + initials("Sara Ali")); } catch (e) { console.log("__s__ ini error"); }',
+  starter: { js: 'const raw = "   Sara Ali   ";\nconst email = "sara@mail.com";\n\n' },
+  solution: { js: 'const raw = "   Sara Ali   ";\nconst email = "sara@mail.com";\n\nconst name = raw.trim();\nconsole.log(name);\nconsole.log(name.toUpperCase());\nconsole.log(name.length);\nconsole.log(email.includes("@"));\n' },
   tasks: [
-    { id: "name", label: { ar: "`formatName` يحذف كل المسافات الزائدة (حتى بين الكلمات) ويجعل أول حرف من كل كلمة كبيرًا والباقي صغيرًا", en: "`formatName` removes every extra space (even between words) and capitalizes only the first letter of each word" }, test: ({ logs }) => exact(logs, "__s__ name Sara Ali") && exact(logs, "__s__ name2 Omar") },
-    { id: "slug", label: { ar: "`slugify` يحوّل العنوان إلى `learn-js-fast` حتى مع مسافات زائدة في أي مكان", en: "`slugify` turns the title into `learn-js-fast`, even with extra spaces anywhere" }, test: ({ logs }) => exact(logs, "__s__ slug learn-js-fast") },
-    { id: "ini", label: { ar: "`initials` يُرجع `S.A.`", en: "`initials` returns `S.A.`" }, test: ({ logs }) => exact(logs, "__s__ ini S.A.") },
+    { id: "trim", label: { ar: "اطبع `raw` بدون المسافات الزائدة: `Sara Ali`", en: "Print `raw` without the extra spaces: `Sara Ali`" }, test: ({ logs }) => exact(logs, "Sara Ali") },
+    { id: "upper", label: { ar: "اطبع الاسم بحروف كبيرة: `SARA ALI`", en: "Print the name in capital letters: `SARA ALI`" }, test: ({ logs }) => exact(logs, "SARA ALI") },
+    { id: "length", label: { ar: "اطبع عدد حروف الاسم بعد التنظيف (`8`)", en: "Print how many characters the cleaned name has (`8`)" }, test: ({ logs, files }) => exact(logs, "8") && /\.length\b/.test(files.js ?? "") },
+    { id: "includes", label: { ar: "اطبع هل `email` يحتوي `@` (يجب أن تظهر `true`)", en: "Print whether `email` contains `@` (it should show `true`)" }, test: ({ logs, files }) => exact(logs, "true") && /includes\(/.test(files.js ?? "") },
   ],
   hints: [
-    { ar: '`raw.trim().split(" ").filter((w) => w)` يعطيك الكلمات بدون الفراغات الزائدة.', en: '`raw.trim().split(" ").filter((w) => w)` gives you the words without the extra blanks.' },
-    { ar: "لكل كلمة استخدم `map` وقالبًا نصيًا: الحرف الأول `word.slice(0, 1).toUpperCase()` ثم الباقي `word.slice(1).toLowerCase()`، ثم `join(\" \")`.", en: "For each word use `map` and a template literal: the first letter `word.slice(0, 1).toUpperCase()`, then the rest `word.slice(1).toLowerCase()`, then `join(\" \")`." },
+    { ar: "`const name = raw.trim();` ثم `console.log(name);`", en: "`const name = raw.trim();` then `console.log(name);`" },
+    { ar: "`console.log(name.toUpperCase());` و `console.log(name.length);` و `console.log(email.includes(\"@\"));`", en: "`console.log(name.toUpperCase());`, `console.log(name.length);` and `console.log(email.includes(\"@\"));`" },
   ],
   deep: {
     more: [
       { icon: "🧊", ar: "النصوص **غير قابلة للتغيير** (immutable): `name.toUpperCase()` لا يغيّر `name`. احفظ النتيجة: `const big = name.toUpperCase();`.", en: "Strings are **immutable**: `name.toUpperCase()` doesn't change `name`. Keep the result: `const big = name.toUpperCase();`." },
       { icon: "🔎", ar: "للمقارنة دون اعتبار لحالة الأحرف وحّد الطرفين: `a.toLowerCase() === b.toLowerCase()`. هكذا يعمل البحث في معظم المواقع.", en: "To compare ignoring letter case, normalize both sides: `a.toLowerCase() === b.toLowerCase()`. That's how most site searches work." },
-      { icon: "🌍", ar: "للغات مثل العربية والتركية استخدم `localeCompare` للترتيب، و `Intl` لتنسيق الأرقام والتواريخ: `new Intl.NumberFormat(\"ar\").format(1234)`.", en: "For languages like Arabic or Turkish, sort with `localeCompare` and format numbers and dates with `Intl`: `new Intl.NumberFormat(\"ar\").format(1234)`." },
+      { icon: "📏", ar: "`length` يعدّ المسافات أيضًا، لذلك نظّف بـ `trim()` قبل أن تتحقق من طول اسم أو كلمة سر.", en: "`length` counts spaces too, so clean with `trim()` before checking the length of a name or password." },
     ],
     mistakes: [
       { ar: "`name.toUppercase()` ← الاسم الصحيح `toUpperCase()` بحرف C كبير؛ JavaScript تفرّق بين الحروف.", en: "`name.toUppercase()` → the right name is `toUpperCase()` with a capital C; JavaScript is case-sensitive." },
-      { ar: "`text.replace(\"a\", \"b\")` يستبدل أول ظهور فقط ← استخدم `replaceAll` لكل الظهورات.", en: "`text.replace(\"a\", \"b\")` only replaces the first match → use `replaceAll` for every one." },
-      { ar: "`split(\" \")` على نص فيه مسافات متتالية يعطي كلمات فارغة ← أضف `.filter((w) => w)`.", en: "`split(\" \")` on text with double spaces gives empty words → add `.filter((w) => w)`." },
+      { ar: "`name.length()` بأقواس يسبب خطأ ← `length` خاصية وليست دالة: `name.length`.", en: "`name.length()` with parentheses is an error → `length` is a property, not a method: `name.length`." },
+      { ar: "`raw.trim();` وحدها ثم طباعة `raw` يُظهر المسافات ← النتيجة في نص جديد: `const name = raw.trim();`.", en: "Calling `raw.trim();` alone and printing `raw` still shows the spaces → the result is a new string: `const name = raw.trim();`." },
     ],
   },
-  xp: 30,
+  xp: 25,
+};
+
+export const splitJoin: Lesson = {
+  slug: "split-join",
+  title: { ar: "النصوص: تقطيع وجمع", en: "Strings: split and join" },
+  body: [
+    { icon: "✂️", ar: "`split(\" \")` يقطّع النص عند كل مسافة ويُرجع **مصفوفة** كلمات: `\"learn js fast\".split(\" \")` تصبح `[\"learn\", \"js\", \"fast\"]`.", en: "`split(\" \")` cuts the text at every space and returns an **array** of words: `\"learn js fast\".split(\" \")` becomes `[\"learn\", \"js\", \"fast\"]`." },
+    { icon: "🧷", ar: "`join(\"-\")` يعمل العكس: يجمع عناصر المصفوفة في نص واحد مع الفاصل الذي تختاره: `[\"learn\", \"js\"].join(\"-\")` تصبح `\"learn-js\"`.", en: "`join(\"-\")` does the opposite: it glues an array back into one string with the separator you choose: `[\"learn\", \"js\"].join(\"-\")` becomes `\"learn-js\"`." },
+    { icon: "🍰", ar: "`slice(0, 1)` يأخذ **قطعة** من النص: من الموقع 0 حتى قبل 1، أي الحرف الأول. و `slice(1)` يأخذ كل شيء بعد الحرف الأول.", en: "`slice(0, 1)` takes a **piece** of the text: from position 0 up to (not including) 1, so the first letter. `slice(1)` takes everything after the first letter." },
+  ],
+  example: {
+    code: 'const sentence = "code is fun";\nconst words = sentence.split(" ");\nconsole.log(words);             // ["code","is","fun"]\nconsole.log(words.length);      // 3\nconsole.log(words.join("_"));   // "code_is_fun"\nconsole.log(sentence.slice(0, 4)); // "code"',
+    note: { ar: "من نص إلى مصفوفة ثم إلى نص من جديد.", en: "From text to an array, and back to text." },
+    lang: "js",
+  },
+  files: ["js"],
+  starter: { js: 'const sentence = "learn js fast";\n\n' },
+  solution: { js: 'const sentence = "learn js fast";\n\nconst words = sentence.split(" ");\nconsole.log(words);\nconsole.log(words.length);\nconsole.log(words.join("-"));\nconsole.log(sentence.slice(0, 1).toUpperCase());\n' },
+  tasks: [
+    { id: "split", label: { ar: "قطّع `sentence` إلى كلمات بـ `split(\" \")` واطبع المصفوفة", en: "Split `sentence` into words with `split(\" \")` and print the array" }, test: ({ logs, files }) => exact(logs, '["learn","js","fast"]') && /split\(/.test(files.js ?? "") },
+    { id: "count", label: { ar: "اطبع عدد الكلمات (`3`)", en: "Print how many words there are (`3`)" }, test: ({ logs }) => exact(logs, "3") },
+    { id: "join", label: { ar: "اجمع الكلمات بـ `-` واطبع `learn-js-fast`", en: "Join the words with `-` and print `learn-js-fast`" }, test: ({ logs, files }) => exact(logs, "learn-js-fast") && /join\(/.test(files.js ?? "") },
+    { id: "slice", label: { ar: "اطبع أول حرف من `sentence` كبيرًا بـ `slice`: `L`", en: "Print the first letter of `sentence` as a capital with `slice`: `L`" }, test: ({ logs, files }) => exact(logs, "L") && /slice\(/.test(files.js ?? "") },
+  ],
+  hints: [
+    { ar: '`const words = sentence.split(" ");` ثم `console.log(words);` و `console.log(words.length);`', en: '`const words = sentence.split(" ");` then `console.log(words);` and `console.log(words.length);`' },
+    { ar: '`console.log(words.join("-"));` و `console.log(sentence.slice(0, 1).toUpperCase());`', en: '`console.log(words.join("-"));` and `console.log(sentence.slice(0, 1).toUpperCase());`' },
+  ],
+  deep: {
+    more: [
+      { icon: "🧩", ar: "`split` و `join` مع دوال المصفوفات التي تعرفها قوية جدًا: `title.split(\" \").map((w) => w.toLowerCase()).join(\"-\")` يصنع رابطًا نظيفًا (slug) من أي عنوان.", en: "`split` and `join` combined with the array methods you know are powerful: `title.split(\" \").map((w) => w.toLowerCase()).join(\"-\")` makes a clean link (slug) from any title." },
+      { icon: "🔢", ar: "المواقع في النص تبدأ من **0**: في `\"code\"` الحرف `c` في الموقع 0. و `slice(-3)` بعدد سالب يأخذ آخر 3 حروف.", en: "Positions in text start at **0**: in `\"code\"`, `c` is at position 0. `slice(-3)` with a negative number takes the last 3 characters." },
+      { icon: "🔁", ar: "`replaceAll(\" \", \"-\")` طريقة أقصر لاستبدال كل المسافات مرة واحدة دون تقطيع.", en: "`replaceAll(\" \", \"-\")` is a shorter way to replace every space at once without splitting." },
+    ],
+    mistakes: [
+      { ar: "`split(\" \")` على نص فيه مسافتان متتاليتان يعطي كلمة فارغة `\"\"` ← نظّف بـ `trim()` أولًا، أو صفِّ بـ `filter((w) => w)`.", en: "`split(\" \")` on text with two spaces in a row gives an empty word `\"\"` → clean with `trim()` first, or filter with `filter((w) => w)`." },
+      { ar: "`join()` بدون فاصل يضع فواصل `,` ← حدّد الفاصل: `join(\" \")` أو `join(\"-\")`.", en: "`join()` with no separator uses commas `,` → name the separator: `join(\" \")` or `join(\"-\")`." },
+      { ar: "`slice(1, 1)` يعطي نصًا فارغًا لأن النهاية لا تُحتسب ← للحرف الأول اكتب `slice(0, 1)`.", en: "`slice(1, 1)` gives empty text because the end isn't included → for the first letter write `slice(0, 1)`." },
+    ],
+  },
+  xp: 25,
 };
 
 const STORAGE_HTML = '<h1>My settings</h1>\n<p id="visits">Visits: 0</p>\n<button id="theme">Toggle theme</button>\n';

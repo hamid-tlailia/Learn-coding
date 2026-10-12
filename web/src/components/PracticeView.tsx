@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { motion } from "motion/react";
 import { stages, lessonKey } from "@/content/curriculum";
+import type { Lesson, Stage } from "@/content/types";
 import { challenges } from "@/content/challenges";
 import { shortcuts } from "@/content/shortcuts";
 import { t, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
 import { play } from "@/lib/feedback";
-import { useNotes } from "@/lib/notes";
+import { levelOf, mastery, notesFor, useInsights } from "@/lib/insights";
 import { canUseEditor, useProgress } from "@/lib/progress";
 import { CheckIcon, CodeIcon, LockIcon } from "./Icons";
 import { Card, PageHeader, rise, Stagger, useMounted } from "./ui";
@@ -18,7 +19,7 @@ export function PracticeView({ locale }: { locale: Locale }) {
   const dict = getDictionary(locale);
   const p = dict.practice;
   const progress = useProgress();
-  const notes = useNotes();
+  const insights = useInsights();
   if (!mounted) return <div className="min-h-dvh" />;
 
   const done = stages.flatMap((s) =>
@@ -145,34 +146,101 @@ export function PracticeView({ locale }: { locale: Locale }) {
         )}
       </motion.section>
 
-      <motion.section variants={rise} className="flex flex-col gap-3">
-        <h2 className="text-xl font-bold">📝 {dict.lesson.notes}</h2>
-        {Object.keys(notes).length === 0 ? (
-          <Card className="text-muted">{p.notesEmpty}</Card>
-        ) : (
-          <div className="grid gap-3 sm:grid-cols-2">
-            {stages.flatMap((stage) =>
-              stage.lessons
-                .filter((l) => notes[lessonKey(stage.slug, l.slug)])
-                .map((lesson) => (
-                  <Link
-                    key={`${stage.slug}/${lesson.slug}`}
-                    href={`/${locale}/learn/${stage.slug}/${lesson.slug}/`}
-                    onClick={() => play("select")}
-                    className="flex flex-col gap-1 rounded-2xl glass p-4 shadow-card"
-                  >
-                    <span className="text-xs text-muted">
-                      {stage.badge} · {t(lesson.title, locale)}
-                    </span>
-                    <span className="line-clamp-3 whitespace-pre-wrap" style={{ unicodeBidi: "plaintext" }}>
-                      {notes[lessonKey(stage.slug, lesson.slug)].text}
-                    </span>
-                  </Link>
-                )),
-            )}
-          </div>
-        )}
-      </motion.section>
+      <CoachNotes locale={locale} done={done} insights={insights} />
     </Stagger>
+  );
+}
+
+/**
+ * The app's notes on the learner, built from how each finished lesson went:
+ * strengths, lessons that need work (which also come back for review sooner), and per-lesson notes.
+ */
+function CoachNotes({
+  locale,
+  done,
+  insights,
+}: {
+  locale: Locale;
+  done: { stage: Stage; lesson: Lesson }[];
+  insights: ReturnType<typeof useInsights>;
+}) {
+  const c = getDictionary(locale).coach;
+  const rated = done
+    .map((d) => ({ ...d, key: lessonKey(d.stage.slug, d.lesson.slug), stats: insights[lessonKey(d.stage.slug, d.lesson.slug)] }))
+    .filter((d) => d.stats?.done)
+    .map((d) => ({ ...d, m: mastery(d.stats!) }));
+  const strong = rated.filter((d) => levelOf(d.m) === "strong").sort((a, b) => b.m - a.m).slice(0, 4);
+  const weak = rated.filter((d) => levelOf(d.m) === "weak").sort((a, b) => a.m - b.m).slice(0, 4);
+  const recent = [...rated].sort((a, b) => (b.stats!.done ?? "").localeCompare(a.stats!.done ?? "")).slice(0, 6);
+
+  return (
+    <motion.section variants={rise} className="flex flex-col gap-3">
+      <div className="flex flex-col gap-1">
+        <h2 className="text-xl font-bold">🧭 {c.title}</h2>
+        <p className="text-sm text-muted">{c.subtitle}</p>
+      </div>
+      {rated.length === 0 ? (
+        <Card className="text-muted">{c.empty}</Card>
+      ) : (
+        <>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Card className="flex flex-col gap-2">
+              <h3 className="font-bold text-ok">💪 {c.strengths}</h3>
+              {strong.length ? (
+                <ul className="flex flex-col gap-1 text-sm">
+                  {strong.map((d) => (
+                    <li key={d.key} className="flex justify-between gap-2">
+                      <span>{t(d.lesson.title, locale)}</span>
+                      <bdi className="font-bold tabular-nums text-ok">{d.m}%</bdi>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-muted">{c.noStrengths}</p>
+              )}
+            </Card>
+            <Card className="flex flex-col gap-2">
+              <h3 className="font-bold text-coral">🎯 {c.weaknesses}</h3>
+              {weak.length ? (
+                <ul className="flex flex-col gap-1 text-sm">
+                  {weak.map((d) => (
+                    <li key={d.key}>
+                      <Link href={`/${locale}/learn/${d.stage.slug}/${d.lesson.slug}/`} className="flex justify-between gap-2">
+                        <span className="underline decoration-dotted">{t(d.lesson.title, locale)}</span>
+                        <bdi className="font-bold tabular-nums text-coral">{d.m}%</bdi>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-muted">{c.noWeaknesses}</p>
+              )}
+              {weak.length > 0 && <p className="text-xs text-muted">{c.weakHint}</p>}
+            </Card>
+          </div>
+          <div className="flex flex-col gap-2">
+            <h3 className="font-bold">{c.recent}</h3>
+            {recent.map((d) => (
+              <Card key={d.key} className="flex flex-col gap-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-semibold">
+                    <span className="text-xs text-muted">{d.stage.badge} · </span>
+                    {t(d.lesson.title, locale)}
+                  </span>
+                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${levelOf(d.m) === "strong" ? "bg-ok/15 text-ok" : levelOf(d.m) === "weak" ? "bg-coral/15 text-coral" : "bg-saffron-soft"}`}>
+                    {c.levels[levelOf(d.m)]}
+                  </span>
+                </div>
+                <ul className="list-inside list-disc text-sm text-muted">
+                  {notesFor(d.stats!).map((n, i) => (
+                    <li key={i}>{t(n, locale)}</li>
+                  ))}
+                </ul>
+              </Card>
+            ))}
+          </div>
+        </>
+      )}
+    </motion.section>
   );
 }

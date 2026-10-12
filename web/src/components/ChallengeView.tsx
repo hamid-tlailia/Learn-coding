@@ -7,6 +7,7 @@ import { challenges } from "@/content/challenges";
 import { t, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
 import { celebrate, play } from "@/lib/feedback";
+import { noteBlank } from "@/lib/insights";
 import { awardXp, useProgress } from "@/lib/progress";
 import { Celebration } from "./Celebration";
 import { CloseIcon } from "./Icons";
@@ -93,9 +94,12 @@ export function ChallengeView({ locale }: { locale: Locale }) {
   function check() {
     const ok = filled.every((ci, i) => ci !== null && c.chips[ci] === c.answers[i]);
     setVerdict(ok ? "right" : "wrong");
+    noteBlank(c.after, ok);
     if (ok) {
       play("correct");
       setScore((s) => s + POINTS);
+      // A right answer moves on by itself after a short moment; a wrong one waits so the learner can read the answer.
+      window.setTimeout(next, 1100);
     } else {
       play("wrong");
     }
@@ -151,14 +155,14 @@ export function ChallengeView({ locale }: { locale: Locale }) {
             exit={{ opacity: 0, x: -30 }}
             className="flex flex-col gap-5"
           >
-            <div>
+            <div className="flex flex-col gap-2">
               <h1 className="text-2xl font-bold">{t(c.prompt, locale)}</h1>
               <p className="text-sm text-muted">{p.fill}</p>
             </div>
 
             <motion.pre
               animate={verdict === "wrong" ? { x: [0, -8, 8, -5, 5, 0] } : { x: 0 }}
-              className={`glow-ring overflow-x-auto rounded-3xl bg-code-bg p-5 font-mono text-lg leading-[2.6] text-code-fg ${
+              className={`overflow-x-auto rounded-3xl border border-line bg-code-bg p-5 font-mono text-lg leading-[2.6] text-code-fg ${
                 verdict === "right" ? "ring-2 ring-ok" : ""
               }`}
             >
@@ -198,10 +202,9 @@ export function ChallengeView({ locale }: { locale: Locale }) {
                     onClick={() => pick(i)}
                     whileTap={{ scale: 0.9 }}
                     animate={{ opacity: used ? 0.25 : 1, scale: used ? 0.92 : 1 }}
-                    className="rounded-2xl p-[2px]"
-                    style={{ background: "var(--grad)" }}
+                    className="rounded-2xl border border-line bg-code-bg px-3 py-3 font-mono text-lg text-code-fg"
                   >
-                    <span className="block rounded-[14px] bg-code-bg px-3 py-3 font-mono text-lg text-code-fg">{text}</span>
+                    {text}
                   </motion.button>
                 );
               })}
@@ -228,7 +231,7 @@ export function ChallengeView({ locale }: { locale: Locale }) {
         <Press
           silent
           onClick={verdict ? next : check}
-          disabled={!full && !verdict}
+          disabled={(!full && !verdict) || verdict === "right"}
           className="btn-grad h-14 w-full rounded-2xl font-display text-lg font-bold disabled:opacity-40"
         >
           {verdict ? p.next : p.check}

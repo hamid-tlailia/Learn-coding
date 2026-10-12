@@ -2,6 +2,7 @@
 
 import { lessonKey, orderedStages, stages, type Track } from "@/content/curriculum";
 import type { FileKind } from "@/content/types";
+import { resetInsights } from "./insights";
 import { resetReviews, scheduleReview } from "./review";
 import { settingsStore } from "./settings";
 import { createStore } from "./store";
@@ -138,6 +139,7 @@ export function markRegistered(stage: string, id: string, date: string, token: s
 export function resetProgress() {
   store.set(store.initial);
   resetReviews();
+  resetInsights();
 }
 
 /** A streak only counts while it was kept today or yesterday. */

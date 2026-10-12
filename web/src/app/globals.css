@@ -175,7 +175,7 @@ pre,
 .btn-grad {
   background-image: var(--grad);
   color: #ffffff;
-  box-shadow: 0 10px 28px -10px color-mix(in srgb, var(--accent-base) 80%, transparent);
+  box-shadow: 0 6px 14px -10px color-mix(in srgb, var(--accent-base) 45%, transparent);
 }
 
 .glass {
@@ -186,7 +186,7 @@ pre,
 }
 
 .glow-ring {
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 55%, transparent), 0 0 26px -6px var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent), 0 0 10px -8px var(--accent);
 }
 
 .text-grad {

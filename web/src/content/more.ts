@@ -185,7 +185,7 @@ export const reactMore: Lesson[] = [
       b = btn("details"); if (b) b.click(); await wait();
       console.log("__c__ again " + !root.querySelector("#details"));`),
     tasks: [
-      { id: "hook", label: { ar: "اكتب `useToggle(initial)` يستخدم `useState` ويُرجع `[value, toggle]`", en: "Write `useToggle(initial)` using `useState` and returning `[value, toggle]`" }, test: ({ files }) => /function\s+useToggle\s*\([\s\S]*?useState\([\s\S]*?return\s*\[/.test(files.js ?? "") },
+      { id: "hook", label: { ar: "اكتب دالة hook باسم `useToggle(initial)` يستخدم `useState` ويُرجع `[value, toggle]`", en: "Write a hook function `useToggle(initial)` using `useState` and returning `[value, toggle]`" }, test: ({ files }) => /function\s+useToggle\s*\([\s\S]*?useState\([\s\S]*?return\s*\[/.test(files.js ?? "") },
       { id: "use", label: { ar: "استخدمه في `App`: `const [open, toggle] = useToggle(false);`", en: "Use it in `App`: `const [open, toggle] = useToggle(false);`" }, test: ({ files }) => /=\s*useToggle\(\s*false\s*\)/.test(files.js ?? "") },
       { id: "show", label: { ar: "زر `Details` يُظهر `<p id=\"details\">`", en: "A `Details` button shows `<p id=\"details\">`" }, test: ({ logs }) => c(logs, "hidden", true) && c(logs, "shown", true) },
       { id: "hide", label: { ar: "الضغط مرة أخرى يخفيه", en: "Pressing again hides it" }, test: ({ logs }) => c(logs, "again", true) },

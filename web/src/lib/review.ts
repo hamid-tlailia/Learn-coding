@@ -4,6 +4,7 @@ import { challenges, type Challenge } from "@/content/challenges";
 import { stages, trackParts, type Track } from "@/content/curriculum";
 import type { Question } from "@/content/types";
 import type { L } from "@/i18n/config";
+import { firstGap, mastery, noteReview, statsOf } from "./insights";
 import { dayKey, type Progress } from "./progress";
 import { createStore } from "./store";
 
@@ -26,7 +27,8 @@ function addDays(days: number) {
 
 /** Called when a lesson is finished for the first time. */
 export function scheduleReview(key: string) {
-  store.set((all) => (all[key] ? all : { ...all, [key]: { box: 0, due: addDays(GAPS[0]) } }));
+  // How the lesson went sets the first gap: tomorrow if it was hard, a few days if it was smooth.
+  store.set((all) => (all[key] ? all : { ...all, [key]: { box: 0, due: addDays(firstGap(statsOf(key))) } }));
 }
 
 /** Lessons finished before reviews existed join the schedule from tomorrow, at most five a day. */
@@ -38,6 +40,7 @@ export function scheduleMissing(completed: string[]) {
 }
 
 export function recordReview(key: string, clean: boolean) {
+  noteReview(key, clean);
   store.set((all) => {
     const box = clean ? (all[key]?.box ?? 0) + 1 : 0;
     return { ...all, [key]: { box, due: box >= GAPS.length ? null : addDays(GAPS[box]) } };
@@ -65,10 +68,10 @@ export function reviewsOpen(stageSlug: string, progress: Progress, track: Track)
   return !cert || !progress.certs[cert];
 }
 
-/** Lesson keys whose review day has come, in study order. */
+/** Lesson keys whose review day has come, weakest first. */
 export function dueReviews(reviews: Record<string, ReviewEntry>, progress: Progress, track: Track) {
   const today = dayKey();
-  return stages.flatMap((s) =>
+  const due = stages.flatMap((s) =>
     s.lessons
       .map((l) => `${s.slug}/${l.slug}`)
       .filter((k) => {
@@ -76,6 +79,7 @@ export function dueReviews(reviews: Record<string, ReviewEntry>, progress: Progr
         return progress.completed.includes(k) && r?.due && r.due <= today && reviewsOpen(s.slug, progress, track);
       }),
   );
+  return due.sort((a, b) => mastery(statsOf(a)) - mastery(statsOf(b)));
 }
 
 /** A stable shuffle, so a review shows the same order while it's open. */

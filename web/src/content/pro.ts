@@ -59,7 +59,7 @@ export const proLessons: Lesson[] = [
     },
     harness: 'console.log("__email__", [isValidEmail("a@b.co"), isValidEmail("ab.co"), isValidEmail(""), isValidEmail("a@b")].join(","));',
     tasks: [
-      { id: "fn", label: { ar: "اكتب `isValidEmail(email)`: صالح = نص ثم `@` ثم نطاق فيه نقطة (`a@b.co` صحيح، و `ab.co` و `a@b` والنص الفارغ خطأ)", en: "Write `isValidEmail(email)`: valid = text, then `@`, then a domain with a dot (`a@b.co` is true; `ab.co`, `a@b` and empty text are false)" }, test: ({ logs }) => printed(logs, "__email__ true,false,false,false") },
+      { id: "fn", label: { ar: "اكتب دالة `isValidEmail(email)`: صالح = نص ثم `@` ثم نطاق فيه نقطة (`a@b.co` صحيح، و `ab.co` و `a@b` والنص الفارغ خطأ)", en: "Write a function `isValidEmail(email)`: valid = text, then `@`, then a domain with a dot (`a@b.co` is true; `ab.co`, `a@b` and empty text are false)" }, test: ({ logs }) => printed(logs, "__email__ true,false,false,false") },
       { id: "tests", label: { ar: "اكتب 3 اختبارات على الأقل بـ `test` و `expect`", en: "Write at least 3 tests with `test` and `expect`" }, test: ({ logs }) => logs.filter((l) => l.startsWith("✅")).length >= 3 },
       { id: "green", label: { ar: "كل الاختبارات تنجح (لا يوجد ❌)", en: "All tests pass (no ❌)" }, test: ({ logs }) => logs.some((l) => l.startsWith("✅")) && !logs.some((l) => l.startsWith("❌")) },
     ],
@@ -89,7 +89,7 @@ export const proLessons: Lesson[] = [
     harness: 'let __n = 0, __last = ""; const __d = debounce((q) => { __n++; __last = q; }, 100); __d("a"); __d("ab"); __d("abc"); setTimeout(() => console.log("__calls__", __n, __last), 350);',
     settle: 600,
     tasks: [
-      { id: "fn", label: { ar: "اكتب `debounce(fn, ms)` تُرجع دالة جديدة", en: "Write `debounce(fn, ms)` that returns a new function" }, test: ({ files }) => /function\s+debounce|const\s+debounce\s*=/.test(files.js ?? "") },
+      { id: "fn", label: { ar: "اكتب دالة `debounce(fn, ms)` تُرجع دالة جديدة", en: "Write a function `debounce(fn, ms)` that returns a new function" }, test: ({ files }) => /function\s+debounce|const\s+debounce\s*=/.test(files.js ?? "") },
       { id: "clear", label: { ar: "ألغِ المؤقت السابق بـ `clearTimeout` وابدأ جديدًا بـ `setTimeout`", en: "Cancel the old timer with `clearTimeout` and start one with `setTimeout`" }, test: ({ files }) => /clearTimeout\(/.test(files.js ?? "") && /setTimeout\(/.test(files.js ?? "") },
       { id: "once", label: { ar: "ثلاثة استدعاءات سريعة = تنفيذ واحد بآخر قيمة", en: "Three quick calls = one run with the last value" }, test: ({ logs }) => printed(logs, "__calls__ 1 abc") },
     ],

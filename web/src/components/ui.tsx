@@ -63,7 +63,7 @@ export function StatPills({ labels }: { labels: { xp: string; streak: string } }
 export function PageHeader({ title, subtitle, labels }: { title: string; subtitle?: string; labels: { xp: string; streak: string } }) {
   return (
     <header className="flex flex-wrap items-end justify-between gap-3">
-      <div>
+      <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold">{title}</h1>
         {subtitle && <p className="text-muted">{subtitle}</p>}
       </div>

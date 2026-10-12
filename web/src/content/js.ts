@@ -150,7 +150,7 @@ export const jsLessons: Lesson[] = [
     solution: { js: "const add = (a, b) => a + b;\n\nconsole.log(add(2, 3));\n", html: "<h1>Functions</h1>\n" },
     harness: 'try { console.log("__add__", add(7, 8)); } catch (e) { console.log("__add__", "missing"); }',
     tasks: [
-      { id: "define", label: { ar: "اكتب دالة `add(a, b)` تُرجع مجموع العددين", en: "Write `add(a, b)` that returns the sum" }, test: ({ logs }) => printed(logs, "__add__ 15") },
+      { id: "define", label: { ar: "اكتب دالة `add(a, b)` تُرجع مجموع العددين", en: "Write a function `add(a, b)` that returns the sum" }, test: ({ logs }) => printed(logs, "__add__ 15") },
       { id: "call", label: { ar: "اطبع ناتج `add(2, 3)`", en: "Print the result of `add(2, 3)`" }, test: ({ logs }) => printed(logs, "5") },
     ],
     hints: [

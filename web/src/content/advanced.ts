@@ -300,7 +300,7 @@ export const errors: Lesson = {
   },
   harness: 'try { console.log("__ok__", parseAge("21")); } catch (e) { console.log("__ok__", "threw"); } try { parseAge("x"); console.log("__bad__", "no-throw"); } catch (e) { console.log("__bad__", e instanceof Error ? "Error" : "other"); }',
   tasks: [
-    { id: "valid", label: { ar: "اكتب `parseAge(text)` تُرجع الرقم للنص الصحيح", en: "Write `parseAge(text)` returning the number for valid text" }, test: ({ logs }) => printed(logs, "__ok__ 21") },
+    { id: "valid", label: { ar: "اكتب دالة `parseAge(text)` تُرجع الرقم للنص الصحيح", en: "Write a function `parseAge(text)` returning the number for valid text" }, test: ({ logs }) => printed(logs, "__ok__ 21") },
     { id: "throw", label: { ar: "وترمي `new Error(...)` إذا لم يكن رقمًا", en: "and throwing `new Error(...)` when it isn't a number" }, test: ({ logs }) => printed(logs, "__bad__ Error") },
     { id: "catch", label: { ar: "استدعها بنص خاطئ داخل `try/catch` واطبع `error.message`", en: "Call it with bad text in `try/catch` and print `error.message`" }, test: ({ files, logs }) => /try\s*\{[\s\S]*catch\s*\(/.test(files.js ?? "") && logs.some((l) => !l.startsWith("__") && !l.startsWith("Error:") && l.length > 3) },
   ],

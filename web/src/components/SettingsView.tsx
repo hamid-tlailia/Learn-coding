@@ -6,12 +6,12 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { locales, t, type Locale } from "@/i18n/config";
-import type { Track } from "@/content/curriculum";
+import { orderedStages, type Track } from "@/content/curriculum";
 import { getDictionary } from "@/i18n/dictionary";
 import { play } from "@/lib/feedback";
 import { photoToDataUrl } from "@/lib/image";
 import { LOCALE_KEY } from "@/lib/keys";
-import { levelOf, resetProgress, useProgress } from "@/lib/progress";
+import { isStageUnlocked, levelOf, resetProgress, useProgress } from "@/lib/progress";
 import { syncReminder } from "@/lib/reminder";
 import {
   accents,
@@ -118,10 +118,15 @@ export function SettingsView({ locale }: { locale: Locale }) {
   const o = dict.onboarding;
   const s = useSettings();
   const progress = useProgress();
+  /** Stages open now that the other track would lock until its earlier stages are finished. */
+  const stagesLockedBy = (track: Track) =>
+    orderedStages(s.track).filter((stage) => isStageUnlocked(stage.slug, progress, s.track) && !isStageUnlocked(stage.slug, progress, track));
   const pathname = usePathname();
   const photoInput = useRef<HTMLInputElement>(null);
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [modal, setModal] = useState(false);
+  // Switching tracks mid-way locks stages the learner has already opened; confirm that first.
+  const [switchTo, setSwitchTo] = useState<Track | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   // After switching language, come back to the same spot instead of the top of the page.
@@ -310,7 +315,10 @@ export function SettingsView({ locale }: { locale: Locale }) {
           <Segmented<Track>
             id="track"
             value={s.track}
-            onChange={(track) => updateSettings({ track })}
+            onChange={(track) => {
+              if (stagesLockedBy(track).length) setSwitchTo(track);
+              else updateSettings({ track });
+            }}
             options={(["web", "mobile"] as const).map((v) => ({ value: v, label: o.tracks[v].s }))}
           />
         </Row>
@@ -452,6 +460,64 @@ export function SettingsView({ locale }: { locale: Locale }) {
       </Section>
 
       {/* Reset modal, rendered on <body> so it sits above the tab bar */}
+      {createPortal(
+        <AnimatePresence>
+          {switchTo && (
+            <motion.div
+              className="fixed inset-0 z-[60] grid place-items-end bg-black/60 p-4 backdrop-blur-sm sm:place-items-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSwitchTo(null)}
+            >
+              <motion.div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="track-title"
+                onClick={(e) => e.stopPropagation()}
+                initial={{ y: 60, opacity: 0, scale: 0.96 }}
+                animate={{ y: 0, opacity: 1, scale: 1 }}
+                exit={{ y: 60, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 320, damping: 28 }}
+                className="flex w-full max-w-md flex-col gap-4 rounded-[2rem] bg-surface p-6 shadow-2xl"
+                style={{ marginBottom: "env(safe-area-inset-bottom, 0px)" }}
+              >
+                <div className="flex flex-col items-center gap-2 text-center">
+                  <span className="grid size-14 place-items-center rounded-2xl bg-saffron-soft text-3xl" aria-hidden="true">
+                    🔀
+                  </span>
+                  <h2 id="track-title" className="text-xl font-bold">
+                    {st.trackSwitchTitle.replace("{track}", o.tracks[switchTo].t)}
+                  </h2>
+                  <p className="text-sm text-muted">{st.trackSwitchText}</p>
+                </div>
+                <ul className="flex flex-col gap-1.5 rounded-2xl bg-surface-2 p-4 text-sm font-semibold">
+                  {stagesLockedBy(switchTo).map((stage) => (
+                    <li key={stage.slug}>🔒 {t(stage.title, locale)}</li>
+                  ))}
+                </ul>
+                <p className="text-sm text-muted">{st.trackSwitchKeep.replace("{track}", o.tracks[s.track].t)}</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateSettings({ track: switchTo });
+                    play("whoosh");
+                    setSwitchTo(null);
+                  }}
+                  className="rounded-2xl bg-coral p-4 font-bold text-white"
+                >
+                  {st.trackSwitchYes}
+                </button>
+                <button type="button" onClick={() => setSwitchTo(null)} className="rounded-2xl bg-surface-2 p-4 font-semibold">
+                  {st.trackSwitchNo.replace("{track}", o.tracks[s.track].t)}
+                </button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body,
+      )}
+
       {createPortal(
       <AnimatePresence>
         {modal && (

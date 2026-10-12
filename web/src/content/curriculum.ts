@@ -12,7 +12,7 @@ import { mobileExam, mobileLessons } from "./mobile";
 import { proExam, proLessons } from "./pro";
 import { backendProject, jsProject, mobileProject, proProject, reactProject } from "./projects";
 import { mobileMore, mobileMoreExam, reactMore, reactMoreExam } from "./more";
-import { authPractice, backendWebExam, browserApis, dataLoading, jsMoreExam, reactWebExam, routing, sqlPractice, strings, webStorage } from "./web-more";
+import { authPractice, backendWebExam, browserApis, dataLoading, jsMoreExam, reactWebExam, routing, splitJoin, sqlPractice, strings, webStorage } from "./web-more";
 import { reactExam, reactLessons } from "./react";
 import { cssDeep } from "./deep/css";
 import { htmlDeep } from "./deep/html";
@@ -53,7 +53,7 @@ const html = order(htmlLessons, ["what-is-html", "page-skeleton", "first-page", 
 const css = order(cssLessons, ["what-is-css", selectorsStates, "colors-fonts", "box-model", "flexbox", grid, position, "responsive", transitions, keyframes, modernCss]);
 const react = order(reactLessons, ["what-is-react", "jsx", "props", "state", "lists-keys", "forms-react", "effects", reactMore[0], dataLoading, ...reactMore.slice(1), routing, "nextjs"]);
 const mobile = order(mobileLessons, ["rn-intro", "rn-components", "rn-styles", "rn-touch", "rn-lists", "rn-input", ...mobileMore, "rn-publish"]);
-const js = order(jsLessons, ["what-is-js", "variables", conditions, "functions", "arrays-loops", strings, objects, arrayMethods, classes, errors, "dom-events", asyncAwait, fetchJson, webStorage, browserApis, modules]);
+const js = order(jsLessons, ["what-is-js", "variables", conditions, "functions", "arrays-loops", strings, splitJoin, objects, arrayMethods, classes, errors, "dom-events", asyncAwait, fetchJson, webStorage, browserApis, modules]);
 const backend = order(backendLessons, ["http-apis", "express-basics", "rest-routes", "post-validation", "databases", sqlPractice, "auth-security", authPractice]);
 
 const allStages: Stage[] = [
