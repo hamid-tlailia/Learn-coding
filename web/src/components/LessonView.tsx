@@ -107,7 +107,10 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
   const openedAt = useRef(Date.now());
   const [shake, setShake] = useState(0);
   const [won, setWon] = useState<{ xp: number; levelUp: boolean } | null>(null);
-  const [forcePane, setForcePane] = useState<{ pane: "side"; at: number }>();
+  const [forcePane, setForcePane] = useState<{ pane: "side" | "code"; at: number }>();
+  /** The learner's code at the moment the solution was revealed, to compare against it. */
+  const [compare, setCompare] = useState<Files | null>(null);
+  const hintsBox = useRef<HTMLOListElement | null>(null);
   const [checking, setChecking] = useState(false);
   // Quiz: wrong options tried per question, and which questions are solved.
   const [tried, setTried] = useState<Record<string, number[]>>({});
@@ -127,6 +130,15 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
         ? `/${locale}/learn/${following.slug}/${following.lessons[0].slug}/`
         : back;
   const [countdown, setCountdown] = useState(3);
+
+  // A new hint scrolls into view, once the tasks pane is showing.
+  useEffect(() => {
+    if (!hintsShown) return;
+    const id = window.setTimeout(() => {
+      hintsBox.current?.lastElementChild?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 250);
+    return () => window.clearTimeout(id);
+  }, [hintsShown]);
 
   useEffect(() => {
     if (!won || !flowing) return;
@@ -437,6 +449,20 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
           sideLabel={d.tasks}
           sideBadge={results ? `${passedCount}/${lesson.tasks.length}` : undefined}
           forcePane={forcePane}
+          compare={
+            compare
+              ? {
+                  mine: compare,
+                  solution: lesson.solution,
+                  labels: { title: d.compareTitle, wrong: d.compareWrong, right: d.compareRight, same: d.compareSame, use: d.useSolution, keep: d.keepMine },
+                  onUse: () => {
+                    setFiles(lesson.solution);
+                    setCompare(null);
+                  },
+                  onKeep: () => setCompare(null),
+                }
+              : undefined
+          }
           side={
             <div dir={tdir} lang={tl} className="flex flex-col gap-4" {...noCopy}>
               <div className="flex items-center justify-between gap-2">
@@ -466,6 +492,7 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
               <AnimatePresence>
                 {hintsShown > 0 && (
                   <motion.ol
+                    ref={hintsBox}
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     className="flex list-inside list-decimal flex-col gap-1 overflow-hidden rounded-2xl bg-saffron-soft p-4 text-[0.95rem]"
@@ -507,12 +534,16 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
                   if (hintsShown < lesson.hints.length) {
                     setHintsShown((n) => n + 1);
                     noteHint(key);
+                    setForcePane({ pane: "side", at: Date.now() });
                   } else if (fails >= SOLUTION_AFTER) {
-                    setFiles(lesson.solution);
+                    // Back to the editor, with the learner's code compared line by line to the solution.
+                    setCompare(files);
                     noteSolution(key);
+                    setForcePane({ pane: "code", at: Date.now() });
+                  } else {
+                    play("wrong");
+                    setForcePane({ pane: "side", at: Date.now() });
                   }
-                  else play("wrong");
-                  setForcePane({ pane: "side", at: Date.now() });
                 }}
                 className="flex h-12 items-center gap-2 rounded-2xl bg-white/[0.08] px-4 text-sm font-semibold text-code-fg"
               >

@@ -6,18 +6,19 @@ const ARABIC = /[\u0600-\u06FF]/;
 const ownLine = (code: string) => code.length > 10 && /[\s(){}[\]=;<>"']/.test(code);
 
 /**
- * Renders lesson text: `code` becomes inline code, **text** becomes bold.
+ * Renders lesson text: `code` (or ``code with ` inside``) becomes inline code, **text** becomes bold.
  * Code is always laid out left to right; in Arabic text, longer code sits on its own line.
  */
 export function RichText({ text }: { text: string }) {
-  const parts = text.split(/(`[^`]+`|\*\*[^*]+\*\*)/g);
+  // ``code`` (double backticks) may contain single backticks, as in a template literal.
+  const parts = text.split(/(``.+?``|`[^`]+`|\*\*[^*]+\*\*)/g);
   const rtl = ARABIC.test(text);
   let afterBlock = false;
   return (
     <>
       {parts.map((part, i) => {
         if (part.startsWith("`") && part.endsWith("`") && part.length > 1) {
-          const code = part.slice(1, -1);
+          const code = part.startsWith("``") && part.length > 4 ? part.slice(2, -2).trim() : part.slice(1, -1);
           if (rtl && ownLine(code)) {
             afterBlock = true;
             return (

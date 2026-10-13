@@ -82,6 +82,14 @@ export function lintCode(files: Files, runtime?: Runtime): L[] {
   const out: L[] = lintOld(files);
   for (const [re, msg] of OLD_JS) if (re.test(code)) out.push(msg);
 
+  // `${…}` only works inside backticks; in '…' or "…" it prints as plain text.
+  if (/(["'])(?:(?!\1)[^\\\n]|\\.)*\$\{[^}\n]*\}(?:(?!\1)[^\\\n]|\\.)*\1/.test(src.replace(/\/\/.*$/gm, ""))) {
+    out.push({
+      ar: "`${…}` يعمل فقط داخل علامة الـ backtick `` ` `` وليس داخل `'…'` أو `\"…\"`، وإلا يُطبع كما هو. اضغط `` ` `` في شريط الرموز أسفل المحرر واكتب: `` `${title} has ${pages} pages` ``",
+      en: "`${…}` only works inside backticks `` ` ``, not inside `'…'` or `\"…\"`, where it prints as is. Tap `` ` `` in the symbols bar under the editor and write: `` `${title} has ${pages} pages` ``",
+    });
+  }
+
   const reserved = new RegExp(`\\b(?:let|const|var|function|class)\\s+(${RESERVED.join("|")})\\b`);
   const r = code.match(reserved);
   if (r) {

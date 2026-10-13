@@ -131,7 +131,7 @@ export const webStorage: Lesson = {
   ],
   hints: [
     { ar: '`const visits = Number(localStorage.getItem("visits") ?? 0) + 1;`', en: '`const visits = Number(localStorage.getItem("visits") ?? 0) + 1;`' },
-    { ar: '`localStorage.setItem("visits", String(visits));` ثم `document.querySelector("#visits").textContent = `Visits: ${visits}`;`', en: '`localStorage.setItem("visits", String(visits));` then `document.querySelector("#visits").textContent = `Visits: ${visits}`;`' },
+    { ar: '`localStorage.setItem("visits", String(visits));` ثم `` document.querySelector("#visits").textContent = `Visits: ${visits}`; ``', en: '`localStorage.setItem("visits", String(visits));` then `` document.querySelector("#visits").textContent = `Visits: ${visits}`; ``' },
   ],
   deep: {
     more: [

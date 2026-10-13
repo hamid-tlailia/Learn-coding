@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "motion/react";
+import { useEffect } from "react";
 import { lessonKey, orderedStages, trackParts } from "@/content/curriculum";
 import { t, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
@@ -32,9 +33,8 @@ function PartHeading({ icon, label, title, action }: { icon: string; label: stri
   );
 }
 
-const HEX = "polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%)";
-
-function Hex({ children, tone, pulse }: { children: React.ReactNode; tone: "done" | "current" | "locked" | "stage"; pulse?: boolean }) {
+/** A round marker on the timeline; the current step pulses. */
+function Marker({ children, tone, pulse }: { children: React.ReactNode; tone: "done" | "current" | "locked" | "stage"; pulse?: boolean }) {
   const bg = {
     done: "linear-gradient(135deg,#34d399,#0e8c7f)",
     current: "var(--grad)",
@@ -46,14 +46,16 @@ function Hex({ children, tone, pulse }: { children: React.ReactNode; tone: "done
       {pulse && (
         <motion.span
           aria-hidden="true"
-          className="absolute inset-0"
-          style={{ clipPath: HEX, background: "var(--grad)" }}
-          animate={{ scale: [1, 1.4], opacity: [0.6, 0] }}
+          className="absolute inset-0 rounded-full"
+          style={{ background: "var(--grad)" }}
+          animate={{ scale: [1, 1.35], opacity: [0.55, 0] }}
           transition={{ duration: 1.6, repeat: Infinity, ease: "easeOut" }}
         />
       )}
-      <span className="absolute inset-0" style={{ clipPath: HEX, background: "var(--line)" }} />
-      <span className={`absolute inset-[2px] grid place-items-center ${tone === "locked" ? "text-muted" : "text-white"}`} style={{ clipPath: HEX, background: bg }}>
+      <span
+        className={`absolute inset-0 grid place-items-center rounded-full border-2 border-line ${tone === "locked" ? "text-muted" : "border-transparent text-white"}`}
+        style={{ background: bg }}
+      >
         {children}
       </span>
     </span>
@@ -66,6 +68,16 @@ export function PathMap({ locale }: { locale: Locale }) {
   const d = dict.learn;
   const progress = useProgress();
   const { track } = useSettings();
+
+  // Opening the path scrolls to where the learner is: the first current step on the page.
+  useEffect(() => {
+    if (!mounted) return;
+    const id = window.setTimeout(() => {
+      document.querySelector("[data-current]")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 200);
+    return () => window.clearTimeout(id);
+  }, [mounted]);
+
   if (!mounted) return <div className="min-h-dvh" />;
 
   const o = dict.onboarding;
@@ -169,10 +181,10 @@ export function PathMap({ locale }: { locale: Locale }) {
                     </motion.div>
                   );
                   return (
-                    <li key={lesson.slug} className="relative flex items-center gap-3">
-                      <Hex tone={isDone ? "done" : isCurrent ? "current" : "locked"} pulse={isCurrent}>
+                    <li key={lesson.slug} className="relative flex items-center gap-3" data-current={isCurrent || undefined}>
+                      <Marker tone={isDone ? "done" : isCurrent ? "current" : "locked"} pulse={isCurrent}>
                         {isDone ? <CheckIcon className="size-6" /> : <span className="font-display font-bold">{i + 1}</span>}
-                      </Hex>
+                      </Marker>
                       {open ? (
                         <Link href={`/${locale}/learn/${stage.slug}/${lesson.slug}/`} onClick={() => play("select")} className="flex flex-1">
                           {card}
@@ -185,10 +197,10 @@ export function PathMap({ locale }: { locale: Locale }) {
                 })}
 
                 {stage.exam && (
-                  <li className="relative flex items-center gap-3">
-                    <Hex tone={examPassed ? "done" : allLessonsDone ? "current" : "locked"} pulse={allLessonsDone && !examPassed}>
+                  <li className="relative flex items-center gap-3" data-current={(allLessonsDone && !examPassed) || undefined}>
+                    <Marker tone={examPassed ? "done" : allLessonsDone ? "current" : "locked"} pulse={allLessonsDone && !examPassed}>
                       <span className="text-2xl">🏆</span>
-                    </Hex>
+                    </Marker>
                     {allLessonsDone ? (
                       <Link href={`/${locale}/learn/${stage.slug}/exam/`} onClick={() => play("select")} className="flex flex-1">
                         <motion.div whileTap={{ scale: 0.98 }} className="glass flex flex-1 items-center justify-between gap-3 rounded-2xl border-saffron! p-4">
@@ -208,10 +220,10 @@ export function PathMap({ locale }: { locale: Locale }) {
                 )}
 
                 {stage.project && (
-                  <li className="relative flex items-center gap-3">
-                    <Hex tone={projectScore >= PROJECT_PASS ? "done" : examPassed ? "current" : "locked"} pulse={examPassed && projectScore < PROJECT_PASS}>
+                  <li className="relative flex items-center gap-3" data-current={(examPassed && projectScore < PROJECT_PASS) || undefined}>
+                    <Marker tone={projectScore >= PROJECT_PASS ? "done" : examPassed ? "current" : "locked"} pulse={examPassed && projectScore < PROJECT_PASS}>
                       <span className="text-2xl">🏗️</span>
-                    </Hex>
+                    </Marker>
                     {examPassed ? (
                       <Link href={`/${locale}/learn/${stage.slug}/project/`} onClick={() => play("select")} className="flex flex-1">
                         <motion.div whileTap={{ scale: 0.98 }} className="glass flex flex-1 items-center justify-between gap-3 rounded-2xl p-4">

@@ -100,7 +100,7 @@ export const jsLessons: Lesson[] = [
     ],
     hints: [
       { ar: '`const name = "Hamid";` ثم `let age = 20;` ثم `age = age + 1;`', en: '`const name = "Hamid";` then `let age = 20;` then `age = age + 1;`' },
-      { ar: "`console.log(`${name} is ${age}`);`", en: "`console.log(`${name} is ${age}`);`" },
+      { ar: "`` console.log(`${name} is ${age}`); ``", en: "`` console.log(`${name} is ${age}`); ``" },
     ],
     xp: 25,
   },

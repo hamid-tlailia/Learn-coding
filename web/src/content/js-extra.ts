@@ -99,7 +99,7 @@ export const objects: Lesson = {
   ],
   hints: [
     { ar: '`const book = { title: "Clean Code", pages: 400 };` ثم `book.pages = 464;`', en: '`const book = { title: "Clean Code", pages: 400 };` then `book.pages = 464;`' },
-    { ar: "`const { title, pages } = book;` ثم `console.log(`${title} has ${pages} pages`);`", en: "`const { title, pages } = book;` then `console.log(`${title} has ${pages} pages`);`" },
+    { ar: "`const { title, pages } = book;` ثم `` console.log(`${title} has ${pages} pages`); ``", en: "`const { title, pages } = book;` then `` console.log(`${title} has ${pages} pages`); ``" },
   ],
   xp: 30,
 };

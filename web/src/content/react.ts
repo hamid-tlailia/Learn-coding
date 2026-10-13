@@ -215,7 +215,7 @@ export const reactLessons: Lesson[] = [
       { id: "deps", label: { ar: "اجعل مصفوفته `[count]` فيطبع `Count: 1` بعد الضغط على `Add`", en: "Give it `[count]` so it prints `Count: 1` after clicking `Add`" }, test: ({ logs }) => { const i = logs.findIndex((l) => l === "__clicked__"); return i >= 0 && printed(logs.slice(i), "Count: 1"); } },
     ],
     hints: [
-      { ar: "قبل `return`: `useEffect(() => { console.log(`Count: ${count}`); }, [count]);`", en: "Before `return`: `useEffect(() => { console.log(`Count: ${count}`); }, [count]);`" },
+      { ar: "قبل `return`: `` useEffect(() => { console.log(`Count: ${count}`); }, [count]); ``", en: "Before `return`: `` useEffect(() => { console.log(`Count: ${count}`); }, [count]); ``" },
       { ar: "مع `[]` يطبع مرة واحدة فقط؛ ضع `count` داخل المصفوفة ليُعاد عند كل تغيير.", en: "With `[]` it prints only once; put `count` in the array so it runs again on every change." },
     ],
     xp: 35,

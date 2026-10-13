@@ -9,6 +9,7 @@ import { getDictionary } from "@/i18n/dictionary";
 import { play } from "@/lib/feedback";
 import { buildPreview, compile, isInternalLog } from "@/lib/runner";
 import { useSettings } from "@/lib/settings";
+import { CodeDiff } from "./CodeDiff";
 import { CodeEditor, insertAtCursor, insertPair } from "./CodeEditor";
 import { CloseIcon, ExpandIcon, ShrinkIcon } from "./Icons";
 import { Press } from "./ui";
@@ -34,12 +35,13 @@ const quickTags: Record<FileKind, [string, string, string][]> = {
     ["=>", "() => {\n  ", "\n}"],
     ["fn", "function name() {\n  ", "\n}"],
     ["log", "console.log(", ");"],
+    ["`${}`", "`${", "}`"],
     ["const", "const ", " = "],
     ["if", "if (", ") {\n\n}"],
   ],
 };
 
-const symbols = ["Tab", "<", ">", "/", "=", '"', "{", "}", "(", ")", ";", ":", ".", "#", "'", "[", "]"];
+const symbols = ["Tab", "`", "$", "<", ">", "/", "=", '"', "{", "}", "(", ")", ";", ":", ".", "#", "'", "[", "]"];
 
 type Pane = "code" | "result" | "side";
 
@@ -61,6 +63,7 @@ export function Workspace({
   actions,
   forcePane,
   runtime,
+  compare,
 }: {
   locale: Locale;
   title: string;
@@ -76,6 +79,8 @@ export function Workspace({
   forcePane?: { pane: Pane; at: number };
   /** React, mobile or server lessons: compile JSX and load that runtime in the preview. */
   runtime?: Runtime;
+  /** After the solution is revealed: the learner's code against it, shown in place of the editor. */
+  compare?: Omit<React.ComponentProps<typeof CodeDiff>, "kinds" | "names">;
 }) {
   const dict = getDictionary(locale).lesson;
   const { editorFontSize } = useSettings();
@@ -187,6 +192,10 @@ export function Workspace({
 
         {/* Editor */}
         <section className={`${pane === "code" ? "flex" : "hidden"} min-h-0 min-w-0 flex-1 flex-col lg:flex lg:overflow-hidden lg:rounded-2xl lg:border lg:border-white/10`}>
+          {compare ? (
+            <CodeDiff kinds={kinds} names={names} {...compare} />
+          ) : (
+            <>
           <div className="flex gap-1 px-2 pt-1" dir="ltr">
             {kinds.map((kind) => (
               <button
@@ -255,6 +264,8 @@ export function Workspace({
               </button>
             ))}
           </div>
+            </>
+          )}
         </section>
 
         {/* Result */}

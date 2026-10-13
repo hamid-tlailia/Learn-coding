@@ -43,7 +43,7 @@ export const mapFilter: Lesson = {
   deep: {
     more: [
       { icon: "🔗", ar: "لأن الدالتين تُرجعان مصفوفة، يمكنك **سلسلتهما**: `prices.filter((p) => p < 30).map((p) => p * 2)`.", en: "Since both return an array, you can **chain** them: `prices.filter((p) => p < 30).map((p) => p * 2)`." },
-      { icon: "🔢", ar: "الدالة تستقبل أيضًا موقع العنصر: `names.map((name, i) => `${i + 1}. ${name}`)` يرقّم القائمة.", en: "The function also receives the item's position: `names.map((name, i) => `${i + 1}. ${name}`)` numbers a list." },
+      { icon: "🔢", ar: "الدالة تستقبل أيضًا موقع العنصر: `` names.map((name, i) => `${i + 1}. ${name}`) `` يرقّم القائمة.", en: "The function also receives the item's position: `` names.map((name, i) => `${i + 1}. ${name}`) `` numbers a list." },
       { icon: "🧭", ar: "استخدم `map` عندما تريد **مصفوفة جديدة**، و `for...of` عندما تريد فقط **فعل** شيء لكل عنصر مثل الطباعة.", en: "Use `map` when you want a **new array**, and `for...of` when you just want to **do** something per item, like printing." },
     ],
     mistakes: [
