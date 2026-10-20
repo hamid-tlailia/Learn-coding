@@ -61,18 +61,19 @@ Each task has a `test` function that receives the parsed HTML document and the l
 Start here (how the web works, thinking like a programmer, tools) → HTML → CSS → JavaScript → Git →
 React.js (+ Next.js) → Backend → Mobile (React Native / Expo) → Mastery.
 
-96 lessons in 9 stages, all available. Every stage after Start ends with an exam, and the
-certificate stages also end with a project:
+99 lessons in 9 stages, all available. Every stage after Start ends with an exam, and the
+stages with a project end with it (JavaScript's is guided step by step). Certificates are
+only for whole roles (Frontend, Backend, Mobile, Full-Stack), never for a single language:
 
 | Stage | Lessons | Certificate |
 | --- | --- | --- |
 | Start | 3 (reading) | |
 | HTML | 10 | |
 | CSS | 11 | |
-| JavaScript | 17 + project (quiz app) | Web Development Fundamentals |
+| JavaScript | 24 + guided project (quiz app) | |
 | Git and GitHub | 5 (reading + quizzes) | |
-| React.js | 14 + project (shop with a cart) | Frontend Developer |
-| Backend (Node.js / Express, SQLite, auth) | 8 + project (notes API) | Backend Developer |
+| React.js (npm and Vite first) | 15 + project (shop with a cart) | Frontend Developer |
+| Backend (Node.js / Express, SQLite, auth) | 12 + project (notes API) | Backend Developer |
 | Mobile (React Native) | 11 + project (habit tracker) | Mobile Developer |
 | Mastery (clean code, tests, performance, security, TypeScript, shipping, capstone, career) | 8 + project (portfolio) | Full-Stack Developer |
 

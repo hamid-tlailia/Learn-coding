@@ -356,7 +356,7 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
             >
               {state === "ok" ? <CheckIcon className="size-3.5" /> : state === "fail" ? "!" : ""}
             </motion.span>
-            <span>
+            <span className="min-w-0">
               <RichText text={t(task.label, tl)} />
             </span>
           </motion.li>

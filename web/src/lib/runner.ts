@@ -31,7 +31,24 @@ export type RunOptions = {
  * JSX and `import` statements need compiling before a browser can run them.
  * Sucrase is loaded only when a lesson needs it, and works offline.
  */
-export async function compile(files: Files, runtime?: Runtime): Promise<Files> {
+/**
+ * Phone keyboards slip in characters that look right but break code: curly quotes,
+ * non-breaking and zero-width spaces. Code is run and checked as if typed with plain ones.
+ */
+export function cleanCode(src: string) {
+  return src
+    .replace(/[\u201C\u201D\u201E\u00AB\u00BB]/g, '"')
+    .replace(/[\u2018\u2019\u201A]/g, "'")
+    .replace(/[\u00A0\u2007\u202F]/g, " ")
+    .replace(/[\u200B-\u200D\u2060\uFEFF]/g, "");
+}
+
+export function cleanFiles(files: Files): Files {
+  return Object.fromEntries(Object.entries(files).map(([k, v]) => [k, typeof v === "string" ? cleanCode(v) : v])) as Files;
+}
+
+export async function compile(raw: Files, runtime?: Runtime): Promise<Files> {
+  const files = cleanFiles(raw);
   if (!runtime || !files.js) return files;
   const { transform } = await import("sucrase");
   try {
@@ -101,7 +118,8 @@ const later = (code: string) => `(function(){var s=document.createElement("scrip
  * (<!DOCTYPE html>…) gets it as-is, with CSS and JS injected.
  * React / mobile / server lessons: the vendored runtime, then the compiled code.
  */
-export function buildPreview(files: Files, opts: RunOptions = {}): string {
+export function buildPreview(raw: Files, opts: RunOptions = {}): string {
+  const files = cleanFiles(raw);
   const html = files.html ?? "";
   // In the app's dark theme the page starts dark too; the learner's own CSS still wins.
   const dark = opts.dark ?? (typeof document !== "undefined" && document.documentElement.dataset.theme === "dark");
@@ -220,9 +238,10 @@ export async function collectLogs(files: Files, opts: Omit<RunOptions, "token"> 
 /** Runs every task check against the learner's code. Checks never see the live preview. */
 export async function runChecks(
   tasks: Task[],
-  files: Files,
+  raw: Files,
   opts: { harness?: string; settle?: number; runtime?: Runtime; variants?: Variants } = {},
 ): Promise<Record<string, boolean>> {
+  const files = cleanFiles(raw);
   const source = files.html ?? "";
   const { rule, media } = parseCss(files.css ?? "");
   const logs = files.js !== undefined ? await collectLogs(files, { ...opts, snapshot: true }) : [];

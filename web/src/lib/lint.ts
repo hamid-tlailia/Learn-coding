@@ -1,5 +1,6 @@
 import type { Files, Runtime } from "@/content/types";
 import type { L } from "@/i18n/config";
+import { cleanFiles } from "./runner";
 
 /**
  * Friendly warnings about mistakes the checks can't explain on their own:
@@ -75,7 +76,18 @@ function lintOld(files: Files): L[] {
   return out;
 }
 
-export function lintCode(files: Files, runtime?: Runtime): L[] {
+/** Curly quotes and look-alike spaces from a phone keyboard. */
+const SMART = /[\u201C\u201D\u201E\u2018\u2019\u201A\u00A0\u202F\u200B]/;
+
+export function lintCode(raw: Files, runtime?: Runtime): L[] {
+  const files = cleanFiles(raw);
+  const smart: L[] = Object.values(raw).some((v) => typeof v === "string" && SMART.test(v))
+    ? [{ ar: "لوحة المفاتيح أدخلت علامات تنصيص منحنية `“ ”` أو مسافات خاصة، وتعاملنا معها كعلامات عادية. لتجنّبها أوقف «علامات الترقيم الذكية» في إعدادات لوحة المفاتيح، أو استعمل أزرار الرموز أسفل المحرر.", en: "Your keyboard typed curly quotes `“ ”` or special spaces; we treated them as plain ones. To avoid them, turn off \"smart punctuation\" in your keyboard settings, or use the symbol keys under the editor." }]
+    : [];
+  return [...smart, ...lintFiles(files, runtime)];
+}
+
+function lintFiles(files: Files, runtime?: Runtime): L[] {
   const src = files.js;
   if (!src) return lintOld(files);
   const code = codeOnly(src);

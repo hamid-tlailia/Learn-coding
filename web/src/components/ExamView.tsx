@@ -251,7 +251,9 @@ export function ExamView({ locale, stageSlug }: { locale: Locale; stageSlug: str
                     >
                       {String.fromCharCode(65 + oi)}
                     </span>
-                    <RichText text={t(opt, locale)} />
+                    <span className="min-w-0 flex-1">
+                      <RichText text={t(opt, locale)} />
+                    </span>
                   </motion.button>
                 );
               })}

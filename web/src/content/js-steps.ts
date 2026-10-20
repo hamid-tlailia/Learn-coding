@@ -250,3 +250,131 @@ export const saveTheme: Lesson = {
   },
   xp: 30,
 };
+
+export const dataTypes: Lesson = {
+  slug: "data-types",
+  title: { ar: "أنواع البيانات: رقم ونص ومنطقي", en: "Data types: number, text and boolean" },
+  body: [
+    { icon: "🔢", ar: "كل قيمة في JavaScript لها **نوع**. أهمها ثلاثة: **الرقم** (number) مثل `21`، و**النص** (string) بين علامتي تنصيص مثل `\"21\"`، و**المنطقي** (boolean) وهو `true` أو `false` فقط.", en: "Every value in JavaScript has a **type**. The main three: **number** like `21`, **string** (text) in quotes like `\"21\"`, and **boolean**, which is only `true` or `false`." },
+    { icon: "🏷️", ar: "`typeof` يخبرك بالنوع: `typeof 21` يعطي `\"number\"`، و `typeof \"21\"` يعطي `\"string\"`، و `typeof true` يعطي `\"boolean\"`.", en: "`typeof` tells you the type: `typeof 21` gives `\"number\"`, `typeof \"21\"` gives `\"string\"`, and `typeof true` gives `\"boolean\"`." },
+    { icon: "⚠️", ar: "انتبه: `+` مع نص **يلصق** ولا يجمع: `\"21\" + 1` يعطي `\"211\"`. وما يكتبه المستخدم في الحقول يصل دائمًا نصًا.", en: "Careful: `+` with text **glues** instead of adding: `\"21\" + 1` gives `\"211\"`. And whatever users type in fields always arrives as text." },
+    { icon: "🔁", ar: "للتحويل: `Number(\"21\")` يعطي الرقم `21`، و `String(21)` يعطي النص `\"21\"`. وإذا لم يكن النص رقمًا يعطي `Number` القيمة `NaN` (ليس رقمًا).", en: "To convert: `Number(\"21\")` gives the number `21`, and `String(21)` gives the text `\"21\"`. If the text isn't a number, `Number` gives `NaN` (not a number)." },
+  ],
+  example: {
+    code: 'const price = "5";\n\nconsole.log(typeof price);        // string\nconsole.log(price + 1);            // 51\nconsole.log(Number(price) + 1);    // 6\nconsole.log(typeof String(10));    // string\nconsole.log(Number("hello"));      // NaN',
+    note: { ar: "نص يُلصق، ورقم يُجمع.", en: "Text glues, numbers add." },
+    lang: "js",
+  },
+  files: ["js"],
+  starter: { js: 'const age = "21"; // typed in a form, so it is text\nconst year = 2026;\n\n' },
+  solution: { js: 'const age = "21"; // typed in a form, so it is text\nconst year = 2026;\n\nconsole.log(typeof age);\nconsole.log(Number(age) + 1);\nconsole.log(typeof String(year));\n' },
+  tasks: [
+    { id: "typeof", label: { ar: "اطبع نوع `age` بـ `typeof` (يظهر `string`)", en: "Print the type of `age` with `typeof` (it shows `string`)" }, test: ({ files, logs }) => /typeof\s*\(?\s*age\b/.test(files.js ?? "") && printed(logs, "string") },
+    { id: "number", label: { ar: "حوّل `age` إلى رقم بـ `Number` واطبعه مضافًا إليه 1 (يظهر `22` وليس `211`)", en: "Turn `age` into a number with `Number` and print it plus 1 (it shows `22`, not `211`)" }, test: ({ files, logs }) => /Number\(\s*age\s*\)/.test(files.js ?? "") && printed(logs, "22") },
+    { id: "string", label: { ar: "حوّل `year` إلى نص بـ `String` واطبع نوعه (يظهر `string`)", en: "Turn `year` into text with `String` and print its type (it shows `string`)" }, test: ({ files, logs }) => /String\(\s*year\s*\)/.test(files.js ?? "") && logs.filter((l) => l.trim().toLowerCase() === "string").length >= 2 },
+  ],
+  hints: [
+    { ar: "`console.log(typeof age);`", en: "`console.log(typeof age);`" },
+    { ar: "`console.log(Number(age) + 1);` ثم `console.log(typeof String(year));`", en: "`console.log(Number(age) + 1);` then `console.log(typeof String(year));`" },
+  ],
+  deep: {
+    more: [
+      { icon: "🕳️", ar: "نوعان آخران ستراهما: `undefined` (متغير بلا قيمة بعد) و `null` (لا شيء، عن قصد). `typeof undefined` يعطي `\"undefined\"`.", en: "Two more you'll meet: `undefined` (a variable with no value yet) and `null` (nothing, on purpose). `typeof undefined` gives `\"undefined\"`." },
+      { icon: "🧮", ar: "`-` و `*` و `/` تحوّل النص إلى رقم تلقائيًا: `\"6\" * 2` يعطي `12`. أما `+` فيلصق. لذلك حوّل بنفسك بـ `Number` لتكون واضحًا.", en: "`-`, `*` and `/` turn text into numbers automatically: `\"6\" * 2` gives `12`. Only `+` glues. So convert yourself with `Number` to be clear." },
+      { icon: "🔎", ar: "للتحقق من رقم صالح: `Number.isNaN(Number(text))` يعطي `true` إذا لم يكن النص رقمًا.", en: "To check for a valid number: `Number.isNaN(Number(text))` gives `true` when the text isn't a number." },
+    ],
+    mistakes: [
+      { ar: "`\"5\" + 1` ثم الحيرة من `51` ← حوّل أولًا: `Number(\"5\") + 1`.", en: "`\"5\" + 1` and wondering about `51` → convert first: `Number(\"5\") + 1`." },
+      { ar: "`number(age)` بحرف صغير ← الاسم `Number` بحرف كبير، ومثله `String`.", en: "`number(age)` in lowercase → the name is `Number` with a capital, and so is `String`." },
+      { ar: "`typeof(age) === string` بدون علامتي تنصيص ← `typeof` يُرجع نصًا: قارن بـ `\"string\"`.", en: "`typeof(age) === string` without quotes → `typeof` returns text: compare with `\"string\"`." },
+    ],
+  },
+  xp: 25,
+};
+
+export const json: Lesson = {
+  slug: "json",
+  title: { ar: "JSON: الكائنات كنص", en: "JSON: objects as text" },
+  body: [
+    { icon: "📄", ar: "**JSON** طريقة لكتابة الكائنات والمصفوفات **كنص**، لترسلها عبر الإنترنت أو تحفظها. شكله مثل الكائن، لكن الأسماء دائمًا بين علامتي تنصيص مزدوجة: `{\"name\":\"Sara\",\"age\":21}`.", en: "**JSON** is a way to write objects and arrays **as text**, so you can send them over the internet or save them. It looks like an object, but names are always in double quotes: `{\"name\":\"Sara\",\"age\":21}`." },
+    { icon: "➡️", ar: "`JSON.stringify(user)` يحوّل الكائن إلى نص JSON.", en: "`JSON.stringify(user)` turns an object into JSON text." },
+    { icon: "⬅️", ar: "`JSON.parse(text)` يعكس ذلك: يحوّل نص JSON إلى كائن تقرأ خصائصه بالنقطة: `JSON.parse(text).name`.", en: "`JSON.parse(text)` does the reverse: it turns JSON text into an object whose properties you read with a dot: `JSON.parse(text).name`." },
+  ],
+  example: {
+    code: 'const book = { title: "Clean Code", pages: 464 };\n\nconst text = JSON.stringify(book);\nconsole.log(text);           // {"title":"Clean Code","pages":464}\nconsole.log(typeof text);    // string\n\nconst back = JSON.parse(text);\nconsole.log(back.pages);     // 464',
+    note: { ar: "كائن ← نص ← كائن.", en: "Object → text → object." },
+    lang: "js",
+  },
+  files: ["js"],
+  starter: { js: 'const user = { name: "Sara", age: 21 };\nconst saved = \'{"name":"Omar","age":30}\';\n\n' },
+  solution: { js: 'const user = { name: "Sara", age: 21 };\nconst saved = \'{"name":"Omar","age":30}\';\n\nconst text = JSON.stringify(user);\nconsole.log(text);\n\nconst omar = JSON.parse(saved);\nconsole.log(omar.name);\n' },
+  tasks: [
+    { id: "stringify", label: { ar: "حوّل `user` إلى نص بـ `JSON.stringify` واطبعه", en: "Turn `user` into text with `JSON.stringify` and print it" }, test: ({ logs }) => logs.some((l) => l.trim() === '{"name":"Sara","age":21}') },
+    { id: "parse", label: { ar: "حوّل النص `saved` إلى كائن بـ `JSON.parse` واطبع اسمه (`Omar`)", en: "Turn the text `saved` into an object with `JSON.parse` and print its name (`Omar`)" }, test: ({ files, logs }) => /JSON\.parse\(\s*saved\s*\)/.test(files.js ?? "") && printed(logs, "Omar") },
+  ],
+  hints: [
+    { ar: "`console.log(JSON.stringify(user));`", en: "`console.log(JSON.stringify(user));`" },
+    { ar: "`const omar = JSON.parse(saved);` ثم `console.log(omar.name);`", en: "`const omar = JSON.parse(saved);` then `console.log(omar.name);`" },
+  ],
+  deep: {
+    more: [
+      { icon: "🎨", ar: "لنص مرتّب يسهل قراءته: `JSON.stringify(user, null, 2)` يضيف أسطرًا ومسافات.", en: "For readable, indented text: `JSON.stringify(user, null, 2)` adds lines and spaces." },
+      { icon: "🌐", ar: "معظم الـ APIs على الإنترنت ترسل JSON، وستقرؤه لاحقًا بـ `fetch`. وستحفظ به الكائنات في المتصفح.", en: "Most APIs on the internet send JSON; you'll read it later with `fetch`. You'll also use it to save objects in the browser." },
+      { icon: "🚫", ar: "JSON لا يحفظ الدوال ولا `undefined`، فقط النصوص والأرقام و `true`/`false` و `null` والمصفوفات والكائنات.", en: "JSON can't hold functions or `undefined`, only text, numbers, `true`/`false`, `null`, arrays and objects." },
+    ],
+    mistakes: [
+      { ar: "`JSON.parse(user)` على كائن ← `parse` للنص فقط؛ الكائن لا يحتاج تحويلًا.", en: "`JSON.parse(user)` on an object → `parse` is for text only; an object needs no converting." },
+      { ar: "كتابة JSON بعلامة تنصيص مفردة `{'name':'Sara'}` ← JSON يقبل `\"` المزدوجة فقط.", en: "Writing JSON with single quotes `{'name':'Sara'}` → JSON accepts only double quotes `\"`." },
+      { ar: "`Json.parse` أو `JSON.Parse` ← الاسم الصحيح `JSON.parse` بالضبط.", en: "`Json.parse` or `JSON.Parse` → the right name is exactly `JSON.parse`." },
+    ],
+  },
+  xp: 25,
+};
+
+const BOM_HTML = '<p id="msg">Wait…</p>\n<p>Count: <span id="count">0</span></p>\n';
+
+export const browserWindow: Lesson = {
+  slug: "browser-window",
+  title: { ar: "نافذة المتصفح BOM: window والمؤقتات", en: "The browser window (BOM): window and timers" },
+  body: [
+    { icon: "🪟", ar: "**DOM** هو الصفحة نفسها. أما **BOM** (Browser Object Model) فهو المتصفح حول الصفحة، ويبدأ من الكائن `window`: حجم النافذة، العنوان، السجل، والمؤقتات.", en: "The **DOM** is the page itself. The **BOM** (Browser Object Model) is the browser around the page, starting from the `window` object: the window size, the address, history and timers." },
+    { icon: "📐", ar: "`window.innerWidth` عرض النافذة بالبكسل. و `location.href` عنوان الصفحة، و `history.back()` يرجع للصفحة السابقة، و `navigator.language` لغة المتصفح.", en: "`window.innerWidth` is the window's width in pixels. `location.href` is the page address, `history.back()` goes to the previous page, and `navigator.language` is the browser's language." },
+    { icon: "⏲️", ar: "`setTimeout(() => { … }, 500)` ينفّذ الكود **مرة واحدة** بعد 500 ملي ثانية (نصف ثانية).", en: "`setTimeout(() => { … }, 500)` runs code **once** after 500 milliseconds (half a second)." },
+    { icon: "🔁", ar: "`setInterval(() => { … }, 100)` ينفّذه **كل** 100 ملي ثانية حتى توقفه. احفظ رقمه: `const id = setInterval(…)` ثم أوقفه بـ `clearInterval(id)`.", en: "`setInterval(() => { … }, 100)` runs it **every** 100 milliseconds until you stop it. Keep its id: `const id = setInterval(…)`, then stop it with `clearInterval(id)`." },
+  ],
+  example: {
+    code: 'console.log(window.innerWidth);\n\nsetTimeout(() => {\n  console.log("Half a second later");\n}, 500);\n\nlet n = 0;\nconst id = setInterval(() => {\n  n++;\n  console.log("Tick", n);\n  if (n === 3) clearInterval(id);\n}, 200);',
+    note: { ar: "مؤقت مرة واحدة، ومؤقت يتكرر ثلاث مرات ثم يتوقف.", en: "A one-time timer, and one that repeats three times then stops." },
+    lang: "js",
+  },
+  files: ["js", "html"],
+  starter: { js: "", html: BOM_HTML },
+  solution: {
+    js: 'console.log(window.innerWidth);\n\nsetTimeout(() => {\n  document.querySelector("#msg").textContent = "Time\'s up!";\n}, 300);\n\nlet count = 0;\nconst id = setInterval(() => {\n  count++;\n  document.querySelector("#count").textContent = count;\n  if (count === 3) clearInterval(id);\n}, 100);\n',
+    html: BOM_HTML,
+  },
+  settle: 1400,
+  harness: 'var txt = function (s) { var e = document.querySelector(s); return e ? e.textContent.trim() : ""; }; console.log("__c__ early " + txt("#msg")); setTimeout(function () { console.log("__c__ msg " + txt("#msg")); console.log("__c__ count " + txt("#count")); }, 900); setTimeout(function () { console.log("__c__ later " + txt("#count")); }, 1250);',
+  tasks: [
+    { id: "width", label: { ar: "اطبع عرض النافذة بـ `window.innerWidth`", en: "Print the window's width with `window.innerWidth`" }, test: ({ files, logs }) => /innerWidth/.test(files.js ?? "") && logs.some((l) => /^\d+$/.test(l.trim())) },
+    { id: "timeout", label: { ar: "بـ `setTimeout` غيّر نص `#msg` بعد 300 ملي ثانية إلى `Time's up!`", en: "With `setTimeout`, change `#msg` to `Time's up!` after 300 ms" }, test: ({ files, logs }) => /setTimeout\(/.test(files.js ?? "") && printed(logs, "__c__ msg Time's up!") && !printed(logs, "__c__ early Time's up!") },
+    { id: "interval", label: { ar: "بـ `setInterval` زِد `#count` كل 100 ملي ثانية، وأوقفه بـ `clearInterval` عند 3", en: "With `setInterval`, add one to `#count` every 100 ms and stop it with `clearInterval` at 3" }, test: ({ files, logs }) => /setInterval\(/.test(files.js ?? "") && /clearInterval\(/.test(files.js ?? "") && printed(logs, "__c__ count 3") && printed(logs, "__c__ later 3") },
+  ],
+  hints: [
+    { ar: '`setTimeout(() => { document.querySelector("#msg").textContent = "Time\'s up!"; }, 300);`', en: '`setTimeout(() => { document.querySelector("#msg").textContent = "Time\'s up!"; }, 300);`' },
+    { ar: '`let count = 0; const id = setInterval(() => { count++; document.querySelector("#count").textContent = count; if (count === 3) clearInterval(id); }, 100);`', en: '`let count = 0; const id = setInterval(() => { count++; document.querySelector("#count").textContent = count; if (count === 3) clearInterval(id); }, 100);`' },
+  ],
+  deep: {
+    more: [
+      { icon: "🌍", ar: "`window` هو الكائن العام: `console` و `document` و `setTimeout` كلها خصائص فيه، لذلك نكتبها دون `window.` في البداية.", en: "`window` is the global object: `console`, `document` and `setTimeout` all live on it, which is why we can skip the `window.` in front." },
+      { icon: "💬", ar: "`alert(\"Hi\")` و `confirm(\"Sure?\")` و `prompt(\"Name?\")` نوافذ جاهزة من المتصفح، لكنها توقف الصفحة وشكلها قديم؛ المواقع الحديثة تصنع نوافذها بـ HTML.", en: "`alert(\"Hi\")`, `confirm(\"Sure?\")` and `prompt(\"Name?\")` are built-in browser dialogs, but they freeze the page and look dated; modern sites build their own with HTML." },
+      { icon: "📏", ar: "حدث `resize` يخبرك عندما يتغير حجم النافذة: `window.addEventListener(\"resize\", …)`.", en: "The `resize` event tells you when the window size changes: `window.addEventListener(\"resize\", …)`." },
+    ],
+    mistakes: [
+      { ar: "`setTimeout(update(), 300)` بأقواس ← تنفذ الدالة فورًا. مرّر الدالة نفسها: `setTimeout(update, 300)` أو `() => update()`.", en: "`setTimeout(update(), 300)` with parentheses → runs the function right away. Pass the function itself: `setTimeout(update, 300)` or `() => update()`." },
+      { ar: "نسيان `clearInterval` ← المؤقت يعمل للأبد ويستهلك البطارية.", en: "Forgetting `clearInterval` → the timer runs forever and drains the battery." },
+      { ar: "الظن أن الرقم بالثواني: `setTimeout(fn, 3)` ← هذا 3 ملي ثانية. لثلاث ثوانٍ اكتب `3000`.", en: "Thinking the number is in seconds: `setTimeout(fn, 3)` → that's 3 milliseconds. For three seconds write `3000`." },
+    ],
+  },
+  xp: 30,
+};

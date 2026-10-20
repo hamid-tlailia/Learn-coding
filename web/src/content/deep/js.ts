@@ -410,7 +410,7 @@ export const jsDeep: Record<string, Deep> = {
     ],
   },
 
-  "javascript/modules-tooling": {
+  "react/modules-tooling": {
     more: [
       {
         icon: "🧳",

@@ -1,6 +1,6 @@
 "use client";
 
-import type { EditorView } from "@uiw/react-codemirror";
+import { EditorView } from "@uiw/react-codemirror";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import type { FileKind, Files, Runtime } from "@/content/types";
@@ -122,6 +122,20 @@ export function Workspace({
   useEffect(() => {
     if (forcePane) setPane(forcePane.pane);
   }, [forcePane]);
+
+  // When the keyboard opens the screen gets shorter: keep the line being typed in view.
+  useEffect(() => {
+    const keepCursor = () => {
+      const v = view.current;
+      if (v?.hasFocus) window.setTimeout(() => v.dispatch({ effects: EditorView.scrollIntoView(v.state.selection.main.head, { y: "center" }) }), 50);
+    };
+    window.addEventListener("resize", keepCursor);
+    window.visualViewport?.addEventListener("resize", keepCursor);
+    return () => {
+      window.removeEventListener("resize", keepCursor);
+      window.visualViewport?.removeEventListener("resize", keepCursor);
+    };
+  }, []);
 
   useEffect(() => {
     const onChange = () => setFull(!!document.fullscreenElement);

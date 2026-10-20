@@ -25,7 +25,7 @@ export function RichText({ text }: { text: string }) {
               <code
                 key={i}
                 dir="ltr"
-                className="my-2 block w-fit max-w-full rounded-xl border-l-4 border-accent bg-accent-soft px-3 py-2 text-start font-mono text-[0.85em] leading-relaxed break-words whitespace-pre-wrap text-accent"
+                className="my-2 block w-fit max-w-full rounded-xl border-l-4 border-accent bg-accent-soft px-3 py-2 text-start font-mono text-[0.85em] leading-relaxed whitespace-pre-wrap text-accent [overflow-wrap:anywhere]"
               >
                 {code}
               </code>
@@ -33,7 +33,7 @@ export function RichText({ text }: { text: string }) {
           }
           afterBlock = false;
           return (
-            <code key={i} dir="ltr" className="rounded-md bg-accent-soft px-1.5 py-0.5 font-mono text-[0.88em] text-accent">
+            <code key={i} dir="ltr" className="rounded-md bg-accent-soft px-1.5 py-0.5 font-mono text-[0.88em] text-accent [overflow-wrap:anywhere] [box-decoration-break:clone]">
               {code}
             </code>
           );

@@ -279,8 +279,8 @@ export const errors: Lesson = {
     },
     {
       icon: "📄",
-      ar: "`JSON.parse(text)` يحوّل نصًا مثل `'{\"name\": \"Sara\"}'` إلى كائن. إذا كان النص ناقصًا أو تالفًا **يرمي خطأ**، وهذا ما سنلتقطه.",
-      en: "`JSON.parse(text)` turns text like `'{\"name\": \"Sara\"}'` into an object. If the text is incomplete or broken it **throws an error**, and that's what we'll catch.",
+      ar: "تذكّر `JSON.parse(text)` من درس JSON: يحوّل النص إلى كائن. إذا كان النص ناقصًا أو تالفًا **يرمي خطأ**، وهذا ما سنلتقطه.",
+      en: "Remember `JSON.parse(text)` from the JSON lesson: it turns text into an object. If the text is incomplete or broken it **throws an error**, and that's what we'll catch.",
     },
   ],
   example: {
@@ -360,6 +360,11 @@ export const modules: Lesson = {
   slug: "modules-tooling",
   title: { ar: "الوحدات وأدوات المحترفين: npm و Vite", en: "Modules and pro tools: npm and Vite" },
   body: [
+    {
+      icon: "🧭",
+      ar: "JavaScript التي تعلمتها **تعمل في المتصفح مباشرة** دون تثبيت أي شيء. لكن React والمشاريع الكبيرة تحتاج أدوات تجهّز الكود قبل المتصفح، وهذا ما يقدمه npm و Vite.",
+      en: "The JavaScript you've learned **runs right in the browser** with nothing installed. React and bigger projects need tools that prepare the code first, and that's what npm and Vite provide.",
+    },
     {
       icon: "📦",
       ar: "المشاريع الحقيقية تُقسَّم إلى ملفات **وحدات** (modules): ملف يصدّر `export function sum() {}` وآخر يستورد `import { sum } from \"./math.js\"`.",

@@ -75,7 +75,7 @@ export const Certificate = forwardRef<HTMLDivElement, { stage: Stage; cert: Cert
             </span>
           )}
 
-          <div style={{ position: "relative", height: "100%", display: "flex", flexDirection: "column", padding: "40px 64px" }}>
+          <div style={{ position: "relative", height: "100%", display: "flex", flexDirection: "column", padding: "32px 60px 30px" }}>
             {/* Header */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -93,7 +93,7 @@ export const Certificate = forwardRef<HTMLDivElement, { stage: Stage; cert: Cert
             </div>
 
             {/* Body */}
-            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14, textAlign: "center" }}>
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10, minHeight: 0, textAlign: "center" }}>
               <div style={{ fontSize: 22, color: "#c7cdf0" }} dir="rtl">
                 {ar.certifies}
               </div>
@@ -103,11 +103,11 @@ export const Certificate = forwardRef<HTMLDivElement, { stage: Stage; cert: Cert
                 {cert.photo && (
                   <span style={{ padding: 4, borderRadius: 999, background: GRAD }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={cert.photo} alt="" style={{ width: 112, height: 112, borderRadius: 999, objectFit: "cover", display: "block", border: "4px solid #0a0f24" }} />
+                    <img src={cert.photo} alt="" style={{ width: 96, height: 96, borderRadius: 999, objectFit: "cover", display: "block", border: "4px solid #0a0f24" }} />
                   </span>
                 )}
                 <div>
-                  <div style={{ fontSize: 60, fontWeight: 700, lineHeight: 1.2, color: "#fff" }}>{cert.name}</div>
+                  <div style={{ fontSize: 54, fontWeight: 700, lineHeight: 1.15, color: "#fff" }}>{cert.name}</div>
                   <div style={{ height: 5, marginTop: 8, borderRadius: 9, background: GRAD }} />
                 </div>
               </div>
@@ -116,12 +116,12 @@ export const Certificate = forwardRef<HTMLDivElement, { stage: Stage; cert: Cert
                 {ar.completed}
               </div>
               <div style={{ fontSize: 15, color: "#9aa3cc", marginTop: -10 }}>{en.completed}</div>
-              <div style={{ fontSize: 40, fontWeight: 700, background: GRAD, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }} dir="rtl">
+              <div style={{ fontSize: 38, fontWeight: 700, lineHeight: 1.25, background: GRAD, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }} dir="rtl">
                 {stage.certificate!.ar}
               </div>
               <div style={{ fontSize: 20, fontWeight: 600, color: "#e9ecff", marginTop: -8 }}>{stage.certificate!.en}</div>
 
-              <div style={{ display: "flex", gap: 12, marginTop: 10 }}>
+              <div style={{ display: "flex", gap: 12, marginTop: 4 }}>
                 {skills.map((s) => (
                   <span key={s} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 999, background: "rgba(255,255,255,.07)", border: "1px solid rgba(255,255,255,.12)", fontWeight: 600 }}>
                     <TechIcon tech={s} className="size-6" />
@@ -132,8 +132,8 @@ export const Certificate = forwardRef<HTMLDivElement, { stage: Stage; cert: Cert
             </div>
 
             {/* Footer: date and ID, seal, QR */}
-            <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div style={{ display: "flex", flex: "none", alignItems: "flex-end", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 <div>
                   <div style={{ fontSize: 13, color: "#9aa3cc" }}>
                     {en.date} · <span dir="rtl">{ar.date}</span>
@@ -159,7 +159,7 @@ export const Certificate = forwardRef<HTMLDivElement, { stage: Stage; cert: Cert
               </div>
 
               {/* Seal */}
-              <div style={{ position: "relative", width: 150, height: 150, display: "grid", placeItems: "center" }}>
+              <div style={{ position: "relative", width: 132, height: 132, flex: "none", display: "grid", placeItems: "center" }}>
                 <span style={{ position: "absolute", inset: 0, borderRadius: 999, background: "conic-gradient(from 0deg, #fde68a, #f59e0b, #fde68a, #d97706, #fde68a)", boxShadow: "0 0 40px rgba(245,158,11,.45)" }} />
                 <span style={{ position: "absolute", inset: 12, borderRadius: 999, border: "2px dashed rgba(120,53,15,.55)", background: "radial-gradient(circle, #fcd34d, #d97706)" }} />
                 <span style={{ position: "relative", textAlign: "center", color: "#451a03", fontWeight: 800, lineHeight: 1.1 }}>
@@ -171,9 +171,9 @@ export const Certificate = forwardRef<HTMLDivElement, { stage: Stage; cert: Cert
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
                 {qr ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={qr} alt="QR" style={{ width: 118, height: 118, borderRadius: 14, background: "#fff", padding: 6 }} />
+                  <img src={qr} alt="QR" style={{ width: 108, height: 108, borderRadius: 14, background: "#fff", padding: 6 }} />
                 ) : (
-                  <span style={{ width: 118, height: 118, borderRadius: 14, background: "#fff" }} />
+                  <span style={{ width: 108, height: 108, borderRadius: 14, background: "#fff" }} />
                 )}
                 <span style={{ fontSize: 12, color: "#9aa3cc" }}>
                   {en.verify} · <span dir="rtl">{ar.verify}</span>
