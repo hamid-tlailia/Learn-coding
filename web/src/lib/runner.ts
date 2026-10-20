@@ -43,6 +43,9 @@ export function cleanCode(src: string) {
     .replace(/[\u200B-\u200D\u2060\uFEFF]/g, "");
 }
 
+/** The harness runs in its own function, so its names never clash with the learner's (`const t` vs `var t`). */
+const isolate = (harness: string) => `(function () {\n${harness}\n})();`;
+
 export function cleanFiles(files: Files): Files {
   return Object.fromEntries(Object.entries(files).map(([k, v]) => [k, typeof v === "string" ? cleanCode(v) : v])) as Files;
 }
@@ -143,7 +146,7 @@ export function buildPreview(raw: Files, opts: RunOptions = {}): string {
           opts.snapshot ? `setTimeout(function(){var r=document.getElementById("root");console.log("__dom__ "+(r?r.innerHTML:""))},150)` : ""
         }},80)</script>`
       : opts.harness
-        ? `<script>${escapeScript(opts.harness)}</script>`
+        ? `<script>${escapeScript(isolate(opts.harness))}</script>`
         : "";
     const body = ui ? `<div id="root"></div>` : SERVER_HTML;
     const pageCss = opts.runtime === "native" ? PHONE_CSS : "body{font-family:system-ui,sans-serif;padding:16px;margin:0;line-height:1.5}img{max-width:100%}";
@@ -158,7 +161,7 @@ export function buildPreview(raw: Files, opts: RunOptions = {}): string {
   }
 
   const script =
-    `<script>${escapeScript(files.js ?? "")}</script>` + (opts.harness ? `<script>${escapeScript(opts.harness)}</script>` : "") + done;
+    `<script>${escapeScript(files.js ?? "")}</script>` + (opts.harness ? `<script>${escapeScript(isolate(opts.harness))}</script>` : "") + done;
 
   if (/<html[\s>]/i.test(html)) {
     let doc = html;
