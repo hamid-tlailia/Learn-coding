@@ -4,16 +4,20 @@ import { htmlExam, htmlLessons } from "./html";
 import { forms, tables, textElements } from "./html-extra";
 import { introLessons } from "./intro";
 import { jsExam, jsLessons } from "./js";
-import { asyncAwait, conditions, objects } from "./js-extra";
-import { arrayMethods, classes, errors, fetchJson, keyframes, mediaA11y, modernCss, modules } from "./advanced";
-import { browserWindow, dataTypes, json, mapFilter, privateFields, saveTheme, spread, throwErrors } from "./js-steps";
+import { asyncAwait } from "./js-extra";
+import { classes, fetchJson, keyframes, mediaA11y, modernCss, modules } from "./advanced";
+import { json, mapFilter, privateFields, saveTheme, throwErrors } from "./js-steps";
+import { breakContinue, conditions, dataTypes, examP1, functions, loops, operators, setup, switchCase } from "./js-p1";
+import { arrayMethods, arrays, arrowDefault, closures, dateTime, destructuring, examP2, numbersMath, objects, scopeHoisting, spreadRest } from "./js-p2";
+import { browserWindow, delegation, domCreate, domEvents, domIntro, domSelect, domStyle, examP3, formsValidation, keyboardMouse, webStorage } from "./js-p3";
+import { asyncIntro, cleanCode, debounceThrottle, errors, esModules, examP4, functional, inheritance, promises, regex, timers, todoApp } from "./js-p4";
 import { backendExam, backendLessons } from "./backend";
 import { gitExam, gitLessons } from "./git";
 import { mobileExam, mobileLessons } from "./mobile";
 import { proExam, proLessons } from "./pro";
 import { backendProject, jsProject, mobileProject, proProject, reactProject } from "./projects";
 import { mobileMore, mobileMoreExam, reactMore, reactMoreExam } from "./more";
-import { authLogin, authPractice, authRegister, backendWebExam, browserApis, dataLoading, jsMoreExam, reactWebExam, routing, splitJoin, sqlGroup, sqlPractice, sqlWrite, strings, webStorage } from "./web-more";
+import { authLogin, authPractice, authRegister, backendWebExam, browserApis, dataLoading, jsMoreExam, reactWebExam, routing, splitJoin, sqlGroup, sqlPractice, sqlWrite, strings } from "./web-more";
 import { reactExam, reactLessons } from "./react";
 import { cssDeep } from "./deep/css";
 import { htmlDeep } from "./deep/html";
@@ -54,7 +58,27 @@ const html = order(htmlLessons, ["what-is-html", "page-skeleton", "first-page", 
 const css = order(cssLessons, ["what-is-css", selectorsStates, "colors-fonts", "box-model", "flexbox", grid, position, "responsive", transitions, keyframes, modernCss]);
 const react = order(reactLessons, [modules, "what-is-react", "jsx", "props", "state", "lists-keys", "forms-react", "effects", reactMore[0], dataLoading, ...reactMore.slice(1), routing, "nextjs"]);
 const mobile = order(mobileLessons, ["rn-intro", "rn-components", "rn-styles", "rn-touch", "rn-lists", "rn-input", ...mobileMore, "rn-publish"]);
-const js = order(jsLessons, ["what-is-js", "variables", dataTypes, conditions, "functions", "arrays-loops", mapFilter, strings, splitJoin, objects, json, arrayMethods, spread, classes, privateFields, errors, throwErrors, "dom-events", browserWindow, asyncAwait, fetchJson, webStorage, saveTheme, browserApis]);
+const js = order(jsLessons, [
+  // 1 · Fundamentals
+  "what-is-js", setup, "variables", dataTypes, operators, conditions, switchCase, loops, breakContinue, functions,
+  // 2 · Data and modern JavaScript
+  strings, splitJoin, numbersMath, arrays, mapFilter, arrayMethods, objects, json, dateTime, destructuring, spreadRest, arrowDefault, scopeHoisting, closures,
+  // 3 · The page: DOM and events
+  domIntro, domSelect, domStyle, domCreate, domEvents, keyboardMouse, delegation, formsValidation, browserWindow, webStorage, saveTheme, browserApis,
+  // 4 · Objects and asynchronous code
+  classes, inheritance, privateFields, asyncIntro, timers, promises, asyncAwait, fetchJson, errors, throwErrors, esModules,
+  // 5 · Advanced, then the to-do app
+  debounceThrottle, regex, functional, cleanCode, todoApp,
+]);
+
+/** The JavaScript stage's five parts, as shown on the path. */
+const jsUnits = [
+  { title: { ar: "الأساسيات", en: "Fundamentals" }, from: "what-is-js" },
+  { title: { ar: "البيانات و ES6", en: "Data and ES6" }, from: "strings" },
+  { title: { ar: "الصفحة: DOM والأحداث", en: "The page: DOM and events" }, from: "dom-intro" },
+  { title: { ar: "الكائنات وغير المتزامن", en: "Objects and async" }, from: "classes" },
+  { title: { ar: "مفاهيم متقدمة ومشروع", en: "Advanced concepts and a project" }, from: "debounce-throttle" },
+];
 const backend = order(backendLessons, ["http-apis", "express-basics", "rest-routes", "post-validation", "databases", sqlPractice, sqlWrite, sqlGroup, "auth-security", authRegister, authLogin, authPractice]);
 
 const allStages: Stage[] = [
@@ -114,7 +138,8 @@ const allStages: Stage[] = [
     standard: { ar: "ECMAScript 2025", en: "ECMAScript 2025" },
     status: "available",
     lessons: js,
-    exam: { ...jsExam, questions: [...jsExam.questions, ...jsMoreExam] },
+    units: jsUnits,
+    exam: { ...jsExam, draw: 20, questions: [...jsExam.questions, ...jsMoreExam, ...examP1, ...examP2, ...examP3, ...examP4] },
     project: jsProject,
   },
   {
@@ -194,7 +219,8 @@ const allStages: Stage[] = [
       en: "Clean code, testing, performance, security, TypeScript, shipping, a capstone and your first job.",
     },
     status: "available",
-    lessons: proLessons,
+    // Performance (debounce) and clean code are taught in the JavaScript stage now.
+    lessons: proLessons.filter((l) => l.slug !== "performance" && l.slug !== "clean-code"),
     exam: proExam,
     project: proProject,
     certificate: { ar: "شهادة مطوّر Full-Stack", en: "Full-Stack Developer certificate" },

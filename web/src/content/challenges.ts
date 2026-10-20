@@ -1,4 +1,8 @@
 import type { L } from "@/i18n/config";
+import { challengesP1 } from "./js-p1";
+import { challengesP2 } from "./js-p2";
+import { challengesP3 } from "./js-p3";
+import { challengesP4 } from "./js-p4";
 
 /**
  * Fill-in-the-blank code challenges. Each `_` in `code` is a blank, filled in order by
@@ -43,7 +47,7 @@ export const challenges: Challenge[] = [
   { id: "js-log", after: "javascript/what-is-js", prompt: { ar: "اطبع رسالة في الكونسول", en: "Print a message to the console" }, code: 'console._("Hello!");', answers: ["log"], chips: ["log", "print", "write", "echo"] },
   { id: "js-const", after: "javascript/variables", prompt: { ar: "قيمة لن تتغير وقيمة ستتغير", en: "A value that won't change, and one that will" }, code: '_ name = "Sara";\n_ score = 0;\nscore = score + 10;', answers: ["const", "let"], chips: ["const", "let", "var", "int"] },
   { id: "js-template", after: "javascript/variables", prompt: { ar: "ادمج المتغير في النص", en: "Put the variable inside the text" }, code: "console.log(`Hi _{name}!`);", answers: ["$"], chips: ["$", "#", "&", "%"] },
-  { id: "js-arrow", after: "javascript/functions", prompt: { ar: "أكمل الدالة السهمية", en: "Complete the arrow function" }, code: "const add = (a, b) _ a + b;", answers: ["=>"], chips: ["=>", "->", "==", ":"] },
+  { id: "js-arrow", after: "javascript/arrow-default", prompt: { ar: "أكمل الدالة السهمية", en: "Complete the arrow function" }, code: "const add = (a, b) _ a + b;", answers: ["=>"], chips: ["=>", "->", "==", ":"] },
   { id: "js-return", after: "javascript/functions", prompt: { ar: "أرجع النتيجة من الدالة", en: "Return the result from the function" }, code: "function square(n) {\n  _ n * n;\n}", answers: ["return"], chips: ["return", "give", "log", "const"] },
   { id: "js-map", after: "javascript/map-filter", prompt: { ar: "ضاعف كل الأعداد", en: "Double every number" }, code: "const doubled = nums._((n) => n * 2);", answers: ["map"], chips: ["map", "filter", "for", "each"] },
   { id: "js-forof", after: "javascript/arrays-loops", prompt: { ar: "حلقة على كل عنصر", en: "Loop over every item" }, code: "for (const fruit _ fruits) {\n  console.log(fruit);\n}", answers: ["of"], chips: ["of", "in", "from", "at"] },
@@ -58,10 +62,10 @@ export const challenges: Challenge[] = [
   { id: "keyframes", after: "css/keyframes", prompt: { ar: "عرّف الحركة واستخدمها", en: "Define the animation and use it" }, code: "@_ spin {\n  to { transform: rotate(360deg); }\n}\n.logo { _: spin 2s linear infinite; }", answers: ["keyframes", "animation"], chips: ["keyframes", "animation", "transition", "frames"] },
   { id: "css-var", after: "css/modern-css", prompt: { ar: "متغير CSS", en: "A CSS variable" }, code: ":root { _brand: #8b5cf6; }\n.btn { background: _(--brand); }", answers: ["--", "var"], chips: ["--", "var", "$", "let"] },
   { id: "js-map-filter", after: "javascript/map-filter", prompt: { ar: "حوّل ثم صفِّ", en: "Transform, then filter" }, code: "const doubled = nums._((n) => n * 2);\nconst big = nums._((n) => n > 10);", answers: ["map", "filter"], chips: ["map", "filter", "forEach", "find"] },
-  { id: "js-find-reduce", after: "javascript/array-methods", prompt: { ar: "أول منتج غالٍ، ثم المجموع", en: "The first pricey item, then the total" }, code: "const pricey = cart._((i) => i.price > 30);\nconst total = cart._((sum, i) => sum + i.price, 0);", answers: ["find", "reduce"], chips: ["find", "reduce", "filter", "map"] },
+  { id: "js-find-reduce", after: "javascript/arrow-default", prompt: { ar: "أول منتج غالٍ، ثم المجموع", en: "The first pricey item, then the total" }, code: "const pricey = cart._((i) => i.price > 30);\nconst total = cart._((sum, i) => sum + i.price, 0);", answers: ["find", "reduce"], chips: ["find", "reduce", "filter", "map"] },
   { id: "js-typeof", after: "javascript/data-types", prompt: { ar: "اعرف النوع ثم حوّل", en: "Check the type, then convert" }, code: 'console.log(_ "21");   // string\nconsole.log(_("21") + 1);  // 22', answers: ["typeof", "Number"], chips: ["typeof", "Number", "String", "type"] },
   { id: "js-json", after: "javascript/json", prompt: { ar: "كائن إلى نص ثم العكس", en: "Object to text, then back" }, code: "const text = JSON._(user);\nconst again = JSON._(text);", answers: ["stringify", "parse"], chips: ["stringify", "parse", "toString", "read"] },
-  { id: "js-timers", after: "javascript/browser-window", prompt: { ar: "مؤقت يتكرر ثم يتوقف", en: "A repeating timer that stops" }, code: "const id = _(() => {\n  tick();\n}, 100);\n_(id);", answers: ["setInterval", "clearInterval"], chips: ["setInterval", "clearInterval", "setTimeout", "stop"] },
+  { id: "js-timers", after: "javascript/timers", prompt: { ar: "مؤقت يتكرر ثم يتوقف", en: "A repeating timer that stops" }, code: "const id = _(() => {\n  tick();\n}, 100);\n_(id);", answers: ["setInterval", "clearInterval"], chips: ["setInterval", "clearInterval", "setTimeout", "stop"] },
   { id: "js-spread", after: "javascript/spread", prompt: { ar: "انسخ مع تغيير", en: "Copy with a change" }, code: 'const more = [_colors, "blue"];\nconst older = { _user, age: 22 };', answers: ["...", "..."], chips: ["...", "...", "&", "*"] },
   { id: "js-private", after: "javascript/private-fields", prompt: { ar: "حقل خاص يُقرأ فقط", en: "A private field, read-only" }, code: "class Account {\n  _balance = 0;\n\n  _ balance() {\n    return this.#balance;\n  }\n}", answers: ["#", "get"], chips: ["#", "get", "$", "set", "private"] },
   { id: "js-catch", after: "javascript/errors", prompt: { ar: "التقط الخطأ وأكمل", en: "Catch the error and carry on" }, code: '_ {\n  JSON.parse(text);\n} _ (error) {\n  console.log("Bad data");\n}', answers: ["try", "catch"], chips: ["try", "catch", "throw", "if"] },
@@ -89,7 +93,7 @@ export const challenges: Challenge[] = [
   { id: "rn-press", after: "mobile/rn-touch", prompt: { ar: "زر يستجيب للمس", en: "A button that responds to touch" }, code: "<_ _={() => setLikes(likes + 1)}>\n  <Text>Like</Text>\n</Pressable>", answers: ["Pressable", "onPress"], chips: ["Pressable", "onPress", "onClick", "button"] },
   // Pro
   { id: "pro-test", after: "pro/testing", prompt: { ar: "اكتب اختبارًا", en: "Write a test" }, code: 'test("adds", () => {\n  _(add(2, 3))._(5);\n});', answers: ["expect", "toBe"], chips: ["expect", "toBe", "assert", "equals"] },
-  { id: "pro-debounce", after: "pro/performance", prompt: { ar: "أكمل debounce", en: "Complete debounce" }, code: "return (...args) => {\n  _(timer);\n  timer = _(() => fn(...args), ms);\n};", answers: ["clearTimeout", "setTimeout"], chips: ["clearTimeout", "setTimeout", "setInterval", "stop"] },
+  { id: "pro-debounce", after: "javascript/debounce-throttle", prompt: { ar: "أكمل debounce", en: "Complete debounce" }, code: "return (...args) => {\n  _(timer);\n  timer = _(() => fn(...args), ms);\n};", answers: ["clearTimeout", "setTimeout"], chips: ["clearTimeout", "setTimeout", "setInterval", "stop"] },
   { id: "pro-xss", after: "pro/web-security", prompt: { ar: "اعرض نص المستخدم بأمان", en: "Show user text safely" }, code: "li._ = comment;", answers: ["textContent"], chips: ["textContent", "innerHTML", "outerHTML", "html"] },
   { id: "pro-ts", after: "pro/typescript", prompt: { ar: "أكمل النوع", en: "Complete the type" }, code: "_ User = {\n  name: _;\n  email?: string;\n};", answers: ["type", "string"], chips: ["type", "string", "let", "text"] },
   // Review coverage: lessons that had no fill-in-the-blank yet
@@ -120,4 +124,9 @@ export const challenges: Challenge[] = [
   { id: "auth-guard", after: "backend/auth-practice", prompt: { ar: "أكمل الوسيط", en: "Complete the middleware" }, code: "try {\n  req.user = jwt._(token, SECRET);\n  _();\n} catch {\n  res.status(_).json({ error: \"Please log in\" });\n}", answers: ["verify", "next", "401"], chips: ["verify", "next", "401", "sign", "404"] },
   { id: "sql-insert", after: "backend/sql-write", prompt: { ar: "أضف صفًا بأمان", en: "Add a row safely" }, code: 'db.prepare("_ INTO users (name) VALUES (?)")._("Nour");', answers: ["INSERT", "run"], chips: ["INSERT", "run", "ADD", "all"] },
   { id: "sql-group", after: "backend/sql-group", prompt: { ar: "عدّ لكل مدينة", en: "Count per city" }, code: 'SELECT city, _(*) AS total FROM users _ BY city', answers: ["COUNT", "GROUP"], chips: ["COUNT", "GROUP", "SUM", "ORDER"] },
+  // The JavaScript curriculum's own challenges, lesson by lesson.
+  ...challengesP1,
+  ...challengesP2,
+  ...challengesP3,
+  ...challengesP4,
 ];

@@ -88,7 +88,8 @@ export type Lesson = {
   xp: number;
 };
 
-export type Exam = { passPercent: number; questions: Question[] };
+/** `draw`: ask only this many questions, picked at random for each attempt. */
+export type Exam = { passPercent: number; questions: Question[]; draw?: number };
 
 export type Stage = {
   slug: string;

@@ -22,7 +22,17 @@ export function ExamView({ locale, stageSlug }: { locale: Locale; stageSlug: str
   const progress = useProgress();
   const { track } = useSettings();
   const mounted = useMounted();
-  const total = exam.questions.length;
+  // Big exams ask a random selection each attempt, so every try is a fresh mix.
+  const [questions] = useState(() => {
+    if (!exam.draw || exam.questions.length <= exam.draw) return exam.questions;
+    const pool = [...exam.questions];
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    return pool.slice(0, exam.draw);
+  });
+  const total = questions.length;
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [score, setScore] = useState<number | null>(null);
@@ -41,12 +51,12 @@ export function ExamView({ locale, stageSlug }: { locale: Locale; stageSlug: str
     if (left <= 0 && score === null) submitRef.current();
   }, [left, score]);
 
-  const q = exam.questions[current];
+  const q = questions[current];
   const chosen = answers[q.id];
   const last = current === total - 1;
 
   function submit() {
-    const correct = exam.questions.filter((x) => answers[x.id] === x.answer).length;
+    const correct = questions.filter((x) => answers[x.id] === x.answer).length;
     const s = Math.round((correct / total) * 100);
     recordExam(stage.slug, s, exam.passPercent);
     setScore(s);
@@ -158,7 +168,7 @@ export function ExamView({ locale, stageSlug }: { locale: Locale; stageSlug: str
 
           <section className="flex w-full flex-col gap-3 text-start">
             <h2 className="font-bold">{dict.review}</h2>
-            {exam.questions.map((x, i) => {
+            {questions.map((x, i) => {
               const ok = answers[x.id] === x.answer;
               return (
                 <motion.div
