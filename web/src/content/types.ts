@@ -103,6 +103,8 @@ export type Stage = {
   standard?: L;
   status: "available" | "soon";
   lessons: Lesson[];
+  /** Groups shown on the path, each starting at the lesson with slug `from`. Without units, long stages are split evenly. */
+  units?: { title: L; from: string }[];
   exam?: Exam;
   /** A medium-sized build checked by a rubric; its score counts toward the certificate grade. */
   project?: Lesson;

@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { motion } from "motion/react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { lessonKey, orderedStages, trackParts } from "@/content/curriculum";
-import { t, type Locale } from "@/i18n/config";
+import type { Lesson, Stage } from "@/content/types";
+import { t, type L, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
 import { play } from "@/lib/feedback";
 import { isStageUnlocked, PROJECT_PASS, useProgress } from "@/lib/progress";
@@ -42,7 +43,7 @@ function Marker({ children, tone, pulse }: { children: React.ReactNode; tone: "d
     stage: "linear-gradient(135deg, rgba(255,255,255,0.14), rgba(255,255,255,0.04))",
   }[tone];
   return (
-    <span className="relative grid size-14 flex-none place-items-center">
+    <span className="relative grid size-11 flex-none place-items-center">
       {pulse && (
         <motion.span
           aria-hidden="true"
@@ -62,12 +63,33 @@ function Marker({ children, tone, pulse }: { children: React.ReactNode; tone: "d
   );
 }
 
+type Unit = { title: L | null; items: { lesson: Lesson; index: number }[] };
+
+/** A stage's lessons in groups: its own units, or even chunks of about six for long stages. */
+function unitsOf(stage: Stage, part: L): Unit[] {
+  const items = stage.lessons.map((lesson, index) => ({ lesson, index }));
+  if (stage.units?.length) {
+    const starts = stage.units.map((u) => Math.max(0, stage.lessons.findIndex((l) => l.slug === u.from)));
+    return stage.units.map((u, i) => ({ title: u.title, items: items.slice(starts[i], starts[i + 1] ?? items.length) }));
+  }
+  if (items.length <= 8) return [{ title: null, items }];
+  const count = Math.ceil(items.length / 6);
+  const size = Math.ceil(items.length / count);
+  return Array.from({ length: count }, (_, i) => ({
+    title: { ar: `${part.ar} ${i + 1}`, en: `${part.en} ${i + 1}` },
+    items: items.slice(i * size, (i + 1) * size),
+  }));
+}
+
 export function PathMap({ locale }: { locale: Locale }) {
   const mounted = useMounted();
   const dict = getDictionary(locale);
   const d = dict.learn;
   const progress = useProgress();
   const { track } = useSettings();
+  // Which units and finished stages the learner opened or closed by hand; the rest follow their defaults.
+  const [toggled, setToggled] = useState<Record<string, boolean>>({});
+  const flip = (key: string, now: boolean) => setToggled((all) => ({ ...all, [key]: !now }));
 
   // Opening the path scrolls to where the learner is: the first current step on the page.
   useEffect(() => {
@@ -115,6 +137,8 @@ export function PathMap({ locale }: { locale: Locale }) {
         const projectScore = progress.projects?.[stage.slug] ?? 0;
         const allLessonsDone = current === -1;
         const stageDone = stage.lessons.filter((l) => done(l.slug)).length;
+        const stageComplete = allLessonsDone && (!stage.exam || examPassed) && (!stage.project || projectScore >= PROJECT_PASS);
+        const stageOpen = toggled[stage.slug] ?? !stageComplete;
 
         return (
           <motion.section
@@ -150,47 +174,91 @@ export function PathMap({ locale }: { locale: Locale }) {
               </div>
             </div>
 
-            {/* Timeline */}
-            {stage.status === "available" && unlocked && (
-              <ol className="relative flex flex-col gap-3 ps-1">
-                <span aria-hidden="true" className="absolute inset-y-7 start-[30px] w-0.5 bg-line" />
-                {stage.lessons.map((lesson, i) => {
-                  const isDone = done(lesson.slug);
-                  const isCurrent = i === current;
-                  const open = isDone || isCurrent;
-                  const card = (
-                    <motion.div
-                      whileTap={open ? { scale: 0.98 } : undefined}
-                      className={`flex flex-1 items-center gap-3 rounded-2xl p-4 ${
-                        isCurrent ? "btn-grad glow-ring" : "glass"
-                      } ${open ? "" : "opacity-60"}`}
-                    >
-                      <div className="flex min-w-0 flex-1 flex-col">
-                        <span className="font-display font-semibold">{t(lesson.title, locale)}</span>
-                        <span className={`text-xs ${isCurrent ? "text-white/85" : "text-muted"}`}>
-                          <bdi>⏱ {d.minutes}</bdi> · <bdi>⚡ {lesson.xp} XP</bdi>
-                        </span>
-                      </div>
-                      {isDone && (
-                        <span className="grid size-7 place-items-center rounded-full bg-ok text-white">
-                          <CheckIcon className="size-4" />
-                        </span>
-                      )}
-                      {isCurrent && <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold">{d.start}</span>}
-                      {!open && <LockIcon className="size-5 text-muted" />}
-                    </motion.div>
-                  );
+            {/* Timeline: finished stages fold away; long stages come in units, only the current one open. */}
+            {stage.status === "available" && unlocked && stageComplete && (
+              <button
+                type="button"
+                onClick={() => flip(stage.slug, stageOpen)}
+                className="flex items-center justify-between rounded-2xl bg-surface-2 px-4 py-2.5 text-sm font-semibold"
+                aria-expanded={stageOpen}
+              >
+                <span className="flex items-center gap-2 text-ok">
+                  <CheckIcon className="size-4" /> {d.stageDone}
+                </span>
+                <span className="text-accent">{stageOpen ? d.hideLessons : d.showLessons}</span>
+              </button>
+            )}
+            {stage.status === "available" && unlocked && stageOpen && (
+              <ol className="relative flex flex-col gap-2 ps-1">
+                <span aria-hidden="true" className="absolute inset-y-6 start-[26px] w-0.5 bg-line" />
+                {unitsOf(stage, { ar: getDictionary("ar").learn.part, en: getDictionary("en").learn.part }).map((unit, ui) => {
+                  const unitKey = `${stage.slug}/${ui}`;
+                  const doneCount = unit.items.filter(({ lesson }) => done(lesson.slug)).length;
+                  const unitDone = doneCount === unit.items.length;
+                  const hasCurrent = unit.items.some(({ index }) => index === current);
+                  const unitOpen = !unit.title || (toggled[unitKey] ?? hasCurrent);
                   return (
-                    <li key={lesson.slug} className="relative flex items-center gap-3" data-current={isCurrent || undefined}>
-                      <Marker tone={isDone ? "done" : isCurrent ? "current" : "locked"} pulse={isCurrent}>
-                        {isDone ? <CheckIcon className="size-6" /> : <span className="font-display font-bold">{i + 1}</span>}
-                      </Marker>
-                      {open ? (
-                        <Link href={`/${locale}/learn/${stage.slug}/${lesson.slug}/`} onClick={() => play("select")} className="flex flex-1">
-                          {card}
-                        </Link>
-                      ) : (
-                        card
+                    <li key={unitKey} className="flex flex-col gap-2">
+                      {unit.title && (
+                        <button
+                          type="button"
+                          onClick={() => flip(unitKey, unitOpen)}
+                          aria-expanded={unitOpen}
+                          className="relative flex items-center gap-3 text-start"
+                        >
+                          <Marker tone={unitDone ? "done" : hasCurrent ? "current" : "locked"}>
+                            {unitDone ? <CheckIcon className="size-5" /> : <span className="font-display text-sm font-bold">{ui + 1}</span>}
+                          </Marker>
+                          <span className="flex min-w-0 flex-1 items-center gap-2 rounded-2xl bg-surface-2 px-4 py-2.5">
+                            <span className="min-w-0 flex-1 truncate font-display font-bold">{t(unit.title, locale)}</span>
+                            <span className={`flex-none text-xs font-semibold tabular-nums ${unitDone ? "text-ok" : "text-muted"}`}>
+                              {doneCount}/{unit.items.length}
+                            </span>
+                            <motion.span animate={{ rotate: unitOpen ? 180 : 0 }} className="flex-none text-muted" aria-hidden="true">
+                              ▾
+                            </motion.span>
+                          </span>
+                        </button>
+                      )}
+                      {unitOpen && (
+                        <ol className="flex flex-col gap-2">
+                          {unit.items.map(({ lesson, index: i }) => {
+                            const isDone = done(lesson.slug);
+                            const isCurrent = i === current;
+                            const open = isDone || isCurrent;
+                            const card = (
+                              <motion.div
+                                whileTap={open ? { scale: 0.98 } : undefined}
+                                className={`flex flex-1 items-center gap-3 rounded-2xl px-4 py-3 ${isCurrent ? "btn-grad glow-ring" : "glass"} ${open ? "" : "opacity-60"}`}
+                              >
+                                <div className="flex min-w-0 flex-1 flex-col">
+                                  <span className="font-display text-[0.95rem] font-semibold">{t(lesson.title, locale)}</span>
+                                  {isCurrent && (
+                                    <span className="text-xs text-white/85">
+                                      <bdi>⏱ {d.minutes}</bdi> · <bdi>⚡ {lesson.xp} XP</bdi>
+                                    </span>
+                                  )}
+                                </div>
+                                {isCurrent && <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold">{d.start}</span>}
+                                {!open && <LockIcon className="size-4 flex-none text-muted" />}
+                              </motion.div>
+                            );
+                            return (
+                              <li key={lesson.slug} className="relative flex items-center gap-3" data-current={isCurrent || undefined}>
+                                <Marker tone={isDone ? "done" : isCurrent ? "current" : "locked"} pulse={isCurrent}>
+                                  {isDone ? <CheckIcon className="size-5" /> : <span className="font-display text-sm font-bold">{i + 1}</span>}
+                                </Marker>
+                                {open ? (
+                                  <Link href={`/${locale}/learn/${stage.slug}/${lesson.slug}/`} onClick={() => play("select")} className="flex min-w-0 flex-1">
+                                    {card}
+                                  </Link>
+                                ) : (
+                                  card
+                                )}
+                              </li>
+                            );
+                          })}
+                        </ol>
                       )}
                     </li>
                   );
@@ -199,11 +267,11 @@ export function PathMap({ locale }: { locale: Locale }) {
                 {stage.exam && (
                   <li className="relative flex items-center gap-3" data-current={(allLessonsDone && !examPassed) || undefined}>
                     <Marker tone={examPassed ? "done" : allLessonsDone ? "current" : "locked"} pulse={allLessonsDone && !examPassed}>
-                      <span className="text-2xl">🏆</span>
+                      <span className="text-xl">🏆</span>
                     </Marker>
                     {allLessonsDone ? (
                       <Link href={`/${locale}/learn/${stage.slug}/exam/`} onClick={() => play("select")} className="flex flex-1">
-                        <motion.div whileTap={{ scale: 0.98 }} className="glass flex flex-1 items-center justify-between gap-3 rounded-2xl border-saffron! p-4">
+                        <motion.div whileTap={{ scale: 0.98 }} className="glass flex flex-1 items-center justify-between gap-3 rounded-2xl border-saffron! px-4 py-3">
                           <span className="font-display font-semibold">{d.exam}</span>
                           <span className="rounded-full bg-saffron px-3 py-1 text-xs font-bold text-ink">
                             {examPassed ? `${d.examPassed} ${examScore}%` : d.start}
@@ -211,7 +279,7 @@ export function PathMap({ locale }: { locale: Locale }) {
                         </motion.div>
                       </Link>
                     ) : (
-                      <div className="glass flex flex-1 items-center justify-between rounded-2xl p-4 opacity-60">
+                      <div className="glass flex flex-1 items-center justify-between rounded-2xl px-4 py-3 opacity-60">
                         <span className="font-display font-semibold">{d.exam}</span>
                         <LockIcon className="size-5 text-muted" />
                       </div>
@@ -222,11 +290,11 @@ export function PathMap({ locale }: { locale: Locale }) {
                 {stage.project && (
                   <li className="relative flex items-center gap-3" data-current={(examPassed && projectScore < PROJECT_PASS) || undefined}>
                     <Marker tone={projectScore >= PROJECT_PASS ? "done" : examPassed ? "current" : "locked"} pulse={examPassed && projectScore < PROJECT_PASS}>
-                      <span className="text-2xl">🏗️</span>
+                      <span className="text-xl">🏗️</span>
                     </Marker>
                     {examPassed ? (
                       <Link href={`/${locale}/learn/${stage.slug}/project/`} onClick={() => play("select")} className="flex flex-1">
-                        <motion.div whileTap={{ scale: 0.98 }} className="glass flex flex-1 items-center justify-between gap-3 rounded-2xl p-4">
+                        <motion.div whileTap={{ scale: 0.98 }} className="glass flex flex-1 items-center justify-between gap-3 rounded-2xl px-4 py-3">
                           <span className="flex flex-col">
                             <span className="font-display font-semibold">{dict.project.row}</span>
                             <span className="text-xs text-muted">{t(stage.project.title, locale)}</span>
@@ -237,7 +305,7 @@ export function PathMap({ locale }: { locale: Locale }) {
                         </motion.div>
                       </Link>
                     ) : (
-                      <div className="glass flex flex-1 items-center justify-between rounded-2xl p-4 opacity-60">
+                      <div className="glass flex flex-1 items-center justify-between rounded-2xl px-4 py-3 opacity-60">
                         <span className="font-display font-semibold">{dict.project.row}</span>
                         <LockIcon className="size-5 text-muted" />
                       </div>
