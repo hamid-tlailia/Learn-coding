@@ -24,6 +24,7 @@
     "@emmetio/codemirror6-plugin": "^0.4.1",
     "@uiw/react-codemirror": "^4.25.12",
     "@vercel/blob": "^2.8.1",
+    "acorn": "^8.19.0",
     "canvas-confetti": "^1.9.4",
     "html-to-image": "^1.11.13",
     "motion": "^14.0.0",

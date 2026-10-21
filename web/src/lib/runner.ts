@@ -1,3 +1,4 @@
+import { LOOP_GUARD_RUNTIME, protectLoops } from "./loopGuard";
 import type { CheckInput, Files, Runtime, Task, Variants } from "@/content/types";
 
 /**
@@ -122,12 +123,14 @@ const later = (code: string) => `(function(){var s=document.createElement("scrip
  * React / mobile / server lessons: the vendored runtime, then the compiled code.
  */
 export function buildPreview(raw: Files, opts: RunOptions = {}): string {
-  const files = cleanFiles(raw);
+  const clean = cleanFiles(raw);
+  // Every loop gets a guard, so an endless loop stops after a second instead of freezing the app.
+  const files = clean.js ? { ...clean, js: protectLoops(clean.js) } : clean;
   const html = files.html ?? "";
   // In the app's dark theme the page starts dark too; the learner's own CSS still wins.
   const dark = opts.dark ?? (typeof document !== "undefined" && document.documentElement.dataset.theme === "dark");
   const style = `${dark ? PREVIEW_DARK : ""}<style>${files.css ?? ""}</style>`;
-  const bridge = FORM_GUARD + STORAGE + (opts.token ? consoleBridge(opts.token) : "");
+  const bridge = FORM_GUARD + STORAGE + (opts.token ? consoleBridge(opts.token) : "") + `<script>${LOOP_GUARD_RUNTIME}</script>`;
   const done = opts.token
     ? `<script>setTimeout(function(){parent.postMessage({cm:${JSON.stringify(opts.token)},type:"done"},"*")},${opts.settle ?? 50})</script>`
     : "";

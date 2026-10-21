@@ -100,11 +100,17 @@ export function Workspace({
   const [full, setFull] = useState(false);
   const view = useRef<EditorView | null>(null);
 
+  // The page currently in the preview: rebuilding the very same page doesn't rerun it,
+  // so its console output must not be cleared either.
+  const shown = useRef(preview);
   useEffect(() => {
     const id = window.setTimeout(() => {
       compile(files, runtime).then((f) => {
+        const next = buildPreview(f, { token, runtime });
+        if (next === shown.current) return;
+        shown.current = next;
         setLogs([]);
-        setPreview(buildPreview(f, { token, runtime }));
+        setPreview(next);
       });
     }, 350);
     return () => window.clearTimeout(id);
@@ -299,7 +305,7 @@ export function Workspace({
                   <span className="text-[#4c5a8a]">{"// console.log() output appears here"}</span>
                 ) : (
                   logs.map((l, i) => (
-                    <div key={i} className={l.type === "error" ? "text-[#f87171]" : l.type === "warn" ? "text-[#fbbf24]" : "text-[#a7f3d0]"}>
+                    <div key={i} className={`whitespace-pre-wrap [overflow-wrap:anywhere] ${l.type === "error" ? "text-[#f87171]" : l.type === "warn" ? "text-[#fbbf24]" : "text-[#a7f3d0]"}`}>
                       {"> "}
                       {l.text}
                     </div>
