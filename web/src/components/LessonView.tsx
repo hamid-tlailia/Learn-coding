@@ -451,9 +451,12 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
   }
 
   // ------------------------------------------------------------ Finished before: redo or move on
-  if (revisit && !won) {
+  // Decided on the very first render (the effect only fixes it in place), so the lesson never flashes first.
+  if ((revisit ?? progress.completed.includes(key)) && !won) {
     return (
-      <div dir={tdir} lang={tl} className="fixed inset-0 z-40 flex flex-col items-center justify-center gap-5 bg-paper px-6 text-center" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+      <div dir={tdir} lang={tl} className="fixed inset-0 z-40 flex overflow-y-auto bg-paper px-6 text-center" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+        {/* m-auto centers without clipping the top when the screen is short (e.g. the keyboard is still closing). */}
+        <div className="m-auto flex w-full flex-col items-center gap-5 py-8">
         <span className="text-6xl" aria-hidden="true">
           🎓
         </span>
@@ -484,6 +487,7 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
           <Link href={back} className="py-2 font-semibold text-muted">
             {dict.done.back}
           </Link>
+        </div>
         </div>
       </div>
     );
