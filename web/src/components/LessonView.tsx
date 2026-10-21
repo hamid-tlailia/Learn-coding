@@ -112,6 +112,8 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
   const [compare, setCompare] = useState<Files | null>(null);
   const hintsBox = useRef<HTMLOListElement | null>(null);
   const [checking, setChecking] = useState(false);
+  // Opening a lesson finished earlier asks first: redo it, or go on to an unfinished one.
+  const [revisit, setRevisit] = useState<boolean | null>(null);
   // Quiz: wrong options tried per question, and which questions are solved.
   const [tried, setTried] = useState<Record<string, number[]>>({});
   const [solved, setSolved] = useState<Record<string, boolean>>({});
@@ -122,9 +124,13 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
   const ordered = orderedStages(track);
   const flowing = stage.slug === ordered[0].slug;
   const following = ordered[ordered.findIndex((s) => s.slug === stage.slug) + 1];
-  const nextHref = next
-    ? `/${locale}/learn/${stage.slug}/${next.slug}/`
-    : stage.exam
+  // "Next" skips lessons already finished: the first unfinished one after this, then any before it.
+  const isDone = (slug: string) => slug !== lesson.slug && progress.completed.includes(lessonKey(stage.slug, slug));
+  const unfinished = stage.lessons.slice(index + 1).find((l) => !isDone(l.slug)) ?? stage.lessons.slice(0, index).find((l) => !isDone(l.slug));
+  const examPassed = !!stage.exam && (progress.exams[stage.slug] ?? 0) >= stage.exam.passPercent;
+  const nextHref = unfinished
+    ? `/${locale}/learn/${stage.slug}/${unfinished.slug}/`
+    : stage.exam && !examPassed
       ? `/${locale}/learn/${stage.slug}/exam/`
       : flowing && following?.lessons[0]
         ? `/${locale}/learn/${following.slug}/${following.lessons[0].slug}/`
@@ -149,6 +155,10 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
     const id = window.setTimeout(() => setCountdown((c) => c - 1), 1000);
     return () => window.clearTimeout(id);
   }, [won, flowing, countdown, nextHref, router]);
+
+  useEffect(() => {
+    if (mounted && revisit === null) setRevisit(progress.completed.includes(key));
+  }, [mounted, revisit, progress.completed, key]);
 
   useEffect(() => {
     try {
@@ -233,6 +243,12 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
     const first = completeLesson(key, lesson.xp);
     try {
       window.localStorage.removeItem(draftKey(key));
+    } catch {
+      // Nothing to clear.
+    }
+    // The lesson is finished: it reopens from the start, not inside the editor.
+    try {
+      window.localStorage.removeItem(positionKey(key));
     } catch {
       // Nothing to clear.
     }
@@ -380,7 +396,7 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
             onClick={() => play("whoosh")}
             className="rounded-2xl btn-grad py-3 font-display text-lg font-bold shadow-[0_4px_0_0_rgba(0,0,0,0.2)]"
           >
-            {next || (flowing && following) ? dict.done.continue : stage.exam ? dict.done.toExam : dict.done.back}
+            {unfinished ? (unfinished === next ? dict.done.continue : dict.done.continueUnfinished) : flowing && following ? dict.done.continue : stage.exam && !examPassed ? dict.done.toExam : dict.done.back}
             {flowing && ` (${countdown})`}
           </Link>
           {!flowing && (
@@ -426,10 +442,49 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
             </div>
           ))}
           <Link href={nextHref} className="btn-grad grid h-14 place-items-center rounded-2xl font-display text-lg font-bold">
-            {next ? dict.done.continue : stage.exam ? dict.done.toExam : dict.done.back}
+            {unfinished ? (unfinished === next ? dict.done.continue : dict.done.continueUnfinished) : stage.exam && !examPassed ? dict.done.toExam : dict.done.back}
           </Link>
         </div>
         {celebration}
+      </div>
+    );
+  }
+
+  // ------------------------------------------------------------ Finished before: redo or move on
+  if (revisit && !won) {
+    return (
+      <div dir={tdir} lang={tl} className="fixed inset-0 z-40 flex flex-col items-center justify-center gap-5 bg-paper px-6 text-center" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+        <span className="text-6xl" aria-hidden="true">
+          🎓
+        </span>
+        <div className="flex max-w-sm flex-col gap-2">
+          <p className="text-sm font-semibold text-muted">{t(lesson.title, tl)}</p>
+          <h1 className="font-display text-2xl font-bold">{dict.done.revisitTitle}</h1>
+          <p className="text-muted">{dict.done.revisitText}</p>
+        </div>
+        <div className="flex w-full max-w-sm flex-col gap-3">
+          {nextHref !== back && (
+            <Link href={nextHref} onClick={() => play("whoosh")} className="btn-grad grid h-14 place-items-center rounded-2xl font-display text-lg font-bold">
+              {unfinished ? dict.done.toUnfinished : stage.exam && !examPassed ? dict.done.toExam : dict.done.continue}
+            </Link>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              play("tap");
+              setStep(0);
+              setPhase("learn");
+              setFiles(lesson.starter);
+              setRevisit(false);
+            }}
+            className="h-14 rounded-2xl border-2 border-line bg-surface font-display text-lg font-bold"
+          >
+            🔁 {dict.done.redo}
+          </button>
+          <Link href={back} className="py-2 font-semibold text-muted">
+            {dict.done.back}
+          </Link>
+        </div>
       </div>
     );
   }

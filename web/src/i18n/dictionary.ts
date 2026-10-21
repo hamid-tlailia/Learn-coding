@@ -261,6 +261,11 @@ const ar = {
     toExam: "إلى اختبار المرحلة",
     back: "العودة للمسار",
     again: "البقاء هنا",
+    continueUnfinished: "الدرس التالي غير المكتمل",
+    revisitTitle: "أكملت هذا الدرس من قبل ✅",
+    revisitText: "يمكنك إعادته للمراجعة، أو المتابعة إلى أول درس لم تكمله بعد.",
+    redo: "أعد الدرس",
+    toUnfinished: "إلى الدرس غير المكتمل",
   },
   exam: {
     title: "اختبار المرحلة",
@@ -615,6 +620,11 @@ const en: Dictionary = {
     toExam: "Go to the stage exam",
     back: "Back to the path",
     again: "Stay here",
+    continueUnfinished: "Next unfinished lesson",
+    revisitTitle: "You've already finished this lesson ✅",
+    revisitText: "You can redo it to review, or continue to the first lesson you haven't finished yet.",
+    redo: "Redo the lesson",
+    toUnfinished: "To the unfinished lesson",
   },
   exam: {
     title: "Stage exam",
