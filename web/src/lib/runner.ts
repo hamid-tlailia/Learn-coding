@@ -249,6 +249,9 @@ export async function collectLogs(files: Files, opts: Omit<RunOptions, "token"> 
 }
 
 /** Runs every task check against the learner's code. Checks never see the live preview. */
+/** Set in check results when the code had a loop that never ends (it was stopped by the guard). */
+export const ENDLESS = "__endless";
+
 export async function runChecks(
   tasks: Task[],
   raw: Files,
@@ -271,6 +274,8 @@ export async function runChecks(
   const doc = new DOMParser().parseFromString(rendered ? rendered.slice(8) : source, "text/html");
   const input: CheckInput = { files, doc, css: files.css ?? "", source, logs, rule, media, runs };
   const results: Record<string, boolean> = {};
+  // A loop that never ends was stopped mid-run: the output is cut short, so judging the tasks would mislead.
+  if ([logs, ...runs].some((l) => l.some((line) => /Infinite loop stopped/.test(line)))) results[ENDLESS] = true;
   for (const task of tasks) {
     try {
       results[task.id] = task.test(input);

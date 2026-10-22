@@ -11,7 +11,7 @@ import { dirOf, t, type L, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionary";
 import { celebrate, play } from "@/lib/feedback";
 import { completeLesson, isCompleted, isLessonOpen, levelOf, useProgress } from "@/lib/progress";
-import { buildPreview, collectLogs, isInternalLog, runChecks } from "@/lib/runner";
+import { buildPreview, collectLogs, ENDLESS, isInternalLog, runChecks } from "@/lib/runner";
 import { noteDone, noteFail, noteHint, noteQuizSlip, noteSolution } from "@/lib/insights";
 import { lintCode } from "@/lib/lint";
 import { RuntimePreview } from "./RuntimePreview";
@@ -33,6 +33,12 @@ const noCopy = {
   onCut: (e: React.ClipboardEvent) => e.preventDefault(),
   onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
   style: { userSelect: "none", WebkitUserSelect: "none", WebkitTouchCallout: "none" } as React.CSSProperties,
+};
+
+/** Shown instead of task results when a loop in the code never ends. */
+const ENDLESS_NOTE: L = {
+  ar: "🔁 في كودك **حلقة لا تنتهي**، فأوقفناها ولم نقيّم المهام بعد. تأكد أن شرط الحلقة يصبح `false` في وقت ما: غيّر المتغير داخل الحلقة، مثل `n = n * 2;` داخل `while (n < 100)`.",
+  en: "🔁 Your code has a **loop that never ends**, so we stopped it and didn't grade the tasks yet. Make sure the loop's condition becomes `false` at some point: change the variable inside the loop, like `n = n * 2;` inside `while (n < 100)`.",
 };
 
 /** The solution stays hidden until the learner has really tried: this many unsuccessful checks. */
@@ -302,6 +308,15 @@ export function LessonView({ locale, stageSlug, lessonSlug }: { locale: Locale; 
     setChecking(true);
     const r = await runChecks(lesson.tasks, files, { harness: lesson.harness, settle: lesson.settle, runtime: lesson.runtime, variants: lesson.variants });
     setChecking(false);
+    if (r[ENDLESS]) {
+      // Don't mark tasks wrong because a loop elsewhere never ended: say what to fix first.
+      setResults(null);
+      setWarnings([ENDLESS_NOTE, ...lintCode(files, lesson.runtime)]);
+      play("wrong");
+      setShake((n) => n + 1);
+      setForcePane({ pane: "side", at: Date.now() });
+      return;
+    }
     setResults(r);
     setWarnings(lintCode(files, lesson.runtime));
     if (lesson.tasks.every((task) => r[task.id])) {
