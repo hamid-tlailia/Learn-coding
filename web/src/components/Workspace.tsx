@@ -100,6 +100,13 @@ export function Workspace({
   const [full, setFull] = useState(false);
   const view = useRef<EditorView | null>(null);
 
+  // The console follows the newest line, where errors and "stopped" notices appear.
+  const consoleBox = useRef<HTMLPreElement | null>(null);
+  useEffect(() => {
+    const box = consoleBox.current;
+    if (box) box.scrollTop = box.scrollHeight;
+  }, [logs, pane]);
+
   // The page currently in the preview: rebuilding the very same page doesn't rerun it,
   // so its console output must not be cleared either.
   const shown = useRef(preview);
@@ -117,12 +124,25 @@ export function Workspace({
   }, [files, token, runtime]);
 
   useEffect(() => {
+    // Lines are gathered and shown once per frame, so a burst of output costs one render, not hundreds.
+    let pending: { type: string; text: string }[] = [];
+    let raf = 0;
+    const flush = () => {
+      raf = 0;
+      const batch = pending;
+      pending = [];
+      setLogs((l) => [...l, ...batch].slice(-50));
+    };
     const onMessage = (e: MessageEvent) => {
       if (e.source !== frame.current?.contentWindow || e.data?.cm !== token || e.data.type === "done" || isInternalLog(e.data.text ?? "")) return;
-      setLogs((l) => [...l.slice(-49), { type: e.data.type, text: e.data.text }]);
+      pending.push({ type: e.data.type, text: e.data.text });
+      if (!raf) raf = requestAnimationFrame(flush);
     };
     window.addEventListener("message", onMessage);
-    return () => window.removeEventListener("message", onMessage);
+    return () => {
+      window.removeEventListener("message", onMessage);
+      cancelAnimationFrame(raf);
+    };
   }, [token]);
 
   useEffect(() => {
@@ -300,7 +320,7 @@ export function Workspace({
           {showConsole && (
             <div className="flex max-h-[40%] min-h-28 flex-col border-t border-white/10 bg-[#070b1c]" dir="ltr">
               <span className="px-3 pt-2 font-mono text-[11px] uppercase tracking-wider text-[#6c7bb0]">Console</span>
-              <pre className="flex-1 overflow-auto px-3 py-2 font-mono text-[13px] leading-relaxed">
+              <pre ref={consoleBox} className="flex-1 overflow-auto px-3 py-2 font-mono text-[13px] leading-relaxed">
                 {logs.length === 0 ? (
                   <span className="text-[#4c5a8a]">{"// console.log() output appears here"}</span>
                 ) : (

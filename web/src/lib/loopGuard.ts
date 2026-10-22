@@ -3,7 +3,8 @@ import { parse } from "acorn";
 /**
  * Infinite-loop protection for learner code. The preview reruns on every keystroke, so a
  * half-typed `while (n)` would spin forever and freeze the whole app. Every loop body gets a
- * cheap guard call; the guard throws once the page has been stuck in loops for over a second.
+ * cheap guard call; the guard throws once the page has been stuck in loops for 0.4 s. On Android the preview
+ * shares the app's thread, so this is also how long the app can freeze.
  *
  * The clock is refreshed by a timer, which can only fire while the page is free: a loop that
  * keeps the page busy stops the refresh, and the guard notices. Loops that run in short bursts
@@ -15,9 +16,9 @@ const GUARD = "__cmLoop()";
 /** Defines `__cmLoop` in the preview, before the learner's code. */
 export const LOOP_GUARD_RUNTIME = `(function () {
   var last = Date.now(), n = 0;
-  setInterval(function () { last = Date.now(); }, 200);
+  setInterval(function () { last = Date.now(); }, 100);
   window.__cmLoop = function () {
-    if (++n % 1000 === 0 && Date.now() - last > 1000) {
+    if (++n % 100 === 0 && Date.now() - last > 400) {
       last = Date.now();
       throw new RangeError("Infinite loop stopped (its condition never becomes false) · أُوقفت حلقة لا تنتهي (شرطها لا يصبح false)");
     }

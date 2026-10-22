@@ -1,15 +1,22 @@
 import { LOOP_GUARD_RUNTIME, protectLoops } from "./loopGuard";
 import type { CheckInput, Files, Runtime, Task, Variants } from "@/content/types";
 
+/** At most this many console lines per run: a loop printing on every turn would flood the app. Errors always get through. */
+const CONSOLE_LIMIT = 300;
+
 /**
  * Sent from inside the preview iframe to the app: console output and errors.
  * The iframe is sandboxed without same-origin, so postMessage is the only channel out.
  */
 const consoleBridge = (token: string) => `<script>(function(){
-var send=function(type,args){try{parent.postMessage({cm:${JSON.stringify(token)},type:type,text:Array.prototype.map.call(args,function(a){if(typeof a==="string")return a;if(a instanceof Error)return a.message;try{return JSON.stringify(a)}catch(e){return String(a)}}).join(" ")},"*")}catch(e){}};
-["log","info","warn","error"].forEach(function(k){var o=console[k];console[k]=function(){send(k,arguments);o.apply(console,arguments)}});
-window.addEventListener("error",function(e){send("error",[e.message])});
-window.addEventListener("unhandledrejection",function(e){send("error",[e.reason&&e.reason.message||String(e.reason)])});
+var shown=0,LIMIT=${CONSOLE_LIMIT};
+var post=function(type,text){try{parent.postMessage({cm:${JSON.stringify(token)},type:type,text:text},"*")}catch(e){}};
+var send=function(type,args){var text=Array.prototype.map.call(args,function(a){if(typeof a==="string")return a;if(a instanceof Error)return a.message;try{return JSON.stringify(a)}catch(e){return String(a)}}).join(" ");
+if(text.slice(0,2)!=="__"){if(++shown>LIMIT){if(shown===LIMIT+1)post("warn","… "+LIMIT+"+ lines: the rest is hidden (a loop printing too much?) · أُخفي الباقي");return false}}
+post(type,text);return true};
+["log","info","warn","error"].forEach(function(k){var o=console[k];console[k]=function(){if(send(k,arguments))o.apply(console,arguments)}});
+window.addEventListener("error",function(e){post("error",e.message)});
+window.addEventListener("unhandledrejection",function(e){post("error",e.reason&&e.reason.message||String(e.reason))});
 })();</script>`;
 
 const escapeScript = (code: string) => code.replace(/<\/script/gi, "<\\/script");
